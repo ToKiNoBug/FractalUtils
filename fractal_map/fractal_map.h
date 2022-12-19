@@ -6,7 +6,11 @@
 
 #include <type_traits>
 
-namespace libfractal_map {
+#include <array>
+
+#include <assert.h>
+
+namespace fractal_utils {
 
 template <typename T>
 using fast_const_t = std::conditional_t<(sizeof(T) > 8), const T &, T>;
@@ -53,6 +57,34 @@ public:
   }
 };
 
-} // namespace libfractal_map
+template <typename float_t> class center_wind {
+public:
+  std::array<float_t, 2> center;
+  float_t x_span;
+  float_t y_span;
+
+  static constexpr int idx_x = 0;
+  static constexpr int idx_y = 1;
+
+  inline std::array<float_t, 2> left_top_corner() const noexcept {
+    std::array<float_t, 2> ret = this->center;
+
+    ret[idx_x] -= x_span / 2;
+    ret[idx_y] -= y_span / 2;
+
+    return ret;
+  }
+
+  inline std::array<float_t, 2> right_bottom_corner() const noexcept {
+    std::array<float_t, 2> ret = this->center;
+
+    ret[idx_x] += x_span / 2;
+    ret[idx_y] += y_span / 2;
+
+    return ret;
+  }
+};
+
+} // namespace fractal_utils
 
 #endif
