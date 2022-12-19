@@ -1,6 +1,8 @@
 #include "fractal_binfile.h"
 #include <stdint.h>
 
+#include <stdio.h>
+
 using namespace fractal_utils;
 constexpr char __cmp[] = {'A', 'r', 'm', 'a', 'g', 'e', 'd', 'd',
                           'o', 'n', 6,   6,   6,   42,  30,  0};
@@ -176,6 +178,166 @@ bool fractal_utils::parse_from_memory(
 
   if (error) {
     return false;
+  }
+
+  return true;
+}
+
+bool fractal_utils::serialize_to_file(const data_block *const src,
+                                      const uint64_t block_num,
+                                      const bool write_header,
+                                      const char *const filename) noexcept {
+  if (filename == nullptr) {
+    return false;
+  }
+
+  FILE *fp;
+#ifdef _WIN32
+  fopen_s(&fp, filename, "wb");
+#else
+  fp = fopen(filename, "wb");
+#endif
+
+  if (fp == nullptr) {
+    return false;
+  }
+
+  if (write_header) {
+    file_header fhd;
+    fwrite(&fhd, 1, sizeof(fhd), fp);
+  }
+
+  for (uint64_t bidx = 0; bidx < block_num; bidx++) {
+    fwrite(&src[bidx].tag, sizeof(src[bidx].tag), 1, fp);
+    fwrite(&src[bidx].bytes, sizeof(src[bidx].bytes), 1, fp);
+
+    if (src[bidx].bytes > 0) {
+      fwrite(src[bidx].data, 1, src[bidx].bytes, fp);
+    }
+  }
+
+  fclose(fp);
+  return true;
+}
+
+void fractal_utils::binfile::remove_all_blocks() noexcept {
+  for (auto &blk : this->blocks) {
+    if (blk.data != nullptr)
+      this->callback_free(blk.data);
+    blk.data = nullptr;
+  }
+
+  this->blocks.clear();
+}
+
+fractal_utils::binfile::~binfile() { this->remove_all_blocks(); }
+
+uint64_t get_file_size(FILE *fp_r) noexcept {
+  const uint64_t idx = ftell(fp_r);
+
+  fseek(fp_r, 0, SEEK_END);
+  const uint64_t result = ftell(fp_r);
+
+  fseek(fp_r, idx, SEEK_SET);
+
+  return result;
+}
+
+bool fractal_utils::binfile::parse_from_file(const char *const filename,
+                                             const bool offset_only) noexcept {
+
+  if (filename == nullptr) {
+    return false;
+  }
+
+  FILE *fp;
+#ifdef _WIN32
+  fopen_s(&fp, filename, "rb");
+#else
+  fp = fopen(filename, "rb");
+#endif
+
+  if (fp == nullptr) {
+    return false;
+  }
+
+  // const uint64_t file_size = get_file_size(fp);
+
+  {
+    file_header fh;
+
+    const int bytes = fread(&fh, 1, sizeof(fh), fp);
+    if (bytes != sizeof(fh)) {
+      return false;
+    }
+
+    if (!fh.is_valid()) {
+      return false;
+    }
+  }
+
+  while (true) {
+
+    if (feof(fp)) {
+      break;
+    }
+
+    int error_code = 0;
+    int bytes = 0;
+
+    data_block blk;
+
+    bytes += fread(&blk.tag, sizeof(blk.tag), 1, fp);
+    bytes += fread(&blk.bytes, sizeof(blk.bytes), 1, fp);
+
+    if (bytes != sizeof(int64_t) + sizeof(uint64_t)) {
+      return false;
+    }
+    blk.file_offset = ftell(fp);
+
+    if (blk.bytes <= 0) {
+      blk.data = nullptr;
+
+      this->blocks.emplace_back(blk);
+      continue;
+    }
+
+    if (offset_only) {
+      error_code = fseek(fp, blk.bytes, SEEK_CUR);
+      blk.data = nullptr;
+
+      if (error_code) {
+        printf(
+            "\nError : function fractal_utils::binfile::parse_from_file failed "
+            "to parse file %s. function fseek failed with error code %i.\n",
+            filename, error_code);
+        return false;
+      }
+    } else {
+      blk.data = this->callback_malloc(blk.bytes);
+
+      if (blk.data == nullptr) {
+
+        printf(
+            "\nError : function fractal_utils::binfile::parse_from_file failed "
+            "to parse file %s. memory allocation function failed.\n",
+            filename);
+        return false;
+      }
+
+      const uint64_t __bytes = fread(blk.data, 1, blk.bytes, fp);
+
+      if (__bytes != blk.bytes) {
+
+        printf(
+            "\nError : function fractal_utils::binfile::parse_from_file failed "
+            "to parse file %s. fread met end of file.\n",
+            filename);
+        return false;
+      }
+    }
+
+    this->blocks.emplace_back(blk);
   }
 
   return true;
