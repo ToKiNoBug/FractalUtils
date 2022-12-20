@@ -1,5 +1,6 @@
-#include "colors.h"
 #include "color_sources.h"
+#include "fractal_colors.h"
+
 
 #include <memory>
 

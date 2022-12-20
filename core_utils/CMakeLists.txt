@@ -10,14 +10,19 @@ add_library(fractal_core_utils STATIC
     fractal_map.h
     fractal_map.cpp
 
-    colors.h
+    fractal_colors.h
     colors.cpp
     color_sources.h
     color_sources.cpp)
 
+set(core_utils_install_headers
+    fractal_binfile.h
+    fractal_map.h
+    fractal_colors.h
+    core_utils.h)
+
 install(TARGETS fractal_core_utils LIBRARY)
-install(FILES
-    fractal_binfile.h fractal_map.h colors.h core_utils.h
+install(FILES ${core_utils_install_headers}
     DESTINATION ${CMAKE_INSTALL_PREFIX}/include/fractal_utils)
 
 add_executable(test_binfile test_binfile.cpp)

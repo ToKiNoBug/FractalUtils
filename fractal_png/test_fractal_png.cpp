@@ -1,6 +1,6 @@
 #include "fractal_png.h"
 
-#include "../core_utils/colors.h"
+#include "../core_utils/core_utils.h"
 
 #include <cstring>
 #include <stdio.h>

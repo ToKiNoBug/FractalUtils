@@ -1,4 +1,4 @@
-#include "colors.h"
+#include "fractal_colors.h"
 
 #include <stdio.h>
 
