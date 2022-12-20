@@ -246,10 +246,6 @@ uint64_t get_file_size(FILE *fp_r) noexcept {
 bool fractal_utils::binfile::parse_from_file(const char *const filename,
                                              const bool offset_only) noexcept {
 
-  if (filename == nullptr) {
-    return false;
-  }
-
   FILE *fp;
 #ifdef _WIN32
   fopen_s(&fp, filename, "rb");
@@ -258,27 +254,38 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
 #endif
 
   if (fp == nullptr) {
+    printf("\nError : function fractal_utils::binfile::parse_from_file failed "
+           "to parse file %s : failed to open file stream.\n",
+           filename);
     return false;
   }
 
-  // const uint64_t file_size = get_file_size(fp);
+  const uint64_t file_size = get_file_size(fp);
 
   {
     file_header fh;
 
     const int bytes = fread(&fh, 1, sizeof(fh), fp);
     if (bytes != sizeof(fh)) {
+      printf(
+          "\nError : function fractal_utils::binfile::parse_from_file failed "
+          "to parse file %s : failed to read file header.\n",
+          filename);
       return false;
     }
 
     if (!fh.is_valid()) {
+      printf(
+          "\nError : function fractal_utils::binfile::parse_from_file failed "
+          "to parse file %s : file header is invalid.\n",
+          filename);
       return false;
     }
   }
 
   while (true) {
 
-    if (feof(fp)) {
+    if (ftell(fp) >= file_size) {
       break;
     }
 
@@ -287,10 +294,16 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
 
     data_block blk;
 
-    bytes += fread(&blk.tag, sizeof(blk.tag), 1, fp);
-    bytes += fread(&blk.bytes, sizeof(blk.bytes), 1, fp);
+    bytes += fread(&blk.tag, 1, sizeof(blk.tag), fp);
+    bytes += fread(&blk.bytes, 1, sizeof(blk.bytes), fp);
 
     if (bytes != sizeof(int64_t) + sizeof(uint64_t)) {
+
+      printf(
+          "\nError : function fractal_utils::binfile::parse_from_file failed "
+          "to parse file %s : tried to read a tag and lenght, but only read %i "
+          "bytes.\n",
+          filename, int(bytes));
       return false;
     }
     blk.file_offset = ftell(fp);
@@ -331,7 +344,7 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
 
         printf(
             "\nError : function fractal_utils::binfile::parse_from_file failed "
-            "to parse file %s. fread met end of file.\n",
+            "to parse file %s. fread meet end of file.\n",
             filename);
         return false;
       }
