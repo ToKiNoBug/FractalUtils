@@ -11,3 +11,4 @@ endif()
 
 add_subdirectory(fractal_map)
 add_subdirectory(fractal_binfile)
+add_subdirectory(fractal_colors)
