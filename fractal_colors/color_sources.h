@@ -19,6 +19,7 @@ extern const float src_pink[][3];
 extern const float src_prism[][3];
 extern const float src_spring[][3];
 extern const float src_winter[][3];
+extern const float src_summer[][3];
 } // namespace internal
 } // namespace fractal_utils
 
