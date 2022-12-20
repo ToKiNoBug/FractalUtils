@@ -1,9 +1,11 @@
 #ifndef FRACTALUTILS_FRACTAL_BINMAP_H
 #define FRACTALUTILS_FRACTAL_BINMAP_H
 
+#include <cstdlib>
 #include <memory>
 #include <stdint.h>
 #include <vector>
+
 
 namespace fractal_utils {
 

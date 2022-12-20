@@ -7,7 +7,11 @@ using namespace fractal_utils;
 constexpr char __cmp[] = {'A', 'r', 'm', 'a', 'g', 'e', 'd', 'd',
                           'o', 'n', 6,   6,   6,   42,  30,  0};
 fractal_utils::file_header::file_header() {
+#ifdef __GNUC__
+  __builtin_memset(this->data, 0, sizeof(file_header));
+#else
   memset(this->data, 0, sizeof(file_header));
+#endif
 
   memcpy(this->data, __cmp, sizeof(__cmp));
 }

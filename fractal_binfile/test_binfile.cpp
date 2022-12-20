@@ -1,7 +1,8 @@
 #include "fractal_binfile.h"
 
-#include <corecrt_malloc.h>
 #include <stdio.h>
+
+#include <cstring>
 
 bool generate_file(const char *const filename);
 
@@ -25,6 +26,7 @@ bool generate_file(const char *const filename) {
   blocks[0].tag = 1;
   blocks[0].bytes = 64;
   blocks[0].data = malloc(64);
+
   memset(blocks[0].data, 2, 64);
 
   blocks[1].tag = 114514;

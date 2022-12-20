@@ -86,7 +86,11 @@ void fractal_utils::color_u8c3_many(const float *const f, const color_series cs,
   const src_t src = get_source(cs);
 
   if (src == nullptr) {
+#ifdef __GNUC__
+    __builtin_memset(dest, 0, pixel_num * sizeof(pixel_RGB));
+#else
     memset(dest, 0, pixel_num * sizeof(pixel_RGB));
+#endif
     return;
   }
 
@@ -104,7 +108,11 @@ void fractal_utils::color_u8c4_many(const float *const f, const color_series cs,
   const src_t src = get_source(cs);
 
   if (src == nullptr) {
+#ifdef __GNUC__
+    __builtin_memset(dest, 0, pixel_num * sizeof(pixel_ARGB));
+#else
     memset(dest, 0, pixel_num * sizeof(pixel_ARGB));
+#endif
     return;
   }
 
