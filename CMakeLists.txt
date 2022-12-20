@@ -9,7 +9,9 @@ if(NOT DEFINED CMAKE_INSTALL_PREFIX)
     set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
 endif()
 
-add_subdirectory(fractal_map)
-add_subdirectory(fractal_binfile)
-add_subdirectory(fractal_colors)
+# add_subdirectory(fractal_map)
+add_subdirectory(core_utils)
+
+# add_subdirectory(fractal_binfile)
+# add_subdirectory(fractal_colors)
 add_subdirectory(fractal_png)

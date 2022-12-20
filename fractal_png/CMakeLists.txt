@@ -11,7 +11,7 @@ if(NOT ${PNG_FOUND})
     return()
 endif()
 
-include_directories(${CMAKE_SOURCE_DIR}/fractal_map)
+include_directories(${CMAKE_SOURCE_DIR}/core_utils)
 
 add_library(fractal_png STATIC
     fractal_png.h
@@ -24,4 +24,4 @@ install(FILES fractal_png.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/fractal_
 
 add_executable(test_fractal_png test_fractal_png.cpp)
 
-target_link_libraries(test_fractal_png PRIVATE fractal_png PNG::PNG fractal_map)
+target_link_libraries(test_fractal_png PRIVATE fractal_core_utils fractal_png PNG::PNG)
