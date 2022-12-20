@@ -1,4 +1,4 @@
-project(FractalUtils_fractal_core_utils LANGUAGES CXX)
+project(FractalUtils_core_utils LANGUAGES CXX)
 cmake_minimum_required(VERSION 3.5)
 
 set(CMAKE_CXX_STANDARD 17)
