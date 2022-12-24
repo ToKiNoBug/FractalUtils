@@ -29,7 +29,7 @@ include(CMakePackageConfigHelpers)
 target_include_directories(fractal_png_utils
     PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
-    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+    "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include/fractal_utils")
 
 install(TARGETS fractal_png_utils
     EXPORT fractal_utils_targets
