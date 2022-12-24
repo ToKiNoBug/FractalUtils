@@ -13,9 +13,29 @@ include(add_compiler_path_to_prefix.cmake)
 add_subdirectory(core_utils)
 add_subdirectory(png_utils)
 
-install(
-    EXPORT fractal_utils_targets
-    FILE fractal_utils-config.cmake
-    NAMESPACE fractal_utils::
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/fractal_utils
+# include CMakePackageConfigHelpers macro
+include(CMakePackageConfigHelpers)
+
+# set version
+set(version 1.0.0)
+
+# generate the version file for the config file
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/fractal_utils-config-version.cmake"
+    VERSION "${version}"
+    COMPATIBILITY AnyNewerVersion
+)
+
+# create config file
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/fractal_utils-config.cmake"
+    INSTALL_DESTINATION lib/cmake/fractal_utils
+    NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+
+# install config files
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/fractal_utils-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/fractal_utils-config-version.cmake"
+    DESTINATION lib/cmake/fractal_utils
 )

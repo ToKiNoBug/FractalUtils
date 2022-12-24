@@ -23,15 +23,31 @@ add_executable(test_fractal_png test_fractal_png.cpp)
 
 target_link_libraries(test_fractal_png PRIVATE fractal_core_utils fractal_png_utils PNG::PNG)
 
-# make package
-include(CMakePackageConfigHelpers)
+add_library(fractal_utils::png_utils ALIAS fractal_png_utils)
 
+# add include directories
 target_include_directories(fractal_png_utils
     PUBLIC
-    $<INSTALL_INTERFACE:include/fractal_utils>)
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    INTERFACE
+    $<INSTALL_INTERFACE:include>
+)
 
+# install the target and create export-set
 install(TARGETS fractal_png_utils
-    EXPORT fractal_utils_targets
-    LIBRARY ARCHIVE RUNTIME INCLUDES)
+    EXPORT fractal_utils_png_utils-targets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+)
 
-install(FILES png_utils.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/fractal_utils)
+# install header file
+install(FILES png_utils.h DESTINATION lib)
+
+# generate and install export file
+install(EXPORT fractal_utils_png_utils-targets
+    FILE fractal_utilspng_utilsTargets.cmake
+    NAMESPACE fractal_utils::
+    DESTINATION lib/cmake/fractal_utils
+)
