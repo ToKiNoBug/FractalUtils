@@ -31,6 +31,14 @@ public:
 
   ~fractal_map();
 
+  inline size_t element_count() const noexcept {
+    return this->rows * this->cols;
+  }
+
+  inline size_t byte_count() const noexcept {
+    return this->rows * this->cols * this->element_bytes;
+  }
+
   template <typename T> inline T &at(size_t idx) noexcept {
     assert(idx < this->rows * this->cols);
 

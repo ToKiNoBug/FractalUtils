@@ -1,4 +1,4 @@
-#include "fractal_png.h"
+#include "png_utils.h"
 
 #include "../core_utils/core_utils.h"
 

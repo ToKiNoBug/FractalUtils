@@ -1,7 +1,9 @@
 #ifndef FRACTALUTILS_COLORS_H
 #define FRACTALUTILS_COLORS_H
 
+#include <stddef.h>
 #include <stdint.h>
+
 
 namespace fractal_utils {
 enum class color_series : uint8_t {
@@ -39,6 +41,6 @@ void color_u8c3_many(const float *const f, const color_series,
 void color_u8c4_many(const float *const f, const color_series,
                      const size_t pixel_num, pixel_ARGB *const dest) noexcept;
 
-} // namespace fractal_utils
+}  // namespace fractal_utils
 
-#endif // FRACTALUTILS_COLORS_H
+#endif  // FRACTALUTILS_COLORS_H

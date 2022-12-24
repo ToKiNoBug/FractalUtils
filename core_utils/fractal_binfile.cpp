@@ -1,7 +1,11 @@
 #include "fractal_binfile.h"
-#include <stdint.h>
 
+#include <stdint.h>
 #include <stdio.h>
+
+#ifdef __GNUC__
+#include <cstring>
+#endif
 
 using namespace fractal_utils;
 constexpr char __cmp[] = {'A', 'r', 'm', 'a', 'g', 'e', 'd', 'd',
@@ -9,15 +13,14 @@ constexpr char __cmp[] = {'A', 'r', 'm', 'a', 'g', 'e', 'd', 'd',
 fractal_utils::file_header::file_header() {
 #ifdef __GNUC__
   __builtin_memset(this->data, 0, sizeof(file_header));
+  __builtin_memcpy(this->data, __cmp, sizeof(__cmp));
 #else
   memset(this->data, 0, sizeof(file_header));
-#endif
-
   memcpy(this->data, __cmp, sizeof(__cmp));
+#endif
 }
 
 bool fractal_utils::file_header::is_valid() const noexcept {
-
   for (int idx = 0; idx < sizeof(__cmp) / sizeof(__cmp[0]); idx++) {
     if (this->data[idx] != __cmp[idx]) {
       return false;
@@ -31,9 +34,7 @@ bool fractal_utils::serialize_to_memory(
     const bool write_header, void *const dest_beg, const uint64_t dest_capacity,
     uint64_t *const dest_bytes_used,
     uint64_t *const __blocks_written) noexcept {
-
   if (dest_beg == nullptr || dest_capacity <= 0) {
-
     if (dest_bytes_used != nullptr) {
       *dest_bytes_used = 0;
     }
@@ -48,9 +49,7 @@ bool fractal_utils::serialize_to_memory(
   uint8_t *dest = reinterpret_cast<uint8_t *>(dest_beg);
   uint8_t *const dest_end = dest + dest_capacity;
   if (write_header) {
-
     if (dest_end - dest < sizeof(file_header)) {
-
       if (dest_bytes_used != nullptr) {
         *dest_bytes_used = 0;
       }
@@ -64,14 +63,17 @@ bool fractal_utils::serialize_to_memory(
 
     file_header h;
 
+#ifdef __GNUC__
+    __builtin_memcpy(dest, &h, sizeof(h));
+#else
     memcpy(dest, &h, sizeof(h));
+#endif
     dest += sizeof(h);
   }
 
   uint64_t blocks_finished = 0;
 
   for (blocks_finished = 0; blocks_finished < block_num; blocks_finished++) {
-
     uint64_t bytes_this_block = 0;
     bytes_this_block += sizeof(int64_t) + sizeof(uint64_t);
 
@@ -101,7 +103,6 @@ bool fractal_utils::serialize_to_memory(
     memcpy(dest, &src[blocks_finished].bytes, sizeof(uint64_t));
     dest += sizeof(uint64_t);
     if (src[blocks_finished].bytes) {
-
       memcpy(dest, src[blocks_finished].data, src[blocks_finished].bytes);
       dest += src[blocks_finished].bytes;
     }
@@ -136,8 +137,7 @@ bool fractal_utils::parse_from_memory(
   {
     const file_header *fhp = reinterpret_cast<const file_header *>(data);
 
-    if (!fhp->is_valid())
-      return false;
+    if (!fhp->is_valid()) return false;
   }
 
   uint64_t offset = sizeof(file_header);
@@ -145,7 +145,6 @@ bool fractal_utils::parse_from_memory(
   bool error = false;
 
   while (true) {
-
     if (offset == bytes) {
       break;
     }
@@ -226,8 +225,7 @@ bool fractal_utils::serialize_to_file(const data_block *const src,
 
 void fractal_utils::binfile::remove_all_blocks() noexcept {
   for (auto &blk : this->blocks) {
-    if (blk.data != nullptr)
-      this->callback_free(blk.data);
+    if (blk.data != nullptr) this->callback_free(blk.data);
     blk.data = nullptr;
   }
 
@@ -249,7 +247,6 @@ uint64_t get_file_size(FILE *fp_r) noexcept {
 
 bool fractal_utils::binfile::parse_from_file(const char *const filename,
                                              const bool offset_only) noexcept {
-
   FILE *fp;
 #ifdef _WIN32
   fopen_s(&fp, filename, "rb");
@@ -258,9 +255,10 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
 #endif
 
   if (fp == nullptr) {
-    printf("\nError : function fractal_utils::binfile::parse_from_file failed "
-           "to parse file %s : failed to open file stream.\n",
-           filename);
+    printf(
+        "\nError : function fractal_utils::binfile::parse_from_file failed "
+        "to parse file %s : failed to open file stream.\n",
+        filename);
     return false;
   }
 
@@ -288,7 +286,6 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
   }
 
   while (true) {
-
     if (ftell(fp) >= file_size) {
       break;
     }
@@ -302,7 +299,6 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
     bytes += fread(&blk.bytes, 1, sizeof(blk.bytes), fp);
 
     if (bytes != sizeof(int64_t) + sizeof(uint64_t)) {
-
       printf(
           "\nError : function fractal_utils::binfile::parse_from_file failed "
           "to parse file %s : tried to read a tag and lenght, but only read %i "
@@ -334,7 +330,6 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
       blk.data = this->callback_malloc(blk.bytes);
 
       if (blk.data == nullptr) {
-
         printf(
             "\nError : function fractal_utils::binfile::parse_from_file failed "
             "to parse file %s. memory allocation function failed.\n",
@@ -345,7 +340,6 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
       const uint64_t __bytes = fread(blk.data, 1, blk.bytes, fp);
 
       if (__bytes != blk.bytes) {
-
         printf(
             "\nError : function fractal_utils::binfile::parse_from_file failed "
             "to parse file %s. fread meet end of file.\n",

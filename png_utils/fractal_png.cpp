@@ -1,4 +1,4 @@
-#include "fractal_png.h"
+#include "png_utils.h"
 
 #include <png.h>
 #include <stdio.h>
@@ -56,7 +56,6 @@ write_struct create_write_struct(const char *const filename) noexcept {
 }
 
 void destroy_write_struct(write_struct *const w) {
-
   if (w->info != NULL) {
     png_destroy_info_struct(w->png, &w->info);
     // w->info = NULL;
