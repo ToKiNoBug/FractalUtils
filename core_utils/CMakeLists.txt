@@ -32,8 +32,8 @@ set(core_utils_install_headers
 
 target_include_directories(fractal_core_utils
     PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
-    "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include/fractal_utils>"
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include/fractal_utils>
 )
 
 install(TARGETS fractal_core_utils
