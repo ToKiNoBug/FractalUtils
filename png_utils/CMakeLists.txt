@@ -43,7 +43,7 @@ install(TARGETS fractal_png_utils
 )
 
 # install header file
-install(FILES png_utils.h DESTINATION lib)
+install(FILES png_utils.h DESTINATION include)
 
 # generate and install export file
 install(EXPORT fractal_utils_png_utils-targets
