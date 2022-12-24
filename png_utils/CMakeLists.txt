@@ -7,26 +7,26 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(PNG)
 
 if((NOT DEFINED PNG_FOUND) OR(NOT ${PNG_FOUND}))
-    message(WARNING "libpng not found, fractal_png_utils will not be built.")
+    message(WARNING "libpng not found, png_utils will not be built.")
     return()
 endif()
 
 include_directories(${CMAKE_SOURCE_DIR}/core_utils)
 
-add_library(fractal_png_utils STATIC
+add_library(png_utils STATIC
     png_utils.h
     fractal_png.cpp)
 
-target_link_libraries(fractal_png_utils PRIVATE PNG::PNG)
+target_link_libraries(png_utils PRIVATE PNG::PNG)
 
 add_executable(test_fractal_png test_fractal_png.cpp)
 
-target_link_libraries(test_fractal_png PRIVATE fractal_core_utils fractal_png_utils PNG::PNG)
+target_link_libraries(test_fractal_png PRIVATE core_utils png_utils PNG::PNG)
 
-add_library(fractal_utils::png_utils ALIAS fractal_png_utils)
+add_library(fractal_utils::png_utils ALIAS png_utils)
 
 # add include directories
-target_include_directories(fractal_png_utils
+target_include_directories(png_utils
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     INTERFACE
@@ -34,7 +34,7 @@ target_include_directories(fractal_png_utils
 )
 
 # install the target and create export-set
-install(TARGETS fractal_png_utils
+install(TARGETS png_utils
     EXPORT fractal_utils_png_utils-targets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
