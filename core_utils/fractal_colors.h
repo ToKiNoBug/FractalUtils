@@ -1,9 +1,29 @@
+/*
+ Copyright © 2022-2023  TokiNoBug
+This file is part of FractalUtils.
+
+    FractalUtils is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    FractalUtils is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with FractalUtils.  If not, see <https://www.gnu.org/licenses/>.
+
+    Contact with me:
+    github:https://github.com/ToKiNoBug
+*/
+
 #ifndef FRACTALUTILS_COLORS_H
 #define FRACTALUTILS_COLORS_H
 
 #include <stddef.h>
 #include <stdint.h>
-
 
 namespace fractal_utils {
 enum class color_series : uint8_t {
@@ -41,6 +61,6 @@ void color_u8c3_many(const float *const f, const color_series,
 void color_u8c4_many(const float *const f, const color_series,
                      const size_t pixel_num, pixel_ARGB *const dest) noexcept;
 
-}  // namespace fractal_utils
+} // namespace fractal_utils
 
-#endif  // FRACTALUTILS_COLORS_H
+#endif // FRACTALUTILS_COLORS_H
