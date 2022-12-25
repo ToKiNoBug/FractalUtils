@@ -39,7 +39,7 @@ install(TARGETS png_utils
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include
+    INCLUDES DESTINATION include/fractal_utils
 )
 
 # install header file

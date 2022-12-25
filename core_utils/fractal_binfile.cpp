@@ -158,8 +158,7 @@ bool fractal_utils::parse_from_memory(
   {
     const file_header *fhp = reinterpret_cast<const file_header *>(data);
 
-    if (!fhp->is_valid())
-      return false;
+    if (!fhp->is_valid()) return false;
   }
 
   uint64_t offset = sizeof(file_header);
@@ -247,8 +246,7 @@ bool fractal_utils::serialize_to_file(const data_block *const src,
 
 void fractal_utils::binfile::remove_all_blocks() noexcept {
   for (auto &blk : this->blocks) {
-    if (blk.data != nullptr)
-      this->callback_free(blk.data);
+    if (blk.data != nullptr) this->callback_free(blk.data);
     blk.data = nullptr;
   }
 
@@ -278,9 +276,10 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
 #endif
 
   if (fp == nullptr) {
-    printf("\nError : function fractal_utils::binfile::parse_from_file failed "
-           "to parse file %s : failed to open file stream.\n",
-           filename);
+    printf(
+        "\nError : function fractal_utils::binfile::parse_from_file failed "
+        "to parse file %s : failed to open file stream.\n",
+        filename);
     return false;
   }
 
@@ -371,6 +370,25 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
     }
 
     this->blocks.emplace_back(blk);
+  }
+
+  return true;
+}
+
+bool fractal_utils::write_data_block(FILE *const file_ptr,
+                                     const data_block &block) noexcept {
+  size_t temp;
+  temp = fwrite(&block.tag, sizeof(block.tag), 1, file_ptr);
+  if (temp != sizeof(block.tag)) {
+    return false;
+  }
+  temp = fwrite(&block.bytes, sizeof(block.bytes), 1, file_ptr);
+  if (temp != sizeof(block.bytes)) {
+    return false;
+  }
+  temp = fwrite(block.data, 1, block.bytes, file_ptr);
+  if (temp != block.bytes) {
+    return false;
   }
 
   return true;

@@ -22,9 +22,10 @@ This file is part of FractalUtils.
 #ifndef FRACTALUTILS_FRACTAL_BINMAP_H
 #define FRACTALUTILS_FRACTAL_BINMAP_H
 
+#include <stdint.h>
+
 #include <cstdlib>
 #include <memory>
-#include <stdint.h>
 #include <vector>
 
 namespace fractal_utils {
@@ -47,7 +48,7 @@ struct data_block {
 };
 
 class binfile {
-public:
+ public:
   std::vector<data_block> blocks;
 
   void *(*callback_malloc)(size_t) = malloc;
@@ -75,6 +76,10 @@ bool serialize_to_file(const data_block *const src, const uint64_t block_num,
                        const bool write_header,
                        const char *const filename) noexcept;
 
-} // namespace fractal_utils
+struct FILE;
+bool write_data_block(FILE *const file_ptr_wb,
+                      const data_block &block) noexcept;
 
-#endif // FRACTALUTILS_FRACTAL_BINMAP_H
+}  // namespace fractal_utils
+
+#endif  // FRACTALUTILS_FRACTAL_BINMAP_H
