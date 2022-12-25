@@ -19,11 +19,11 @@ This file is part of FractalUtils.
     github:https://github.com/ToKiNoBug
 */
 
-#include "fractal_binfile.h"
-
 #include <stdio.h>
 
 #include <cstring>
+
+#include "fractal_binfile.h"
 
 bool generate_file(const char *const filename);
 
@@ -40,7 +40,6 @@ int main() {
 }
 
 bool generate_file(const char *const filename) {
-
   std::vector<fractal_utils::data_block> blocks;
   blocks.resize(2);
 
@@ -51,16 +50,15 @@ bool generate_file(const char *const filename) {
   memset(blocks[0].data, 2, 64);
 
   blocks[1].tag = 114514;
-  blocks[1].bytes = 95;
-  blocks[1].data = malloc(95);
-  memset(blocks[1].data, 6, 95);
+  blocks[1].bytes = 1919810;
+  blocks[1].data = malloc(blocks[1].bytes);
+  memset(blocks[1].data, 6, blocks[1].bytes);
 
   const bool success = fractal_utils::serialize_to_file(
       blocks.data(), blocks.size(), true, filename);
 
   for (auto &i : blocks) {
-    if (i.bytes > 0)
-      free(i.data);
+    if (i.bytes > 0) free(i.data);
     i.data = nullptr;
   }
 
@@ -87,8 +85,7 @@ bool parse_file(const char *const filename) {
   printf("parse_file succeeded\n");
 
   for (int i = 0; i < file.blocks.size(); i++) {
-
-    printf("block %i : tag = %lli, %llu bytes, offset = %llu\n", i,
+    printf("block %i : tag = %li, %lu bytes, offset = %lu\n", i,
            file.blocks[i].tag, file.blocks[i].bytes,
            file.blocks[i].file_offset);
   }

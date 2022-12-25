@@ -17,7 +17,7 @@ add_subdirectory(png_utils)
 include(CMakePackageConfigHelpers)
 
 # set version
-set(version 1.0.6)
+set(version 1.0.7)
 
 # generate the version file for the config file
 write_basic_package_version_file(

@@ -232,12 +232,19 @@ bool fractal_utils::serialize_to_file(const data_block *const src,
   }
 
   for (uint64_t bidx = 0; bidx < block_num; bidx++) {
+    if (!write_data_block(fp, src[bidx])) {
+      printf("Failed to write data block %lu.", bidx);
+      return false;
+    }
+
+    /*
     fwrite(&src[bidx].tag, sizeof(src[bidx].tag), 1, fp);
     fwrite(&src[bidx].bytes, sizeof(src[bidx].bytes), 1, fp);
 
     if (src[bidx].bytes > 0) {
       fwrite(src[bidx].data, 1, src[bidx].bytes, fp);
     }
+    */
   }
 
   fclose(fp);
@@ -377,19 +384,31 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
 
 bool fractal_utils::write_data_block(::FILE *const file_ptr,
                                      const data_block &block) noexcept {
+  // printf("\nCalling write_data_block.\n");
   size_t temp;
   temp = fwrite(&block.tag, 1, sizeof(block.tag), file_ptr);
   if (temp != sizeof(block.tag)) {
+    printf(
+        "\nError : function write_data_block failed when writing tag. fwrite "
+        "should write %lu "
+        "bytes but only wrote %lu bytes.\n",
+        sizeof(block.tag), temp);
     return false;
   }
   temp = fwrite(&block.bytes, 1, sizeof(block.bytes), file_ptr);
   if (temp != sizeof(block.bytes)) {
+    printf(
+        "\nError : function write_data_block failed when writing length. "
+        "fwrite should write %lu "
+        "bytes but only wrote %lu bytes.\n",
+        sizeof(block.bytes), temp);
     return false;
   }
   temp = fwrite(block.data, 1, block.bytes, file_ptr);
   if (temp != block.bytes) {
     printf(
-        "\nError : function write_data_block failed. fwrite should write %lu "
+        "\nError : function write_data_block failed when writing data. fwrite "
+        "should write %lu "
         "bytes but only wrote %lu bytes.\n",
         block.bytes, temp);
     return false;
