@@ -378,16 +378,20 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
 bool fractal_utils::write_data_block(::FILE *const file_ptr,
                                      const data_block &block) noexcept {
   size_t temp;
-  temp = fwrite(&block.tag, sizeof(block.tag), 1, file_ptr);
+  temp = fwrite(&block.tag, 1, sizeof(block.tag), file_ptr);
   if (temp != sizeof(block.tag)) {
     return false;
   }
-  temp = fwrite(&block.bytes, sizeof(block.bytes), 1, file_ptr);
+  temp = fwrite(&block.bytes, 1, sizeof(block.bytes), file_ptr);
   if (temp != sizeof(block.bytes)) {
     return false;
   }
   temp = fwrite(block.data, 1, block.bytes, file_ptr);
   if (temp != block.bytes) {
+    printf(
+        "\nError : function write_data_block failed. fwrite should write %lu "
+        "bytes but only wrote %lu bytes.\n",
+        block.bytes, temp);
     return false;
   }
 
