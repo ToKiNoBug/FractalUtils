@@ -23,6 +23,7 @@ This file is part of FractalUtils.
 #define FRACTALUTILS_FRACTAL_BINMAP_H
 
 #include <stdint.h>
+#include <stdio.h>
 
 #include <cstdlib>
 #include <memory>
@@ -76,8 +77,7 @@ bool serialize_to_file(const data_block *const src, const uint64_t block_num,
                        const bool write_header,
                        const char *const filename) noexcept;
 
-struct FILE;
-bool write_data_block(FILE *const file_ptr_wb,
+bool write_data_block(::FILE *const file_ptr_wb,
                       const data_block &block) noexcept;
 
 }  // namespace fractal_utils

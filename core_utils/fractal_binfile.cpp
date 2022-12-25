@@ -375,7 +375,7 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
   return true;
 }
 
-bool fractal_utils::write_data_block(FILE *const file_ptr,
+bool fractal_utils::write_data_block(::FILE *const file_ptr,
                                      const data_block &block) noexcept {
   size_t temp;
   temp = fwrite(&block.tag, sizeof(block.tag), 1, file_ptr);
