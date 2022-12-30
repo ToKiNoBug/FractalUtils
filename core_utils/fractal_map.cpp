@@ -38,7 +38,6 @@ fractal_map fractal_utils::fractal_map::create(size_t rows, size_t cols,
     // no memory to be allocated
     map.data = nullptr;
   } else {
-
     map.call_free_on_destructor = true;
 
     map.data =
@@ -56,4 +55,11 @@ fractal_utils::fractal_map::~fractal_map() {
   if (this->call_free_on_destructor && this->data != nullptr) {
     free(this->data);
   }
+}
+void fractal_utils::fractal_map::release() noexcept {
+  if (this->call_free_on_destructor) {
+    this->call_free_on_destructor = false;
+    free(data);
+  }
+  data = nullptr;
 }

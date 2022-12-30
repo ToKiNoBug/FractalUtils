@@ -30,6 +30,13 @@ class zoom_utils_mainwindow : public QMainWindow {
  public:
   using create_wind_callback_fun_t = fractal_utils::wind_base *(*)();
   using destroy_wind_callback_fun_t = void (*)(fractal_utils::wind_base *const);
+  using compute_fractal_callback_fun_t =
+      void (*)(const fractal_utils::wind_base &,
+               fractal_utils::fractal_map *map_fractal);
+  using render_fractal_callback_fun_t =
+      void (*)(const fractal_utils::fractal_map &map_fractal,
+               const fractal_utils::wind_base &window, const void *custom_ptr,
+               fractal_utils::fractal_map *map_u8c3_do_not_resize);
 
  private:
   // this initialize function should not be invoked by other callers
@@ -61,6 +68,12 @@ class zoom_utils_mainwindow : public QMainWindow {
   create_wind_callback_fun_t create_windows_function() const noexcept;
   destroy_wind_callback_fun_t destroy_windows_function() const noexcept;
 
+  int rows() const noexcept;
+
+  int cols() const noexcept;
+
+  void compute_and_paint() noexcept;
+
  private:
   Ui::zoom_utils_mainwindow *ui;
   fractal_utils::wind_base *window{nullptr};
@@ -70,6 +83,15 @@ class zoom_utils_mainwindow : public QMainWindow {
   create_wind_callback_fun_t callback_create_wind = nullptr;
   destroy_wind_callback_fun_t callback_destroy_center_wind =
       fractal_utils::callback_destroy_center_wind;
+
+ public:
+  compute_fractal_callback_fun_t callback_compute_fun = nullptr;
+  render_fractal_callback_fun_t callback_render_fun = nullptr;
+  void *custom_ptr = nullptr;
+
+ private:
+  fractal_utils::fractal_map map_fractal;
+  QImage img_u8c3;
 };
 
 #endif  // FRACTALUTILS_ZOOM_UTILS_H

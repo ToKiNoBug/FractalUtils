@@ -19,8 +19,7 @@ endif()
 
 include_directories(${CMAKE_SOURCE_DIR}/core_utils)
 
-add_library(zoom_utils STATIC
-    zoom_utils.h
-    zoom_utils.cpp)
+add_library(zoom_utils STATIC zoom_utils.h zoom_utils.cpp)
 
-target_link_libraries(zoom_utils PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(zoom_utils PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
+                                         core_utils)

@@ -50,6 +50,8 @@ class fractal_map {
 
   ~fractal_map();
 
+  void release() noexcept;
+
   inline size_t element_count() const noexcept {
     return this->rows * this->cols;
   }

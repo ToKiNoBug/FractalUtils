@@ -25,6 +25,14 @@ zoom_utils_mainwindow::zoom_utils_mainwindow(
   this->callback_destroy_center_wind = dwcf;
 
   this->window = this->callback_create_wind();
+
+  this->ui->display->resize(window_size[1], window_size[0]);
+  {
+    QSizePolicy p;
+    p.setHorizontalPolicy(QSizePolicy::Fixed);
+    p.setVerticalPolicy(QSizePolicy::Fixed);
+    this->ui->display->setSizePolicy(p);
+  }
 }
 
 zoom_utils_mainwindow::create_wind_callback_fun_t
@@ -35,4 +43,20 @@ zoom_utils_mainwindow::create_windows_function() const noexcept {
 zoom_utils_mainwindow::destroy_wind_callback_fun_t
 zoom_utils_mainwindow::destroy_windows_function() const noexcept {
   return this->callback_destroy_center_wind;
+}
+
+int zoom_utils_mainwindow::rows() const noexcept {
+  assert(this->img_u8c3.rows() == this->map_fractal.rows);
+  assert(this->map_fractal.rows == this->ui->display.image().rows());
+  return (int)this->map_fractal.rows;
+}
+
+int zoom_utils_mainwindow::cols() const noexcept {
+  assert(this->img_u8c3.cols() == this->map_fractal.cols);
+  assert(this->map_fractal.cols == this->ui->display.image().cols());
+  return (int)this->map_fractal.cols;
+}
+
+void zoom_utils_mainwindow::compute_and_paint() noexcept {
+  this->callback_compute_fun(*this->window, &this->map_fractal);
 }
