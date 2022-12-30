@@ -22,14 +22,12 @@ This file is part of FractalUtils.
 #ifndef FRACTALUTILS_FRACTAL_MAP_H
 #define FRACTALUTILS_FRACTAL_MAP_H
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 
-#include <type_traits>
-
 #include <array>
-
-#include <assert.h>
+#include <type_traits>
 
 namespace fractal_utils {
 
@@ -37,16 +35,16 @@ template <typename T>
 using fast_const_t = std::conditional_t<(sizeof(T) > 8), const T &, T>;
 
 class fractal_map {
-public:
+ public:
   void *data{nullptr};
   size_t rows{0};
   size_t cols{0};
   uint32_t element_bytes{1};
 
-private:
+ private:
   bool call_free_on_destructor{false};
 
-public:
+ public:
   [[nodiscard]] static fractal_map create(size_t rows, size_t cols,
                                           size_t sizeof_element) noexcept;
 
@@ -60,7 +58,8 @@ public:
     return this->rows * this->cols * this->element_bytes;
   }
 
-  template <typename T> inline T &at(size_t idx) noexcept {
+  template <typename T>
+  inline T &at(size_t idx) noexcept {
     assert(idx < this->rows * this->cols);
 
     return reinterpret_cast<T *>(this->data)[idx];
@@ -73,21 +72,43 @@ public:
     return reinterpret_cast<T *>(this->data)[idx];
   }
 
-  template <typename T> inline T &at(size_t r, size_t c) noexcept {
+  template <typename T>
+  inline T &at(size_t r, size_t c) noexcept {
     assert(r < this->rows && c < this->cols);
 
     return this->at<T>(r * this->cols + c);
   }
 
-  template <typename T> inline auto at(size_t r, size_t c) const noexcept {
+  template <typename T>
+  inline auto at(size_t r, size_t c) const noexcept {
     assert(r < this->rows && c < this->cols);
 
     return this->at<T>(r * this->cols + c);
   }
 };
 
-template <typename float_t> class center_wind {
-public:
+class wind_base {
+ public:
+  virtual ~wind_base() = default;
+
+  virtual bool copy_to(wind_base *const dest) const noexcept = 0;
+
+  virtual std::array<double, 2> displayed_center() const noexcept = 0;
+  virtual double displayed_x_span() const noexcept = 0;
+  virtual double displayed_y_span() const noexcept = 0;
+
+  virtual std::array<double, 2> displayed_coordinate(
+      const std::array<int, 2> &total_size_row_col,
+      const std::array<int, 2> &position_row_col) const noexcept = 0;
+
+  virtual void update_center(const std::array<int, 2> &total_size_row_col,
+                             const std::array<int, 2> &position_row_col,
+                             double zoom_ratio) noexcept = 0;
+};
+
+template <typename float_t>
+class center_wind : public wind_base {
+ public:
   std::array<float_t, 2> center;
   float_t x_span;
   float_t y_span;
@@ -112,8 +133,73 @@ public:
 
     return ret;
   }
+
+  bool copy_to(wind_base *const __dest) const noexcept override {
+    center_wind *const dest = dynamic_cast<center_wind *>(__dest);
+
+    if (dest == nullptr) {
+      return false;
+    }
+
+    *dest = *this;
+    return true;
+  }
+
+  std::array<double, 2> displayed_center() const noexcept override {
+    std::array<double, 2> ret;
+    ret[0] = double(this->center[0]);
+    ret[1] = double(this->center[1]);
+    return ret;
+  }
+
+  double displayed_x_span() const noexcept override {
+    return double(this->x_span);
+  }
+
+  double displayed_y_span() const noexcept override {
+    return double(this->y_span);
+  }
+
+  std::array<double, 2> displayed_coordinate(
+      const std::array<int, 2> &total_size,  //[row,col]
+      const std::array<int, 2> &position     //[row,col]
+  ) const noexcept override {
+    assert(total_size[0] > 0 && total_size[1] > 0);
+    // assert(position[0] >= 0 && position[0] < total_size[0]);
+
+    std::array<double, 2> ret = this->displayed_center();
+
+    //[row,col] in range (0,1)
+    std::array<double, 2> relative_offset_rc;
+    for (int idx = 0; idx < 2; idx++) {
+      relative_offset_rc[idx] = (position[0] + 0.5) / (total_size[0]) - 0.5;
+    }
+
+    ret[0] += relative_offset_rc[1] * this->x_span;
+    ret[1] -= relative_offset_rc[0] * this->y_span;
+    return ret;
+  }
+
+  void update_center(const std::array<int, 2> &total_size,
+                     const std::array<int, 2> &position,
+                     double zoom_ratio) noexcept override {
+    assert(total_size[0] > 0 && total_size[1] > 0);
+    // assert(position[0] >= 0 && position[0] < total_size[0]);
+
+    // std::array<double, 2> ret = this->displayed_center();
+
+    //[row,col] in range (0,1)
+    std::array<float_t, 2> relative_offset_rc;
+    for (int idx = 0; idx < 2; idx++) {
+      relative_offset_rc[idx] =
+          (position[0] + float_t(0.5)) / (total_size[0]) - float_t(0.5);
+    }
+
+    this->center[0] += relative_offset_rc[1] * this->x_span;
+    this->center[1] -= relative_offset_rc[0] * this->y_span;
+  }
 };
 
-} // namespace fractal_utils
+}  // namespace fractal_utils
 
 #endif
