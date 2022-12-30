@@ -33,3 +33,4 @@
 
 compile_commands.json
 .cache/*
+CMakeLists.txt.user
