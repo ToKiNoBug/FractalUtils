@@ -35,16 +35,16 @@ template <typename T>
 using fast_const_t = std::conditional_t<(sizeof(T) > 8), const T &, T>;
 
 class fractal_map {
- public:
+public:
   void *data{nullptr};
   size_t rows{0};
   size_t cols{0};
   uint32_t element_bytes{1};
 
- private:
+private:
   bool call_free_on_destructor{false};
 
- public:
+public:
   [[nodiscard]] static fractal_map create(size_t rows, size_t cols,
                                           size_t sizeof_element) noexcept;
 
@@ -60,8 +60,7 @@ class fractal_map {
     return this->rows * this->cols * this->element_bytes;
   }
 
-  template <typename T>
-  inline T &at(size_t idx) noexcept {
+  template <typename T> inline T &at(size_t idx) noexcept {
     assert(idx < this->rows * this->cols);
 
     return reinterpret_cast<T *>(this->data)[idx];
@@ -74,15 +73,13 @@ class fractal_map {
     return reinterpret_cast<T *>(this->data)[idx];
   }
 
-  template <typename T>
-  inline T &at(size_t r, size_t c) noexcept {
+  template <typename T> inline T &at(size_t r, size_t c) noexcept {
     assert(r < this->rows && c < this->cols);
 
     return this->at<T>(r * this->cols + c);
   }
 
-  template <typename T>
-  inline auto at(size_t r, size_t c) const noexcept {
+  template <typename T> inline auto at(size_t r, size_t c) const noexcept {
     assert(r < this->rows && c < this->cols);
 
     return this->at<T>(r * this->cols + c);
@@ -90,7 +87,7 @@ class fractal_map {
 };
 
 class wind_base {
- public:
+public:
   virtual ~wind_base() = default;
 
   virtual bool copy_to(wind_base *const dest) const noexcept = 0;
@@ -106,11 +103,12 @@ class wind_base {
   virtual void update_center(const std::array<int, 2> &total_size_row_col,
                              const std::array<int, 2> &position_row_col,
                              double zoom_ratio) noexcept = 0;
+  virtual void *center_data(size_t *bytes = nullptr) noexcept = 0;
+  virtual const void *center_data(size_t *bytes = nullptr) const noexcept = 0;
 };
 
-template <typename float_t>
-class center_wind : public wind_base {
- public:
+template <typename float_t> class center_wind : public wind_base {
+public:
   std::array<float_t, 2> center;
   float_t x_span;
   float_t y_span;
@@ -162,9 +160,9 @@ class center_wind : public wind_base {
     return double(this->y_span);
   }
 
-  std::array<double, 2> displayed_coordinate(
-      const std::array<int, 2> &total_size,  //[row,col]
-      const std::array<int, 2> &position     //[row,col]
+  std::array<double, 2>
+  displayed_coordinate(const std::array<int, 2> &total_size, //[row,col]
+                       const std::array<int, 2> &position    //[row,col]
   ) const noexcept override {
     assert(total_size[0] > 0 && total_size[1] > 0);
     // assert(position[0] >= 0 && position[0] < total_size[0]);
@@ -200,8 +198,23 @@ class center_wind : public wind_base {
     this->center[0] += relative_offset_rc[1] * this->x_span;
     this->center[1] -= relative_offset_rc[0] * this->y_span;
   }
+  void *center_data(size_t *bytes = nullptr) noexcept override {
+    if (bytes != nullptr) {
+      *bytes = sizeof(this->center);
+    }
+
+    return this->center.data();
+  }
+
+  const void *center_data(size_t *bytes = nullptr) const noexcept override {
+    if (bytes != nullptr) {
+      *bytes = sizeof(this->center);
+    }
+
+    return this->center.data();
+  }
 };
 
-}  // namespace fractal_utils
+} // namespace fractal_utils
 
 #endif

@@ -6,6 +6,8 @@
 
 #include "core_utils.h"
 
+#include <mutex>
+
 class zoom_utils_mainwindow;
 
 namespace fractal_utils {
@@ -31,7 +33,7 @@ public:
   using create_wind_callback_fun_t = fractal_utils::wind_base *(*)();
   using destroy_wind_callback_fun_t = void (*)(fractal_utils::wind_base *const);
   using compute_fractal_callback_fun_t =
-      void (*)(const fractal_utils::wind_base &,
+      void (*)(const fractal_utils::wind_base &, const void *custom_ptr,
                fractal_utils::fractal_map *map_fractal);
   using render_fractal_callback_fun_t =
       void (*)(const fractal_utils::fractal_map &map_fractal,
@@ -46,7 +48,7 @@ public:
   // initialize with type of floating point
   template <typename float_t>
   explicit zoom_utils_mainwindow(
-      QWidget *parent = nullptr,
+      float_t parameter_for_type_deduction, QWidget *parent = nullptr,
       const std::array<int, 2> &window_size = std::array<int, 2>({320, 320}))
       : zoom_utils_mainwindow(
             parent, window_size,
@@ -74,6 +76,8 @@ public:
 
   void compute_and_paint() noexcept;
 
+  void display_range() noexcept;
+
 private:
   Ui::zoom_utils_mainwindow *ui;
   fractal_utils::wind_base *window{nullptr};
@@ -83,6 +87,8 @@ private:
   create_wind_callback_fun_t callback_create_wind = nullptr;
   destroy_wind_callback_fun_t callback_destroy_center_wind =
       fractal_utils::callback_destroy_center_wind;
+
+  std::mutex lock;
 
 public:
   compute_fractal_callback_fun_t callback_compute_fun = nullptr;
@@ -94,6 +100,9 @@ private:
   QImage img_u8c3;
 
 public slots:
+
+  void received_wheel_move(std::array<int, 2> pos, bool is_scaling_up);
+  void received_mouse_move(std::array<int, 2> pos);
 };
 
 #endif // FRACTALUTILS_ZOOM_UTILS_H
