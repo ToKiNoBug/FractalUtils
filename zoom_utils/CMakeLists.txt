@@ -19,7 +19,26 @@ endif()
 
 include_directories(${CMAKE_SOURCE_DIR}/core_utils)
 
-add_library(zoom_utils STATIC zoom_utils.h zoom_utils.cpp)
+add_library(zoom_utils STATIC
+  zoom_utils.h
+  zoom_utils.cpp
+  scalable_label.h
+  scalable_label.cpp)
+target_link_libraries(zoom_utils PRIVATE
+  Qt${QT_VERSION_MAJOR}::Widgets
+  core_utils)
 
-target_link_libraries(zoom_utils PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
-                                         core_utils)
+if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+  qt_add_executable(test_zoom_utils
+    MANUAL_FINALIZATION
+    test_zoom_utils.cpp)
+endif()
+
+target_link_libraries(test_zoom_utils PRIVATE
+  zoom_utils
+  Qt${QT_VERSION_MAJOR}::Widgets
+  core_utils)
+
+if(QT_VERSION_MAJOR EQUAL 6)
+  qt_finalize_executable(test_zoom_utils)
+endif()

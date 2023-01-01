@@ -17,7 +17,7 @@ template <typename float_t>
 }
 
 void callback_destroy_center_wind(wind_base *const w);
-}  // namespace fractal_utils
+} // namespace fractal_utils
 
 // Qt mainwindow class
 
@@ -27,7 +27,7 @@ class zoom_utils_mainwindow;
 
 class zoom_utils_mainwindow : public QMainWindow {
   Q_OBJECT
- public:
+public:
   using create_wind_callback_fun_t = fractal_utils::wind_base *(*)();
   using destroy_wind_callback_fun_t = void (*)(fractal_utils::wind_base *const);
   using compute_fractal_callback_fun_t =
@@ -38,11 +38,11 @@ class zoom_utils_mainwindow : public QMainWindow {
                const fractal_utils::wind_base &window, const void *custom_ptr,
                fractal_utils::fractal_map *map_u8c3_do_not_resize);
 
- private:
+private:
   // this initialize function should not be invoked by other callers
   explicit zoom_utils_mainwindow(QWidget *parent = nullptr);
 
- public:
+public:
   // initialize with type of floating point
   template <typename float_t>
   explicit zoom_utils_mainwindow(
@@ -74,7 +74,7 @@ class zoom_utils_mainwindow : public QMainWindow {
 
   void compute_and_paint() noexcept;
 
- private:
+private:
   Ui::zoom_utils_mainwindow *ui;
   fractal_utils::wind_base *window{nullptr};
 
@@ -84,14 +84,16 @@ class zoom_utils_mainwindow : public QMainWindow {
   destroy_wind_callback_fun_t callback_destroy_center_wind =
       fractal_utils::callback_destroy_center_wind;
 
- public:
+public:
   compute_fractal_callback_fun_t callback_compute_fun = nullptr;
   render_fractal_callback_fun_t callback_render_fun = nullptr;
-  void *custom_ptr = nullptr;
+  void *custom_parameters = nullptr;
 
- private:
+private:
   fractal_utils::fractal_map map_fractal;
   QImage img_u8c3;
+
+public slots:
 };
 
-#endif  // FRACTALUTILS_ZOOM_UTILS_H
+#endif // FRACTALUTILS_ZOOM_UTILS_H

@@ -33,6 +33,12 @@ zoom_utils_mainwindow::zoom_utils_mainwindow(
     p.setVerticalPolicy(QSizePolicy::Fixed);
     this->ui->display->setSizePolicy(p);
   }
+
+  this->img_u8c3 = QImage(QSize(window_size[0], window_size[0]),
+                          QImage::Format::Format_RGB888);
+  memset(this->img_u8c3.scanLine(0), 255,
+         window_size[0] * window_size[1] * sizeof(uint8_t[3]));
+  this->ui->display->setPixmap(QPixmap::fromImage(this->img_u8c3));
 }
 
 zoom_utils_mainwindow::create_wind_callback_fun_t
@@ -59,4 +65,13 @@ int zoom_utils_mainwindow::cols() const noexcept {
 
 void zoom_utils_mainwindow::compute_and_paint() noexcept {
   this->callback_compute_fun(*this->window, &this->map_fractal);
+  fractal_utils::fractal_map map;
+  map.rows = this->img_u8c3.height();
+  map.cols = this->img_u8c3.width();
+  map.element_bytes = 3;
+  map.data = this->img_u8c3.scanLine(0);
+  this->callback_render_fun(this->map_fractal, *this->window,
+                            this->custom_parameters, &map);
+
+  this->ui->display->setPixmap(QPixmap::fromImage(this->img_u8c3));
 }
