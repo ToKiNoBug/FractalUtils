@@ -39,6 +39,11 @@ public:
       void (*)(const fractal_utils::fractal_map &map_fractal,
                const fractal_utils::wind_base &window, void *custom_ptr,
                fractal_utils::fractal_map *map_u8c3_do_not_resize);
+  using export_frame_callback_fun_t =
+      bool (*)(const fractal_utils::fractal_map &map_fractal,
+               const fractal_utils::wind_base &window, void *custom_ptr,
+               const fractal_utils::fractal_map &map_u8c3_do_not_resize,
+               const char *filename);
 
 private:
   // this initialize function should not be invoked by other callers
@@ -94,8 +99,12 @@ private:
 public:
   compute_fractal_callback_fun_t callback_compute_fun = nullptr;
   render_fractal_callback_fun_t callback_render_fun = nullptr;
+  export_frame_callback_fun_t callback_export_fun = nullptr;
   void *custom_parameters = nullptr;
   fractal_utils::fractal_map map_fractal;
+  // list of file extension name seperated by double colon ;; example :
+  // .tbf;;.bs_frame
+  QString frame_file_extension_list = "";
 
 private:
   QImage img_u8c3;
@@ -107,6 +116,8 @@ public slots:
 
   void on_btn_revert_clicked();
   void on_btn_repaint_clicked();
+  void on_btn_save_image_clicked();
+  void on_btn_save_frame_clicked();
 };
 
 #endif // FRACTALUTILS_ZOOM_UTILS_H

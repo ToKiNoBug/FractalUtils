@@ -4,6 +4,9 @@
 
 #include "scalable_label.h"
 
+#include <QFileDialog>
+#include <QMessageBox>
+
 zoom_utils_mainwindow::zoom_utils_mainwindow(
     QWidget *parent, const std::array<int, 2> &window_size)
     : QMainWindow(parent), ui(new Ui::zoom_utils_mainwindow),
@@ -251,4 +254,51 @@ void zoom_utils_mainwindow::on_btn_repaint_clicked() {
   this->compute_and_paint();
 
   this->lock.unlock();
+}
+
+void zoom_utils_mainwindow::on_btn_save_image_clicked() {
+  const QString path = QFileDialog::getSaveFileName(this, "Save current image",
+                                                    "", "*.png;;*.jpg;;*.gif");
+  if (path.isEmpty()) {
+    return;
+  }
+
+  this->ui->display->pixmap().save(path);
+}
+
+void zoom_utils_mainwindow::on_btn_save_frame_clicked() {
+
+  if (this->frame_file_extension_list.isEmpty()) {
+    return;
+  }
+
+  if (this->callback_export_fun == nullptr) {
+    return;
+  }
+
+  QString path = QFileDialog::getSaveFileName(
+      this, "Save current frame to custom file format", "",
+      this->frame_file_extension_list);
+
+  if (path.isEmpty()) {
+    return;
+  }
+
+  fractal_utils::fractal_map temp_img_u8c3;
+  temp_img_u8c3.rows = this->rows();
+  temp_img_u8c3.cols = this->cols();
+  temp_img_u8c3.element_bytes = 3;
+  temp_img_u8c3.data = this->img_u8c3.scanLine(0);
+
+  const bool success = this->callback_export_fun(
+      this->map_fractal, *this->window, this->custom_parameters, temp_img_u8c3,
+      path.toLocal8Bit().data());
+
+  if (!success) {
+    QMessageBox::warning(
+        this, "Failed to export custom frame.",
+        "Callback function \'callback_export_fun\' returned false.");
+    return;
+  }
+  return;
 }
