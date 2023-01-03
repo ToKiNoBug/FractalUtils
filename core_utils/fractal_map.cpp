@@ -56,10 +56,41 @@ fractal_utils::fractal_map::~fractal_map() {
     free(this->data);
   }
 }
+
 void fractal_utils::fractal_map::release() noexcept {
   if (this->call_free_on_destructor) {
     this->call_free_on_destructor = false;
     free(data);
   }
   data = nullptr;
+}
+
+fractal_utils::fractal_map::fractal_map(fractal_map &&src) {
+  this->release();
+  this->rows = src.rows;
+  this->cols = src.cols;
+  this->element_bytes = src.element_bytes;
+  this->data = src.data;
+  this->call_free_on_destructor = src.call_free_on_destructor;
+
+  src.data = nullptr;
+  src.rows = 0;
+  src.cols = 0;
+  // src.element_bytes = 0;
+}
+
+fractal_map &fractal_utils::fractal_map::operator=(fractal_map &&src) noexcept {
+
+  this->release();
+  this->rows = src.rows;
+  this->cols = src.cols;
+  this->element_bytes = src.element_bytes;
+  this->data = src.data;
+  this->call_free_on_destructor = src.call_free_on_destructor;
+
+  src.data = nullptr;
+  src.rows = 0;
+  src.cols = 0;
+
+  return *this;
 }

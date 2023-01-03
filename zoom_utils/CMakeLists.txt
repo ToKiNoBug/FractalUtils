@@ -34,10 +34,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     test_zoom_utils.cpp)
 endif()
 
+find_package(OpenMP REQUIRED)
 target_link_libraries(test_zoom_utils PRIVATE
   zoom_utils
   Qt${QT_VERSION_MAJOR}::Widgets
-  core_utils)
+  core_utils OpenMP::OpenMP_CXX)
 
 if(QT_VERSION_MAJOR EQUAL 6)
   qt_finalize_executable(test_zoom_utils)

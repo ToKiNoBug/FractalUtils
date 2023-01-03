@@ -49,6 +49,11 @@ public:
                                           size_t sizeof_element) noexcept;
 
   ~fractal_map();
+  fractal_map() = default;
+  fractal_map(const fractal_map &) = delete;
+  fractal_map(fractal_map &&src);
+
+  fractal_map &operator=(fractal_map &&src) noexcept;
 
   void release() noexcept;
 
@@ -100,11 +105,18 @@ public:
       const std::array<int, 2> &total_size_row_col,
       const std::array<int, 2> &position_row_col) const noexcept = 0;
 
+  virtual std::array<double, 2> displayed_left_top_corner() const noexcept = 0;
+  virtual std::array<double, 2>
+  displayed_right_bottom_corner() const noexcept = 0;
+
   virtual void update_center(const std::array<int, 2> &total_size_row_col,
                              const std::array<int, 2> &position_row_col,
                              double zoom_ratio) noexcept = 0;
   virtual void *center_data(size_t *bytes = nullptr) noexcept = 0;
   virtual const void *center_data(size_t *bytes = nullptr) const noexcept = 0;
+
+  virtual void set_x_span(double __x_span) noexcept = 0;
+  virtual void set_y_span(double __y_span) noexcept = 0;
 };
 
 template <typename float_t> class center_wind : public wind_base {
@@ -120,7 +132,7 @@ public:
     std::array<float_t, 2> ret = this->center;
 
     ret[idx_x] -= x_span / 2;
-    ret[idx_y] -= y_span / 2;
+    ret[idx_y] += y_span / 2;
 
     return ret;
   }
@@ -129,9 +141,20 @@ public:
     std::array<float_t, 2> ret = this->center;
 
     ret[idx_x] += x_span / 2;
-    ret[idx_y] += y_span / 2;
+    ret[idx_y] -= y_span / 2;
 
     return ret;
+  }
+
+  std::array<double, 2> displayed_left_top_corner() const noexcept override {
+    std::array<float_t, 2> temp = this->left_top_corner();
+    return {double(temp[0]), double(temp[1])};
+  }
+
+  std::array<double, 2>
+  displayed_right_bottom_corner() const noexcept override {
+    std::array<float_t, 2> temp = this->right_bottom_corner();
+    return {double(temp[0]), double(temp[1])};
   }
 
   bool copy_to(wind_base *const __dest) const noexcept override {
@@ -172,7 +195,7 @@ public:
     //[row,col] in range (0,1)
     std::array<double, 2> relative_offset_rc;
     for (int idx = 0; idx < 2; idx++) {
-      relative_offset_rc[idx] = (position[0] + 0.5) / (total_size[0]) - 0.5;
+      relative_offset_rc[idx] = (position[idx] + 0.5) / (total_size[idx]) - 0.5;
     }
 
     ret[0] += relative_offset_rc[1] * this->x_span;
@@ -192,11 +215,14 @@ public:
     std::array<float_t, 2> relative_offset_rc;
     for (int idx = 0; idx < 2; idx++) {
       relative_offset_rc[idx] =
-          (position[0] + float_t(0.5)) / (total_size[0]) - float_t(0.5);
+          (position[idx] + float_t(0.5)) / (total_size[idx]) - float_t(0.5);
     }
 
     this->center[0] += relative_offset_rc[1] * this->x_span;
     this->center[1] -= relative_offset_rc[0] * this->y_span;
+
+    this->x_span /= zoom_ratio;
+    this->y_span /= zoom_ratio;
   }
   void *center_data(size_t *bytes = nullptr) noexcept override {
     if (bytes != nullptr) {
@@ -212,6 +238,14 @@ public:
     }
 
     return this->center.data();
+  }
+
+  void set_x_span(double __x_span) noexcept override {
+    this->x_span = float_t(__x_span);
+  }
+
+  void set_y_span(double __y_span) noexcept override {
+    this->y_span = float_t(__y_span);
   }
 };
 

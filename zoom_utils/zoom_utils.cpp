@@ -4,34 +4,17 @@
 
 #include "scalable_label.h"
 
-zoom_utils_mainwindow::zoom_utils_mainwindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::zoom_utils_mainwindow) {
+zoom_utils_mainwindow::zoom_utils_mainwindow(
+    QWidget *parent, const std::array<int, 2> &window_size)
+    : QMainWindow(parent), ui(new Ui::zoom_utils_mainwindow),
+      img_u8c3(QSize(window_size[1], window_size[0]),
+               QImage::Format::Format_RGB888) {
   ui->setupUi(this);
 
   connect(this->ui->display, &scalable_label::moved, this,
           &zoom_utils_mainwindow::received_mouse_move);
   connect(this->ui->display, &scalable_label::zoomed, this,
           &zoom_utils_mainwindow::received_wheel_move);
-}
-
-zoom_utils_mainwindow::~zoom_utils_mainwindow() {
-  delete ui;
-
-  this->callback_destroy_center_wind(this->window);
-}
-
-void fractal_utils::callback_destroy_center_wind(wind_base *const w) {
-  delete w;
-}
-
-zoom_utils_mainwindow::zoom_utils_mainwindow(
-    QWidget *parent, const std::array<int, 2> &window_size,
-    create_wind_callback_fun_t cwcf, destroy_wind_callback_fun_t dwcf)
-    : zoom_utils_mainwindow(parent) {
-  this->callback_create_wind = cwcf;
-  this->callback_destroy_center_wind = dwcf;
-
-  this->window = this->callback_create_wind();
 
   this->ui->display->resize(window_size[1], window_size[0]);
   {
@@ -41,11 +24,34 @@ zoom_utils_mainwindow::zoom_utils_mainwindow(
     this->ui->display->setSizePolicy(p);
   }
 
-  this->img_u8c3 = QImage(QSize(window_size[0], window_size[0]),
-                          QImage::Format::Format_RGB888);
-  memset(this->img_u8c3.scanLine(0), 255,
+  memset(this->img_u8c3.scanLine(0), 0,
          window_size[0] * window_size[1] * sizeof(uint8_t[3]));
   this->ui->display->setPixmap(QPixmap::fromImage(this->img_u8c3));
+}
+
+zoom_utils_mainwindow::~zoom_utils_mainwindow() {
+  delete ui;
+
+  this->callback_destroy_center_wind(this->window);
+
+  while (!this->previous_windows.empty()) {
+    this->callback_destroy_center_wind(this->previous_windows.top());
+    this->previous_windows.pop();
+  }
+}
+
+void fractal_utils::callback_destroy_center_wind(wind_base *const w) {
+  delete w;
+}
+
+zoom_utils_mainwindow::zoom_utils_mainwindow(
+    QWidget *parent, const std::array<int, 2> &window_size,
+    create_wind_callback_fun_t cwcf, destroy_wind_callback_fun_t dwcf)
+    : zoom_utils_mainwindow(parent, window_size) {
+  this->callback_create_wind = cwcf;
+  this->callback_destroy_center_wind = dwcf;
+
+  this->window = this->callback_create_wind();
 }
 
 zoom_utils_mainwindow::create_wind_callback_fun_t
@@ -59,14 +65,14 @@ zoom_utils_mainwindow::destroy_windows_function() const noexcept {
 }
 
 int zoom_utils_mainwindow::rows() const noexcept {
-  assert(this->img_u8c3.rows() == this->map_fractal.rows);
-  assert(this->map_fractal.rows == this->ui->display.image().rows());
+  assert(this->img_u8c3.height() == this->map_fractal.rows);
+  assert(this->map_fractal.rows == this->ui->display->pixmap().height());
   return (int)this->map_fractal.rows;
 }
 
 int zoom_utils_mainwindow::cols() const noexcept {
-  assert(this->img_u8c3.cols() == this->map_fractal.cols);
-  assert(this->map_fractal.cols == this->ui->display.image().cols());
+  assert(this->img_u8c3.width() == this->map_fractal.cols);
+  assert(this->map_fractal.cols == this->ui->display->pixmap().width());
   return (int)this->map_fractal.cols;
 }
 
@@ -89,8 +95,9 @@ void zoom_utils_mainwindow::display_range() noexcept {
   {
     QString str = QStringLiteral("Minpos : ");
 
-    auto mm = this->window->displayed_coordinate({this->rows(), this->cols()},
-                                                 {this->rows() - 1, 0});
+    auto mm = this->window->displayed_center();
+    mm[0] -= this->window->displayed_x_span() / 2;
+    mm[1] -= this->window->displayed_y_span() / 2;
     str.push_back('(');
     str.append(QString::number(mm[0]));
     str.append(QStringLiteral(" , "));
@@ -102,8 +109,9 @@ void zoom_utils_mainwindow::display_range() noexcept {
   {
     QString str = QStringLiteral("Maxpos : ");
 
-    auto mm = this->window->displayed_coordinate({this->rows(), this->cols()},
-                                                 {0, this->cols() - 1});
+    auto mm = this->window->displayed_center();
+    mm[0] += this->window->displayed_x_span() / 2;
+    mm[1] += this->window->displayed_y_span() / 2;
     str.push_back('(');
     str.append(QString::number(mm[0]));
     str.append(QStringLiteral(" , "));
@@ -114,7 +122,8 @@ void zoom_utils_mainwindow::display_range() noexcept {
 
   // const double r_span = this->maxmax.fl[1] - this->minmin.fl[1];
 
-  ui->show_scale->setText(QString::number(this->window->displayed_y_span()));
+  ui->show_scale_y->setText(QString::number(this->window->displayed_y_span()));
+  ui->show_scale_x->setText(QString::number(this->window->displayed_x_span()));
 
   auto center = this->window->displayed_center();
 
@@ -141,7 +150,105 @@ void zoom_utils_mainwindow::display_range() noexcept {
   }
 }
 
-void zoom_utils_mainwindow::received_mouse_move(std::array<int, 2> pos) {}
+void zoom_utils_mainwindow::received_mouse_move(std::array<int, 2> pos) {
+  std::array<double, 2> coord =
+      this->window->displayed_coordinate({this->rows(), this->cols()}, pos);
+
+  QString str = "Mouse : ";
+  str.push_back('(');
+  str.append(QString::number(coord[0]));
+  str.append(QStringLiteral(" , "));
+  str.append(QString::number(coord[1]));
+  str.push_back(')');
+
+  this->ui->label_mousepos->setText(str);
+}
 
 void zoom_utils_mainwindow::received_wheel_move(std::array<int, 2> pos,
-                                                bool is_scaling_up) {}
+                                                bool is_scaling_up) {
+  if (!this->lock.try_lock()) {
+    return;
+  }
+
+  const double ratio = this->ui->spin_zoom_speed->value();
+
+  fractal_utils::wind_base *newwind = this->callback_create_wind();
+  this->window->copy_to(newwind);
+
+  this->previous_windows.emplace(newwind);
+
+  this->ui->btn_revert->setDisabled(this->previous_windows.empty());
+
+  this->window->update_center({this->rows(), this->cols()}, pos,
+                              (is_scaling_up) ? (ratio) : (1 / ratio));
+
+  this->display_range();
+
+  this->compute_and_paint();
+
+  this->lock.unlock();
+}
+
+void zoom_utils_mainwindow::on_btn_revert_clicked() {
+  if (!this->lock.try_lock()) {
+    return;
+  }
+  fractal_utils::wind_base *wind = this->previous_windows.top();
+  wind->copy_to(this->window);
+
+  this->previous_windows.pop();
+  this->ui->btn_revert->setDisabled(this->previous_windows.empty());
+
+  this->display_range();
+
+  this->compute_and_paint();
+
+  this->lock.unlock();
+}
+
+void zoom_utils_mainwindow::on_btn_repaint_clicked() {
+  if (!this->lock.try_lock()) {
+    return;
+  }
+
+  fractal_utils::wind_base *new_wind = this->callback_create_wind();
+
+  this->window->copy_to(new_wind);
+
+  this->previous_windows.emplace(new_wind);
+  this->ui->btn_revert->setDisabled(this->previous_windows.empty());
+
+  size_t size_of_center_data = 0;
+  this->window->center_data(&size_of_center_data);
+
+  QString hex = this->ui->show_center_hex->text();
+
+  if (hex.startsWith("0x") || hex.startsWith("0X")) {
+    hex = hex.last(hex.size() - 2);
+  }
+
+  // std::string str = hex.toStdString();
+  // printf("hex string = %s\n", str.data());
+
+  QByteArray qba = QByteArray::fromHex(hex.toUtf8());
+
+  if (qba.length() != size_of_center_data) {
+    printf("\nError : hex have invalid length : should be %i but infact %i\n",
+           int(size_of_center_data), (int)qba.length());
+    exit(1);
+  }
+
+  memcpy(this->window->center_data(), qba.data(), size_of_center_data);
+
+  double new_x_span = this->ui->show_scale_x->text().toDouble();
+  double new_y_span = this->ui->show_scale_y->text().toDouble();
+
+  this->window->set_x_span(new_x_span);
+  this->window->set_y_span(new_y_span);
+
+  this->display_range();
+
+  this->compute_and_paint();
+
+  this->lock.unlock();
+}

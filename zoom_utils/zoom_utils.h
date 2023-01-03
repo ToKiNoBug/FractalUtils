@@ -33,16 +33,17 @@ public:
   using create_wind_callback_fun_t = fractal_utils::wind_base *(*)();
   using destroy_wind_callback_fun_t = void (*)(fractal_utils::wind_base *const);
   using compute_fractal_callback_fun_t =
-      void (*)(const fractal_utils::wind_base &, const void *custom_ptr,
+      void (*)(const fractal_utils::wind_base &, void *custom_ptr,
                fractal_utils::fractal_map *map_fractal);
   using render_fractal_callback_fun_t =
       void (*)(const fractal_utils::fractal_map &map_fractal,
-               const fractal_utils::wind_base &window, const void *custom_ptr,
+               const fractal_utils::wind_base &window, void *custom_ptr,
                fractal_utils::fractal_map *map_u8c3_do_not_resize);
 
 private:
   // this initialize function should not be invoked by other callers
-  explicit zoom_utils_mainwindow(QWidget *parent = nullptr);
+  explicit zoom_utils_mainwindow(QWidget *parent,
+                                 const std::array<int, 2> &window_size);
 
 public:
   // initialize with type of floating point
@@ -94,15 +95,18 @@ public:
   compute_fractal_callback_fun_t callback_compute_fun = nullptr;
   render_fractal_callback_fun_t callback_render_fun = nullptr;
   void *custom_parameters = nullptr;
+  fractal_utils::fractal_map map_fractal;
 
 private:
-  fractal_utils::fractal_map map_fractal;
   QImage img_u8c3;
 
 public slots:
 
   void received_wheel_move(std::array<int, 2> pos, bool is_scaling_up);
   void received_mouse_move(std::array<int, 2> pos);
+
+  void on_btn_revert_clicked();
+  void on_btn_repaint_clicked();
 };
 
 #endif // FRACTALUTILS_ZOOM_UTILS_H
