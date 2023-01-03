@@ -132,7 +132,7 @@ void callback_render(const fractal_utils::fractal_map &map_fractal,
     }
 
     fractal_utils::color_u8c3_many(
-        &opt.fltmap.at<float>(r, 0), fractal_utils::color_series::jet,
+        &opt.fltmap.at<float>(r, 0), fractal_utils::color_series::parula,
         map_fractal.cols,
         &map_u8c3_do_not_resize->at<fractal_utils::pixel_RGB>(r, 0));
 

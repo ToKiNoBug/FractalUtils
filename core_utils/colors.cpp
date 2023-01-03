@@ -53,6 +53,7 @@ src_t get_source(const fractal_utils::color_series cs) noexcept {
     FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE(spring);
     FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE(winter);
     FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE(summer);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE(parula);
   }
 
   return nullptr;

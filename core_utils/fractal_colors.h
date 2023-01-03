@@ -42,7 +42,8 @@ enum class color_series : uint8_t {
   prism,
   spring,
   winter,
-  summer
+  summer,
+  parula
 };
 
 struct pixel_RGB {
