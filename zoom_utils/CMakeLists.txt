@@ -27,7 +27,39 @@ add_library(zoom_utils STATIC
 target_link_libraries(zoom_utils PRIVATE
   Qt${QT_VERSION_MAJOR}::Widgets
   core_utils)
+add_library(fractal_utils::zoom_utils ALIAS zoom_utils)
 
+# install libs
+target_include_directories(zoom_utils
+  PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  INTERFACE
+  $<INSTALL_INTERFACE:include>)
+
+# install the target and create export-set
+install(TARGETS zoom_utils
+  EXPORT fractal_utils_zoom_utils-targets
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include/fractal_utils
+)
+
+# install header file
+install(FILES zoom_utils.h DESTINATION include/fractal_utils)
+
+# generate and install export file
+install(EXPORT fractal_utils_zoom_utils-targets
+  FILE fractal_utilszoom_utilsTargets.cmake
+  NAMESPACE fractal_utils::
+  DESTINATION lib/cmake/fractal_utils
+)
+
+if(NOT ${FractalUtils_build_examples})
+  return()
+endif()
+
+# example executable
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
   qt_add_executable(test_zoom_utils
     MANUAL_FINALIZATION

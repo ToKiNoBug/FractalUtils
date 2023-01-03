@@ -10,6 +10,10 @@ endif()
 
 include(add_compiler_path_to_prefix.cmake)
 
+if(NOT DEFINED FractalUtils_build_examples)
+    set(FractalUtils_build_examples ON)
+endif()
+
 add_subdirectory(core_utils)
 add_subdirectory(png_utils)
 add_subdirectory(zoom_utils)

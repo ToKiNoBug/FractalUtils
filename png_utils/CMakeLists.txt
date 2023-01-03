@@ -16,13 +16,7 @@ include_directories(${CMAKE_SOURCE_DIR}/core_utils)
 add_library(png_utils STATIC
     png_utils.h
     fractal_png.cpp)
-
 target_link_libraries(png_utils PRIVATE PNG::PNG)
-
-add_executable(test_fractal_png test_fractal_png.cpp)
-
-target_link_libraries(test_fractal_png PRIVATE core_utils png_utils PNG::PNG)
-
 add_library(fractal_utils::png_utils ALIAS png_utils)
 
 # add include directories
@@ -51,3 +45,11 @@ install(EXPORT fractal_utils_png_utils-targets
     NAMESPACE fractal_utils::
     DESTINATION lib/cmake/fractal_utils
 )
+
+if(NOT ${FractalUtils_build_examples})
+    return()
+endif()
+
+# example executable
+add_executable(test_fractal_png test_fractal_png.cpp)
+target_link_libraries(test_fractal_png PRIVATE core_utils png_utils PNG::PNG)

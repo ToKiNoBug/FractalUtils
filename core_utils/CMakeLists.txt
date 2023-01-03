@@ -15,12 +15,6 @@ add_library(core_utils STATIC
     color_sources.h
     color_sources.cpp)
 
-add_executable(test_binfile test_binfile.cpp)
-target_link_libraries(test_binfile PRIVATE core_utils)
-
-add_executable(test_colors test_colors.cpp)
-target_link_libraries(test_colors PRIVATE core_utils)
-
 # add include directories
 set(core_install_headers
     core_utils.h
@@ -57,3 +51,13 @@ install(EXPORT fractal_utils_core-targets
     NAMESPACE fractal_utils::
     DESTINATION lib/cmake/fractal_utils
 )
+
+if(NOT ${FractalUtils_build_examples})
+    return()
+endif()
+
+add_executable(test_binfile test_binfile.cpp)
+target_link_libraries(test_binfile PRIVATE core_utils)
+
+add_executable(test_colors test_colors.cpp)
+target_link_libraries(test_colors PRIVATE core_utils)
