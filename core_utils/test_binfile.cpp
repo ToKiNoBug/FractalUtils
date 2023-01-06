@@ -58,7 +58,8 @@ bool generate_file(const char *const filename) {
       blocks.data(), blocks.size(), true, filename);
 
   for (auto &i : blocks) {
-    if (i.bytes > 0) free(i.data);
+    if (i.bytes > 0)
+      free(i.data);
     i.data = nullptr;
   }
 
@@ -85,7 +86,7 @@ bool parse_file(const char *const filename) {
   printf("parse_file succeeded\n");
 
   for (int i = 0; i < file.blocks.size(); i++) {
-    printf("block %i : tag = %li, %lu bytes, offset = %lu\n", i,
+    printf("block %i : tag = %I64u, %I64u bytes, offset = %I64u\n", i,
            file.blocks[i].tag, file.blocks[i].bytes,
            file.blocks[i].file_offset);
   }
