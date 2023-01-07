@@ -22,10 +22,10 @@ int main(int argC, char **argV) {
   using namespace fractal_utils;
 
   omp_set_num_threads(20);
-  const int resolution_rows = 720;
-  const int resolution_cols = 1280;
+  const int resolution_rows = 320;
+  const int resolution_cols = 320;
 
-  mainwindow w(double(1), nullptr, {resolution_rows, resolution_cols});
+  mainwindow w(double(1), nullptr, {resolution_rows, resolution_cols}, 4);
 
   w.show();
   {
@@ -41,7 +41,7 @@ int main(int argC, char **argV) {
   w.callback_compute_fun = callback_compute;
   w.callback_render_fun = callback_render;
   compute_opt opt;
-  opt.max_it = 30000;
+  opt.max_it = 3000;
   opt.fltmap = fractal_utils::fractal_map::create(
       resolution_rows, resolution_cols, sizeof(float));
   w.custom_parameters = &opt;
@@ -50,7 +50,7 @@ int main(int argC, char **argV) {
 
   w.display_range();
 
-  w.compute_and_paint();
+  // w.compute_and_paint();
 
   return qga.exec();
 }

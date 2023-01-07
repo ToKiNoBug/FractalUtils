@@ -2,11 +2,10 @@
 #define FRACTALUTILS_ZOOM_UTILS_H
 
 #include <QMainWindow>
+#include <mutex>
 #include <stack>
 
 #include "core_utils.h"
-
-#include <mutex>
 
 class zoom_utils_mainwindow;
 
@@ -19,7 +18,7 @@ template <typename float_t>
 }
 
 void callback_destroy_center_wind(wind_base *const w);
-} // namespace fractal_utils
+}  // namespace fractal_utils
 
 // Qt mainwindow class
 
@@ -29,7 +28,7 @@ class zoom_utils_mainwindow;
 
 class zoom_utils_mainwindow : public QMainWindow {
   Q_OBJECT
-public:
+ public:
   using create_wind_callback_fun_t = fractal_utils::wind_base *(*)();
   using destroy_wind_callback_fun_t = void (*)(fractal_utils::wind_base *const);
   using compute_fractal_callback_fun_t =
@@ -45,27 +44,29 @@ public:
                const fractal_utils::fractal_map &map_u8c3_do_not_resize,
                const char *filename);
 
-private:
+ private:
   // this initialize function should not be invoked by other callers
   explicit zoom_utils_mainwindow(QWidget *parent,
-                                 const std::array<int, 2> &window_size);
+                                 const std::array<int, 2> &window_size,
+                                 int scale);
 
-public:
+ public:
   // initialize with type of floating point
   template <typename float_t>
   explicit zoom_utils_mainwindow(
       float_t parameter_for_type_deduction, QWidget *parent = nullptr,
-      const std::array<int, 2> &window_size = std::array<int, 2>({320, 320}))
+      const std::array<int, 2> &window_size = std::array<int, 2>({320, 320}),
+      int scale = 1)
       : zoom_utils_mainwindow(
             parent, window_size,
             fractal_utils::template callback_create_center_wind<float_t>,
-            fractal_utils::callback_destroy_center_wind) {}
+            fractal_utils::callback_destroy_center_wind, scale) {}
 
   // initialize with callbacks
   explicit zoom_utils_mainwindow(QWidget *parent,
                                  const std::array<int, 2> &window_size,
                                  create_wind_callback_fun_t cwcf,
-                                 destroy_wind_callback_fun_t dwcf);
+                                 destroy_wind_callback_fun_t dwcf, int scale);
 
   ~zoom_utils_mainwindow();
 
@@ -84,7 +85,7 @@ public:
 
   void display_range() noexcept;
 
-private:
+ private:
   Ui::zoom_utils_mainwindow *ui;
   fractal_utils::wind_base *window{nullptr};
 
@@ -96,7 +97,7 @@ private:
 
   std::mutex lock;
 
-public:
+ public:
   compute_fractal_callback_fun_t callback_compute_fun = nullptr;
   render_fractal_callback_fun_t callback_render_fun = nullptr;
   export_frame_callback_fun_t callback_export_fun = nullptr;
@@ -106,10 +107,12 @@ public:
   // .tbf;;.bs_frame
   QString frame_file_extension_list = "";
 
-private:
+  const int scale;
+
+ private:
   QImage img_u8c3;
 
-public slots:
+ public slots:
 
   void received_wheel_move(std::array<int, 2> pos, bool is_scaling_up);
   void received_mouse_move(std::array<int, 2> pos);
@@ -120,4 +123,4 @@ public slots:
   void on_btn_save_frame_clicked();
 };
 
-#endif // FRACTALUTILS_ZOOM_UTILS_H
+#endif  // FRACTALUTILS_ZOOM_UTILS_H

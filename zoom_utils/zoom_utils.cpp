@@ -1,17 +1,40 @@
 #include "zoom_utils.h"
 
-#include "ui_zoom_utils_mainwindow.h"
-
-#include "scalable_label.h"
-
 #include <QFileDialog>
 #include <QMessageBox>
 
+#include "scalable_label.h"
+#include "ui_zoom_utils_mainwindow.h"
+
+QImage scale_img(const QImage &src, int scale) noexcept {
+  QSize sz = src.size();
+  sz.setHeight(sz.height() * scale);
+  sz.setWidth(sz.width() * scale);
+  QImage ret(sz, QImage::Format_RGB888);
+
+  memset(ret.scanLine(0), 0, ret.sizeInBytes());
+
+#pragma omp parallel for schedule(static)
+  for (int r = 0; r < ret.height(); r++) {
+    const fractal_utils::pixel_RGB *const src_data =
+        (const fractal_utils::pixel_RGB *)src.scanLine(r / scale);
+    fractal_utils::pixel_RGB *const dest_data =
+        (fractal_utils::pixel_RGB *)ret.scanLine(r);
+    for (int c = 0; c < ret.width(); c++) {
+      dest_data[c] = src_data[c / scale];
+    }
+  }
+
+  return ret;
+}
+
 zoom_utils_mainwindow::zoom_utils_mainwindow(
-    QWidget *parent, const std::array<int, 2> &window_size)
-    : QMainWindow(parent), ui(new Ui::zoom_utils_mainwindow),
+    QWidget *parent, const std::array<int, 2> &window_size, int __scale)
+    : QMainWindow(parent),
+      ui(new Ui::zoom_utils_mainwindow),
       img_u8c3(QSize(window_size[1], window_size[0]),
-               QImage::Format::Format_RGB888) {
+               QImage::Format::Format_RGB888),
+      scale(__scale) {
   ui->setupUi(this);
 
   connect(this->ui->display, &scalable_label::moved, this,
@@ -19,7 +42,7 @@ zoom_utils_mainwindow::zoom_utils_mainwindow(
   connect(this->ui->display, &scalable_label::zoomed, this,
           &zoom_utils_mainwindow::received_wheel_move);
 
-  this->ui->display->resize(window_size[1], window_size[0]);
+  this->ui->display->resize(window_size[1] * scale, window_size[0] * scale);
   {
     QSizePolicy p;
     p.setHorizontalPolicy(QSizePolicy::Fixed);
@@ -29,7 +52,8 @@ zoom_utils_mainwindow::zoom_utils_mainwindow(
 
   memset(this->img_u8c3.scanLine(0), 0,
          window_size[0] * window_size[1] * sizeof(uint8_t[3]));
-  this->ui->display->setPixmap(QPixmap::fromImage(this->img_u8c3));
+  this->ui->display->setPixmap(
+      QPixmap::fromImage(scale_img(this->img_u8c3, this->scale)));
 }
 
 zoom_utils_mainwindow::~zoom_utils_mainwindow() {
@@ -49,8 +73,9 @@ void fractal_utils::callback_destroy_center_wind(wind_base *const w) {
 
 zoom_utils_mainwindow::zoom_utils_mainwindow(
     QWidget *parent, const std::array<int, 2> &window_size,
-    create_wind_callback_fun_t cwcf, destroy_wind_callback_fun_t dwcf)
-    : zoom_utils_mainwindow(parent, window_size) {
+    create_wind_callback_fun_t cwcf, destroy_wind_callback_fun_t dwcf,
+    int scale)
+    : zoom_utils_mainwindow(parent, window_size, scale) {
   this->callback_create_wind = cwcf;
   this->callback_destroy_center_wind = dwcf;
 
@@ -69,13 +94,15 @@ zoom_utils_mainwindow::destroy_windows_function() const noexcept {
 
 int zoom_utils_mainwindow::rows() const noexcept {
   assert(this->img_u8c3.height() == this->map_fractal.rows);
-  assert(this->map_fractal.rows == this->ui->display->pixmap().height());
+  assert(this->map_fractal.rows * this->scale ==
+         this->ui->display->pixmap().height());
   return (int)this->map_fractal.rows;
 }
 
 int zoom_utils_mainwindow::cols() const noexcept {
   assert(this->img_u8c3.width() == this->map_fractal.cols);
-  assert(this->map_fractal.cols == this->ui->display->pixmap().width());
+  assert(this->map_fractal.cols * this->scale ==
+         this->ui->display->pixmap().width());
   return (int)this->map_fractal.cols;
 }
 
@@ -90,11 +117,11 @@ void zoom_utils_mainwindow::compute_and_paint() noexcept {
   this->callback_render_fun(this->map_fractal, *this->window,
                             this->custom_parameters, &map);
 
-  this->ui->display->setPixmap(QPixmap::fromImage(this->img_u8c3));
+  this->ui->display->setPixmap(
+      QPixmap::fromImage(scale_img(this->img_u8c3, this->scale)));
 }
 
 void zoom_utils_mainwindow::display_range() noexcept {
-
   {
     QString str = QStringLiteral("Minpos : ");
 
@@ -154,6 +181,8 @@ void zoom_utils_mainwindow::display_range() noexcept {
 }
 
 void zoom_utils_mainwindow::received_mouse_move(std::array<int, 2> pos) {
+  pos[0] /= this->scale;
+  pos[1] /= this->scale;
   std::array<double, 2> coord =
       this->window->displayed_coordinate({this->rows(), this->cols()}, pos);
 
@@ -172,6 +201,9 @@ void zoom_utils_mainwindow::received_wheel_move(std::array<int, 2> pos,
   if (!this->lock.try_lock()) {
     return;
   }
+
+  pos[0] /= this->scale;
+  pos[1] /= this->scale;
 
   const double ratio = this->ui->spin_zoom_speed->value();
 
@@ -263,11 +295,10 @@ void zoom_utils_mainwindow::on_btn_save_image_clicked() {
     return;
   }
 
-  this->ui->display->pixmap().save(path);
+  this->img_u8c3.save(path);
 }
 
 void zoom_utils_mainwindow::on_btn_save_frame_clicked() {
-
   if (this->frame_file_extension_list.isEmpty()) {
     return;
   }
