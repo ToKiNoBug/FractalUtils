@@ -84,10 +84,32 @@ class fractal_map {
   }
 
   template <typename T>
-  inline auto at(size_t r, size_t c) const noexcept {
+  inline const T &at(size_t r, size_t c) const noexcept {
     assert(r < this->rows && c < this->cols);
 
     return this->at<T>(r * this->cols + c);
+  }
+
+  template <typename T>
+  inline T *address(size_t idx) noexcept {
+    assert(idx < this->rows * this->cols);
+    return reinterpret_cast<T *>(this->data) + idx;
+  }
+
+  template <typename T>
+  inline const T *address(size_t idx) const noexcept {
+    assert(idx < this->rows * this->cols);
+    return reinterpret_cast<const T *>(this->data) + idx;
+  }
+
+  template <typename T>
+  inline T *address(size_t r, size_t c) noexcept {
+    return this->address<T>(r * this->cols + c);
+  }
+
+  template <typename T>
+  inline const T *address(size_t r, size_t c) const noexcept {
+    return this->address<T>(r * this->cols + c);
   }
 };
 

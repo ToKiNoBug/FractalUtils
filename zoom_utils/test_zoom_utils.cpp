@@ -1,10 +1,9 @@
-#include "zoom_utils.h"
+#include <omp.h>
 
 #include <QApplication>
-
 #include <complex>
 
-#include <omp.h>
+#include "zoom_utils.h"
 
 void callback_compute(const fractal_utils::wind_base &wind, void *custom_ptr,
                       fractal_utils::fractal_map *map_fractal);
@@ -23,8 +22,8 @@ int main(int argC, char **argV) {
   using namespace fractal_utils;
 
   omp_set_num_threads(20);
-  const int resolution_rows = 640;
-  const int resolution_cols = 640;
+  const int resolution_rows = 720;
+  const int resolution_cols = 1280;
 
   mainwindow w(double(1), nullptr, {resolution_rows, resolution_cols});
 
@@ -42,7 +41,7 @@ int main(int argC, char **argV) {
   w.callback_compute_fun = callback_compute;
   w.callback_render_fun = callback_render;
   compute_opt opt;
-  opt.max_it = 10000;
+  opt.max_it = 30000;
   opt.fltmap = fractal_utils::fractal_map::create(
       resolution_rows, resolution_cols, sizeof(float));
   w.custom_parameters = &opt;
@@ -60,8 +59,7 @@ int16_t iterate(std::complex<double> C, int16_t maxit) noexcept {
   int16_t i = 0;
   std::complex<double> z = C;
   while (true) {
-    if (i > maxit)
-      return -1;
+    if (i > maxit) return -1;
 
     if (z.real() * z.real() + z.imag() * z.imag() >= 4) {
       break;
@@ -108,7 +106,6 @@ void callback_compute(const fractal_utils::wind_base &__wind, void *custom_ptr,
 void callback_render(const fractal_utils::fractal_map &map_fractal,
                      const fractal_utils::wind_base &window, void *custom_ptr,
                      fractal_utils::fractal_map *map_u8c3_do_not_resize) {
-
   assert(map_fractal.rows == map_u8c3_do_not_resize->rows);
 
   assert(map_fractal.cols == map_u8c3_do_not_resize->cols);
