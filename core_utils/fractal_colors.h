@@ -47,6 +47,7 @@ enum class color_series : uint8_t {
 };
 
 struct pixel_RGB {
+  pixel_RGB() = default;
   inline pixel_RGB(uint8_t R, uint8_t G, uint8_t B) {
     value[0] = R;
     value[1] = G;
