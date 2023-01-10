@@ -29,12 +29,14 @@ QImage scale_img(const QImage &src, int scale) noexcept {
 }
 
 zoom_utils_mainwindow::zoom_utils_mainwindow(
-    QWidget *parent, const std::array<int, 2> &window_size, int __scale)
+    QWidget *parent, const std::array<int, 2> &window_size,
+    uint32_t map_fractal_element_size, int __scale)
     : QMainWindow(parent),
       ui(new Ui::zoom_utils_mainwindow),
       img_u8c3(QSize(window_size[1], window_size[0]),
                QImage::Format::Format_RGB888),
-      scale(__scale) {
+      scale(__scale),
+      map_fractal(window_size[0], window_size[1], map_fractal_element_size) {
   ui->setupUi(this);
 
   connect(this->ui->display, &scalable_label::moved, this,
@@ -73,9 +75,10 @@ void fractal_utils::callback_destroy_center_wind(wind_base *const w) {
 
 zoom_utils_mainwindow::zoom_utils_mainwindow(
     QWidget *parent, const std::array<int, 2> &window_size,
-    create_wind_callback_fun_t cwcf, destroy_wind_callback_fun_t dwcf,
-    int scale)
-    : zoom_utils_mainwindow(parent, window_size, scale) {
+    uint32_t map_fractal_element_size, create_wind_callback_fun_t cwcf,
+    destroy_wind_callback_fun_t dwcf, int scale)
+    : zoom_utils_mainwindow(parent, window_size, map_fractal_element_size,
+                            scale) {
   this->callback_create_wind = cwcf;
   this->callback_destroy_center_wind = dwcf;
 
@@ -109,11 +112,10 @@ int zoom_utils_mainwindow::cols() const noexcept {
 void zoom_utils_mainwindow::compute_and_paint() noexcept {
   this->callback_compute_fun(*this->window, this->custom_parameters,
                              &this->map_fractal);
-  fractal_utils::fractal_map map;
-  map.rows = this->img_u8c3.height();
-  map.cols = this->img_u8c3.width();
-  map.element_bytes = 3;
-  map.data = this->img_u8c3.scanLine(0);
+  fractal_utils::fractal_map map(this->img_u8c3.height(),
+                                 this->img_u8c3.width(), 3,
+                                 this->img_u8c3.scanLine(0));
+
   this->callback_render_fun(this->map_fractal, *this->window,
                             this->custom_parameters, &map);
 
@@ -315,12 +317,8 @@ void zoom_utils_mainwindow::on_btn_save_frame_clicked() {
     return;
   }
 
-  fractal_utils::fractal_map temp_img_u8c3;
-  temp_img_u8c3.rows = this->rows();
-  temp_img_u8c3.cols = this->cols();
-  temp_img_u8c3.element_bytes = 3;
-  temp_img_u8c3.data = this->img_u8c3.scanLine(0);
-
+  fractal_utils::fractal_map temp_img_u8c3(this->rows(), this->cols(), 3,
+                                           this->img_u8c3.scanLine(0));
   const bool success = this->callback_export_fun(
       this->map_fractal, *this->window, this->custom_parameters, temp_img_u8c3,
       path.toLocal8Bit().data());

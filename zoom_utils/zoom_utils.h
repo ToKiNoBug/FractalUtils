@@ -48,23 +48,25 @@ class zoom_utils_mainwindow : public QMainWindow {
   // this initialize function should not be invoked by other callers
   explicit zoom_utils_mainwindow(QWidget *parent,
                                  const std::array<int, 2> &window_size,
-                                 int scale);
+                                 uint32_t map_fractal_element_size, int scale);
 
  public:
   // initialize with type of floating point
   template <typename float_t>
-  explicit zoom_utils_mainwindow(
-      float_t parameter_for_type_deduction, QWidget *parent = nullptr,
-      const std::array<int, 2> &window_size = std::array<int, 2>({320, 320}),
-      int scale = 1)
+  explicit zoom_utils_mainwindow(float_t parameter_for_type_deduction,
+                                 QWidget *parent,
+                                 const std::array<int, 2> &window_size,
+                                 uint32_t map_fractal_element_size,
+                                 int scale = 1)
       : zoom_utils_mainwindow(
-            parent, window_size,
+            parent, window_size, map_fractal_element_size,
             fractal_utils::template callback_create_center_wind<float_t>,
             fractal_utils::callback_destroy_center_wind, scale) {}
 
   // initialize with callbacks
   explicit zoom_utils_mainwindow(QWidget *parent,
                                  const std::array<int, 2> &window_size,
+                                 uint32_t map_fractal_element_size,
                                  create_wind_callback_fun_t cwcf,
                                  destroy_wind_callback_fun_t dwcf, int scale);
 

@@ -26,29 +26,41 @@ This file is part of FractalUtils.
 
 using namespace fractal_utils;
 
+void *fractal_utils::allocate_memory_aligned(size_t alignment,
+                                             size_t bytes) noexcept {
+#ifdef _WIN32
+  return _aligned_malloc(rows * cols * sizeof_element, alignemnt);
+#else
+  return aligned_alloc(alignment, bytes);
+#endif
+}
+
+fractal_utils::fractal_map::fractal_map(size_t __rows, size_t __cols,
+                                        uint32_t __element_bytes)
+    : rows(__rows),
+      cols(__cols),
+      element_bytes(__element_bytes),
+      call_free_on_destructor(true) {
+  if (__rows <= 0 || __cols <= 0 || __element_bytes <= 0) {
+    // no memory to be allocated
+    this->data = nullptr;
+  } else {
+    this->call_free_on_destructor = true;
+
+    this->data = allocate_memory_aligned(64, __rows * __cols * __element_bytes);
+  }
+}
+fractal_utils::fractal_map::fractal_map(size_t __rows, size_t __cols,
+                                        uint32_t __element_bytes, void *__data)
+    : rows(__rows),
+      cols(__cols),
+      element_bytes(__element_bytes),
+      data(__data),
+      call_free_on_destructor(false) {}
+
 fractal_map fractal_utils::fractal_map::create(size_t rows, size_t cols,
                                                size_t sizeof_element) noexcept {
-  fractal_map map;
-
-  map.rows = rows;
-  map.cols = cols;
-  map.element_bytes = sizeof_element;
-
-  if (rows <= 0 || cols <= 0 || sizeof_element <= 0) {
-    // no memory to be allocated
-    map.data = nullptr;
-  } else {
-    map.call_free_on_destructor = true;
-
-    map.data =
-#ifdef _WIN32
-        _aligned_malloc(rows * cols * sizeof_element, 64);
-#else
-        aligned_alloc(64, rows * cols * sizeof_element);
-#endif
-  }
-
-  return map;
+  return fractal_map(rows, cols, sizeof_element);
 }
 
 fractal_utils::fractal_map::~fractal_map() {
@@ -60,37 +72,30 @@ fractal_utils::fractal_map::~fractal_map() {
 void fractal_utils::fractal_map::release() noexcept {
   if (this->call_free_on_destructor) {
     this->call_free_on_destructor = false;
-    free(data);
+    free(this->data);
   }
-  data = nullptr;
+  this->data = nullptr;
 }
 
-fractal_utils::fractal_map::fractal_map(fractal_map &&src) {
-  this->release();
-  this->rows = src.rows;
-  this->cols = src.cols;
-  this->element_bytes = src.element_bytes;
+fractal_utils::fractal_map::fractal_map(const fractal_map &src)
+    : rows(src.rows),
+      cols(src.cols),
+      element_bytes(src.element_bytes),
+      call_free_on_destructor(true) {
+  this->data = allocate_memory_aligned(64, src.byte_count());
+#ifdef __GNUC__
+  __builtin_memcpy(this->data, src.data, src.byte_count());
+#else
+  memcpy(this->data, src.data, src.byte_count());
+#endif
+}
+
+fractal_utils::fractal_map::fractal_map(fractal_map &&src)
+    : rows(src.rows), cols(src.cols), element_bytes(src.element_bytes) {
   this->data = src.data;
   this->call_free_on_destructor = src.call_free_on_destructor;
 
   src.data = nullptr;
-  src.rows = 0;
-  src.cols = 0;
+  src.call_free_on_destructor = false;
   // src.element_bytes = 0;
-}
-
-fractal_map &fractal_utils::fractal_map::operator=(fractal_map &&src) noexcept {
-
-  this->release();
-  this->rows = src.rows;
-  this->cols = src.cols;
-  this->element_bytes = src.element_bytes;
-  this->data = src.data;
-  this->call_free_on_destructor = src.call_free_on_destructor;
-
-  src.data = nullptr;
-  src.rows = 0;
-  src.cols = 0;
-
-  return *this;
 }

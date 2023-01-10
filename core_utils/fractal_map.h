@@ -31,12 +31,14 @@ This file is part of FractalUtils.
 
 namespace fractal_utils {
 
+void *allocate_memory_aligned(size_t alignment, size_t bytes) noexcept;
+
 class fractal_map {
  public:
   void *data{nullptr};
-  size_t rows{0};
-  size_t cols{0};
-  uint32_t element_bytes{1};
+  const size_t rows{0};
+  const size_t cols{0};
+  const uint32_t element_bytes{1};
 
  private:
   bool call_free_on_destructor{false};
@@ -46,13 +48,20 @@ class fractal_map {
                                           size_t sizeof_element) noexcept;
 
   ~fractal_map();
-  fractal_map() = default;
-  fractal_map(const fractal_map &) = delete;
+  fractal_map() = delete;
+  fractal_map(const fractal_map &);
   fractal_map(fractal_map &&src);
+  fractal_map(size_t __rows, size_t __cols, uint32_t __element_bytes);
+  fractal_map(size_t __rows, size_t __cols, uint32_t __element_bytes,
+              void *__data);
 
-  fractal_map &operator=(fractal_map &&src) noexcept;
+  // fractal_map &operator=(fractal_map &&src) noexcept;
 
   void release() noexcept;
+
+  inline bool own_memory() const noexcept {
+    return this->call_free_on_destructor;
+  }
 
   inline size_t element_count() const noexcept {
     return this->rows * this->cols;

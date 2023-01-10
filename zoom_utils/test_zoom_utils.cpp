@@ -25,7 +25,8 @@ int main(int argC, char **argV) {
   const int resolution_rows = 320;
   const int resolution_cols = 320;
 
-  mainwindow w(double(1), nullptr, {resolution_rows, resolution_cols}, 4);
+  mainwindow w(double(1), nullptr, {resolution_rows, resolution_cols},
+               sizeof(int16_t), 4);
 
   w.show();
   {
@@ -35,15 +36,11 @@ int main(int argC, char **argV) {
     __w.x_span = __w.y_span / resolution_rows * resolution_cols;
     w.set_window(__w);
   }
-  w.map_fractal = fractal_utils::fractal_map::create(
-      resolution_rows, resolution_cols, sizeof(int16_t));
 
   w.callback_compute_fun = callback_compute;
   w.callback_render_fun = callback_render;
-  compute_opt opt;
-  opt.max_it = 3000;
-  opt.fltmap = fractal_utils::fractal_map::create(
-      resolution_rows, resolution_cols, sizeof(float));
+  compute_opt opt{3000, fractal_utils::fractal_map::create(
+                            resolution_rows, resolution_cols, sizeof(float))};
   w.custom_parameters = &opt;
 
   // printf("size = %i, %i\n", w.rows(), w.cols());
