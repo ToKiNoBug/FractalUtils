@@ -19,23 +19,25 @@ This file is part of FractalUtils.
     github:https://github.com/ToKiNoBug
 */
 
+#include <memory>
+#include <string_view>
+
 #include "color_sources.h"
 #include "fractal_colors.h"
 
-#include <memory>
-
-using src_t = const float (*)[3];
+using src_t = fractal_utils::color_source_t;
 
 inline const float *interpolate(const float f, const src_t src) {
   const int offset = f * (512 - 1);
   return src[offset];
 }
 
-#define FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE(val)                             \
-  case fractal_utils::color_series::val:                                       \
+#define FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE(val) \
+  case fractal_utils::color_series::val:           \
     return fractal_utils::internal::src_##val;
 
-src_t get_source(const fractal_utils::color_series cs) noexcept {
+fractal_utils::color_source_t fractal_utils::color_source(
+    color_series cs) noexcept {
   switch (cs) {
     FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE(autumn);
     FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE(bone);
@@ -59,11 +61,69 @@ src_t get_source(const fractal_utils::color_series cs) noexcept {
   return nullptr;
 }
 
+#define FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(name) \
+  case fractal_utils::color_series::name:             \
+    return #name;
+
+const char *fractal_utils::color_series_enum_to_str(
+    const color_series cs) noexcept {
+  switch (cs) {
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(autumn);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(bone);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(color_cube);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(cool);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(copper);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(flag);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(gray);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(hot);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(hsv);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(jet);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(lines);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(pink);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(prism);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(spring);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(winter);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(summer);
+    FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_2(parula);
+  }
+  return "";
+}
+#define FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(name) \
+  if (str == #name) {                                 \
+    return fractal_utils::color_series::name;         \
+  }
+
+fractal_utils::color_series fractal_utils::color_series_str_to_enum(
+    const char *const __str, bool *const ok) noexcept {
+  const std::string_view str(__str);
+  if (ok != nullptr) *ok = true;
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(autumn);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(bone);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(color_cube);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(cool);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(copper);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(flag);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(gray);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(hot);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(hsv);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(jet);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(lines);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(pink);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(prism);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(spring);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(winter);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(summer);
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CASE_3(parula);
+  if (ok != nullptr) *ok = false;
+
+  return {};
+}
+
 using namespace fractal_utils;
 pixel_RGB fractal_utils::color_u8c3(const float f,
                                     const color_series cs) noexcept {
   pixel_RGB ret;
-  const src_t src = get_source(cs);
+  const src_t src = color_source(cs);
 
   if (src != nullptr) {
     ret.value[0] = interpolate(f, src)[0] * 255;
@@ -78,11 +138,26 @@ pixel_RGB fractal_utils::color_u8c3(const float f,
   return ret;
 }
 
+pixel_RGB fractal_utils::color_u8c3(const float f,
+                                    const color_source_t cst) noexcept {
+  pixel_RGB ret;
+  if (cst != nullptr) {
+    ret.value[0] = interpolate(f, cst)[0] * 255;
+    ret.value[1] = interpolate(f, cst)[1] * 255;
+    ret.value[2] = interpolate(f, cst)[2] * 255;
+  } else {
+    ret.value[0] = 0;
+    ret.value[1] = 0;
+    ret.value[2] = 0;
+  }
+  return ret;
+}
+
 using namespace fractal_utils;
 pixel_ARGB fractal_utils::color_u8c4(const float f,
                                      const color_series cs) noexcept {
   pixel_ARGB ret;
-  const src_t src = get_source(cs);
+  const src_t src = color_source(cs);
 
   uint32_t R, G, B;
 
@@ -104,8 +179,7 @@ pixel_ARGB fractal_utils::color_u8c4(const float f,
 void fractal_utils::color_u8c3_many(const float *const f, const color_series cs,
                                     const size_t pixel_num,
                                     pixel_RGB *const dest) noexcept {
-
-  const src_t src = get_source(cs);
+  const src_t src = color_source(cs);
 
   if (src == nullptr) {
 #ifdef __GNUC__
@@ -126,8 +200,7 @@ void fractal_utils::color_u8c3_many(const float *const f, const color_series cs,
 void fractal_utils::color_u8c4_many(const float *const f, const color_series cs,
                                     const size_t pixel_num,
                                     pixel_ARGB *const dest) noexcept {
-
-  const src_t src = get_source(cs);
+  const src_t src = color_source(cs);
 
   if (src == nullptr) {
 #ifdef __GNUC__

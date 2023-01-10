@@ -75,6 +75,19 @@ void color_u8c3_many(const float *const f, const color_series,
 void color_u8c4_many(const float *const f, const color_series,
                      const size_t pixel_num, pixel_ARGB *const dest) noexcept;
 
+using color_source_t = const float (*)[3];
+
+color_source_t color_source(color_series cs) noexcept;
+
+pixel_RGB color_u8c3(const float f, const color_source_t cst) noexcept;
+// constexpr int sz = sizeof(color_source_t);
+
+const char *color_series_enum_to_str(const color_series cs) noexcept;
+color_series color_series_str_to_enum(const char *const str,
+                                      bool *const ok = nullptr) noexcept;
+
+static_assert(sizeof(color_source_t) == 8);
+
 }  // namespace fractal_utils
 
 #endif  // FRACTALUTILS_COLORS_H

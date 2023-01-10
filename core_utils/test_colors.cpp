@@ -19,15 +19,27 @@ This file is part of FractalUtils.
     github:https://github.com/ToKiNoBug
 */
 
-#include "fractal_colors.h"
-
 #include <stdio.h>
+
+#include "fractal_colors.h"
 
 int main() {
   const uint32_t val =
       fractal_utils::color_u8c4(0.9, fractal_utils::color_series::pink);
 
   printf("val = 0x%X\n", val);
+
+  const char *const name_of_autum = fractal_utils::color_series_enum_to_str(
+      fractal_utils::color_series::parula);
+
+  printf("value of parula = %i\n", int(fractal_utils::color_series::parula));
+
+  printf("name of parula = %s\n", name_of_autum);
+
+  printf("value of name of parula = %i\n",
+         (int)fractal_utils::color_series_str_to_enum(
+             fractal_utils::color_series_enum_to_str(
+                 fractal_utils::color_series::parula)));
 
   return 0;
 }
