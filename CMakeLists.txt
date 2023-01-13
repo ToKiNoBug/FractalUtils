@@ -32,7 +32,7 @@ add_subdirectory(zoom_utils)
 include(CMakePackageConfigHelpers)
 
 # set version
-set(version 2.0.0)
+set(version 2.0.1)
 
 # generate the version file for the config file
 write_basic_package_version_file(
