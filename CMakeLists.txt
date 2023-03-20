@@ -1,7 +1,8 @@
-project(FractalUtils LANGUAGES CXX)
-cmake_minimum_required(VERSION 3.15)
 
-set(CMAKE_CXX_STANDARD 17)
+cmake_minimum_required(VERSION 3.15)
+project(FractalUtils VERSION 2.0.2 LANGUAGES CXX)
+
+# set(CMAKE_CXX_STANDARD 17)
 
 # set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -18,7 +19,7 @@ endif()
 # message(STATUS "CMAKE_CXX_COMPILER_FRONTEND_VARIANT = "
 # ${CMAKE_CXX_COMPILER_FRONTEND_VARIANT})
 if((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-   OR (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC"))
+  OR(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC"))
   message(STATUS "The compiler is MSVC or Clang-cl.")
   add_compile_options(/wd4267 /wd4244 /wd4305)
   message(STATUS "Added msvc compile options to avoid stupid warnings.")
@@ -32,7 +33,7 @@ add_subdirectory(zoom_utils)
 include(CMakePackageConfigHelpers)
 
 # set version
-set(version 2.0.1)
+set(version ${PROJECT_VERSION})
 
 # generate the version file for the config file
 write_basic_package_version_file(
@@ -49,5 +50,5 @@ configure_package_config_file(
 
 # install config files
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/fractal_utils-config.cmake"
-              "${CMAKE_CURRENT_BINARY_DIR}/fractal_utils-config-version.cmake"
-        DESTINATION lib/cmake/fractal_utils)
+  "${CMAKE_CURRENT_BINARY_DIR}/fractal_utils-config-version.cmake"
+  DESTINATION lib/cmake/fractal_utils)

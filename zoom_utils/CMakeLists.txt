@@ -1,8 +1,7 @@
 project(FractalUtils_zoom_utils LANGUAGES CXX)
 cmake_minimum_required(VERSION 3.15)
 
-set(CMAKE_CXX_STANDARD 17)
-
+# set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_AUTOUIC ON)
@@ -17,16 +16,19 @@ if(NOT ${QT_FOUND})
   return()
 endif()
 
-include_directories(${CMAKE_SOURCE_DIR}/core_utils)
-
+# include_directories(${CMAKE_SOURCE_DIR}/core_utils)
 add_library(zoom_utils STATIC
   zoom_utils.h
   zoom_utils.cpp
   scalable_label.h
   scalable_label.cpp)
-target_link_libraries(zoom_utils PRIVATE
+
+target_link_libraries(zoom_utils PUBLIC
   Qt${QT_VERSION_MAJOR}::Widgets
   core_utils)
+
+target_compile_features(zoom_utils PUBLIC cxx_std_17)
+
 add_library(fractal_utils::zoom_utils ALIAS zoom_utils)
 
 # install libs

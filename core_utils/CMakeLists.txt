@@ -1,8 +1,7 @@
 project(FractalUtils_core_utils LANGUAGES CXX)
 cmake_minimum_required(VERSION 3.15)
 
-set(CMAKE_CXX_STANDARD 17)
-
+# set(CMAKE_CXX_STANDARD 17)
 add_library(core_utils STATIC
     fractal_binfile.h
     fractal_binfile.cpp
@@ -24,6 +23,8 @@ set(core_install_headers
 )
 
 add_library(fractal_utils::core_utils ALIAS core_utils)
+
+target_compile_features(core_utils PUBLIC cxx_std_17)
 
 # add include directories
 target_include_directories(core_utils
