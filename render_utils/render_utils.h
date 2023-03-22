@@ -33,8 +33,8 @@ template <typename A, typename B, typename pixel_t> struct render_AB_options {
   size_t row_end;
   size_t col_beg;
   size_t col_end;
-  const std::function<void(A, B)> fun_counter;
-  const std::function<pixel_t(A, B)> &fun_color;
+  std::function<void(A, B)> fun_counter;
+  std::function<pixel_t(A, B)> fun_color;
 };
 
 template <typename A, typename B, typename pixel_t>
