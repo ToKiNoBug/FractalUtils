@@ -46,10 +46,11 @@ struct data_block {
   /// unused when serialization
   uint64_t file_offset;
   void *data{nullptr};
+  bool has_ownership{false};
 };
 
 class binfile {
- public:
+public:
   std::vector<data_block> blocks;
 
   void *(*callback_malloc)(size_t) = malloc;
@@ -80,6 +81,6 @@ bool serialize_to_file(const data_block *const src, const uint64_t block_num,
 bool write_data_block(::FILE *const file_ptr_wb,
                       const data_block &block) noexcept;
 
-}  // namespace fractal_utils
+} // namespace fractal_utils
 
-#endif  // FRACTALUTILS_FRACTAL_BINMAP_H
+#endif // FRACTALUTILS_FRACTAL_BINMAP_H

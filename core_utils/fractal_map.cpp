@@ -50,7 +50,7 @@ fractal_utils::fractal_map::fractal_map(size_t __rows, size_t __cols,
 }
 fractal_utils::fractal_map::fractal_map(size_t __rows, size_t __cols,
                                         uint32_t __element_bytes, void *__data)
-    : rows(__rows), cols(__cols), element_bytes(__element_bytes), data(__data),
+    : data(__data), rows(__rows), cols(__cols), element_bytes(__element_bytes),
       call_free_on_destructor(false) {}
 
 fractal_map fractal_utils::fractal_map::create(size_t rows, size_t cols,

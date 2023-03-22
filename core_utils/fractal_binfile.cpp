@@ -254,6 +254,12 @@ bool fractal_utils::serialize_to_file(const data_block *const src,
 
 void fractal_utils::binfile::remove_all_blocks() noexcept {
   for (auto &blk : this->blocks) {
+    if (this->callback_free == nullptr) {
+      continue;
+    }
+    if (!blk.has_ownership) {
+      continue;
+    }
     if (blk.data != nullptr)
       this->callback_free(blk.data);
     blk.data = nullptr;
@@ -357,6 +363,7 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
       }
     } else {
       blk.data = this->callback_malloc(blk.bytes);
+      blk.has_ownership = true;
 
       if (blk.data == nullptr) {
         printf(
