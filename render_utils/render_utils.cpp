@@ -19,12 +19,4 @@ This file is part of FractalUtils.
     github:https://github.com/ToKiNoBug
 */
 
-#ifndef FRACTAL_UTILS_CORE_UTILS_H
-#define FRACTAL_UTILS_CORE_UTILS_H
-
-#include "fractal_binfile.h"
-#include "fractal_colors.h"
-#include "fractal_map.h"
-#include "hex_convert.h"
-
-#endif // FRACTAL_UTILS_CORE_UTILS_H
+#include "render_utils.h"

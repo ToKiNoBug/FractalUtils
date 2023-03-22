@@ -28,7 +28,7 @@ set(core_install_headers
 
 add_library(fractal_utils::core_utils ALIAS core_utils)
 
-target_compile_features(core_utils PUBLIC cxx_std_17)
+target_compile_features(core_utils PUBLIC cxx_std_20)
 
 # add include directories
 target_include_directories(core_utils

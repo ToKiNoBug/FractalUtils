@@ -26,6 +26,7 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 add_subdirectory(core_utils)
+add_subdirectory(render_utils)
 add_subdirectory(png_utils)
 add_subdirectory(zoom_utils)
 
