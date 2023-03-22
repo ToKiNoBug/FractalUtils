@@ -281,6 +281,34 @@ uint64_t get_file_size(FILE *fp_r) noexcept {
   return result;
 }
 
+fractal_utils::data_block *
+fractal_utils::binfile::find_block_single(int64_t tag) noexcept {
+  for (auto &blk : this->blocks) {
+    if (blk.tag == tag) {
+      return &blk;
+    }
+  }
+
+  return nullptr;
+}
+
+const fractal_utils::data_block *
+fractal_utils::binfile::find_block_single(int64_t tag) const noexcept {
+  for (const auto &blk : this->blocks) {
+    if (blk.tag == tag) {
+      return &blk;
+    }
+  }
+  return nullptr;
+}
+
+bool fractal_utils::binfile::save_to_file(
+    const char *filename, const bool wirte_header) const noexcept {
+
+  return ::fractal_utils::serialize_to_file(
+      this->blocks.data(), this->blocks.size(), wirte_header, filename);
+}
+
 bool fractal_utils::binfile::parse_from_file(const char *const filename,
                                              const bool offset_only) noexcept {
   FILE *fp;

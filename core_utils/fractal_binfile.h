@@ -60,8 +60,15 @@ public:
 
   ~binfile();
 
+  fractal_utils::data_block *find_block_single(int64_t tag) noexcept;
+  const fractal_utils::data_block *
+  find_block_single(int64_t tag) const noexcept;
+
   bool parse_from_file(const char *const filename,
                        const bool offset_only = false) noexcept;
+
+  bool save_to_file(const char *filename,
+                    const bool wirte_header) const noexcept;
 };
 
 bool parse_from_memory(const void *const data, const uint64_t bytes,
