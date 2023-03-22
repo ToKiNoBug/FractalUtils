@@ -8,8 +8,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(QT NAMES Qt6 COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets)
+find_package(Qt6 COMPONENTS Widgets)
 
 if(NOT ${QT_FOUND})
   message(WARNING "Qt6 Widgets not found. zoom_utils will not be built.")
@@ -24,7 +23,7 @@ add_library(zoom_utils STATIC
   scalable_label.cpp)
 
 target_link_libraries(zoom_utils PUBLIC
-  Qt${QT_VERSION_MAJOR}::Widgets
+  Qt6::Widgets
   core_utils)
 
 target_compile_features(zoom_utils PUBLIC cxx_std_17)
@@ -62,7 +61,7 @@ if(NOT ${FractalUtils_build_examples})
 endif()
 
 # example executable
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+if(6 GREATER_EQUAL 6)
   qt_add_executable(test_zoom_utils
     MANUAL_FINALIZATION
     test_zoom_utils.cpp)
@@ -71,7 +70,7 @@ endif()
 find_package(OpenMP REQUIRED)
 target_link_libraries(test_zoom_utils PRIVATE
   zoom_utils
-  Qt${QT_VERSION_MAJOR}::Widgets
+  Qt6::Widgets
   core_utils OpenMP::OpenMP_CXX)
 
 if(QT_VERSION_MAJOR EQUAL 6)
