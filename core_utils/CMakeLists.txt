@@ -12,7 +12,10 @@ add_library(core_utils STATIC
     fractal_colors.h
     colors.cpp
     color_sources.h
-    color_sources.cpp)
+    color_sources.cpp
+
+    hex_convert.h
+    hex_convert.cpp)
 
 # add include directories
 set(core_install_headers
@@ -20,6 +23,7 @@ set(core_install_headers
     fractal_binfile.h
     fractal_colors.h
     fractal_map.h
+    hex_convert.h
 )
 
 add_library(fractal_utils::core_utils ALIAS core_utils)
@@ -62,3 +66,6 @@ target_link_libraries(test_binfile PRIVATE core_utils)
 
 add_executable(test_colors test_colors.cpp)
 target_link_libraries(test_colors PRIVATE core_utils)
+
+add_executable(test_hex test_hex.cpp)
+target_link_libraries(test_hex PRIVATE core_utils)
