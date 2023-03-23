@@ -31,8 +31,7 @@ QImage scale_img(const QImage &src, int scale) noexcept {
 zoom_utils_mainwindow::zoom_utils_mainwindow(
     QWidget *parent, const std::array<int, 2> &window_size,
     uint32_t map_fractal_element_size, int __scale)
-    : QMainWindow(parent),
-      ui(new Ui::zoom_utils_mainwindow),
+    : QMainWindow(parent), ui(new Ui::zoom_utils_mainwindow),
       img_u8c3(QSize(window_size[1], window_size[0]),
                QImage::Format::Format_RGB888),
       scale(__scale),
@@ -272,7 +271,7 @@ void zoom_utils_mainwindow::on_btn_repaint_clicked() {
   if (qba.length() != size_of_center_data) {
     printf("\nError : hex have invalid length : should be %i but infact %i\n",
            int(size_of_center_data), (int)qba.length());
-    exit(1);
+    abort();
   }
 
   memcpy(this->window->center_data(), qba.data(), size_of_center_data);
