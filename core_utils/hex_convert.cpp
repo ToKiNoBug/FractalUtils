@@ -12,6 +12,8 @@ constexpr inline uint8_t hex_single_letter_to_u8(char ch) noexcept {
   if (ch >= 'a' && ch <= 'z') {
     return ch - 'a' + 10;
   }
+
+  return 0xFF;
 }
 
 constexpr bool inline is_valid_char(char ch) noexcept {
