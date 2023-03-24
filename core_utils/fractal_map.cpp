@@ -35,7 +35,7 @@ void *fractal_utils::allocate_memory_aligned(size_t alignment,
 #endif
 }
 
-void free_memory_aligned(void *data) noexcept {
+void fractal_utils::free_memory_aligned(void *data) noexcept {
 #ifdef _WIN32
   _aligned_free(data);
 #else
