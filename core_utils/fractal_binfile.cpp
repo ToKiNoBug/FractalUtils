@@ -315,7 +315,8 @@ const fractal_utils::binfile &
 fractal_utils::binfile::operator=(binfile &&another) noexcept {
   this->remove_all_blocks();
 
-  this->blocks.reserve(another.blocks.size());
+  this->blocks = std::move(another.blocks);
+  another.blocks.clear();
 
   this->callback_malloc = another.callback_malloc;
   this->callback_free = another.callback_free;
