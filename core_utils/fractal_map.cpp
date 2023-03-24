@@ -35,6 +35,14 @@ void *fractal_utils::allocate_memory_aligned(size_t alignment,
 #endif
 }
 
+void free_memory_aligned(void *data) noexcept {
+#ifdef _WIN32
+  _aligned_free(data);
+#else
+  free(data);
+#endif
+}
+
 fractal_utils::fractal_map::fractal_map(size_t __rows, size_t __cols,
                                         uint32_t __element_bytes)
     : rows(__rows), cols(__cols), element_bytes(__element_bytes),
@@ -60,14 +68,14 @@ fractal_map fractal_utils::fractal_map::create(size_t rows, size_t cols,
 
 fractal_utils::fractal_map::~fractal_map() {
   if (this->call_free_on_destructor && this->data != nullptr) {
-    free(this->data);
+    free_memory_aligned(this->data);
   }
 }
 
 void fractal_utils::fractal_map::release() noexcept {
   if (this->call_free_on_destructor) {
     this->call_free_on_destructor = false;
-    free(this->data);
+    free_memory_aligned(this->data);
   }
   this->data = nullptr;
 }
