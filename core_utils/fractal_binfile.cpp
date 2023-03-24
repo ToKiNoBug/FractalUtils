@@ -21,6 +21,7 @@ This file is part of FractalUtils.
 
 #include "fractal_binfile.h"
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -268,7 +269,58 @@ void fractal_utils::binfile::remove_all_blocks() noexcept {
   this->blocks.clear();
 }
 
+void fractal_utils::binfile::copy_from(const binfile &another) noexcept {
+  this->remove_all_blocks();
+
+  this->blocks.reserve(another.blocks.size());
+
+  this->callback_malloc = another.callback_malloc;
+  this->callback_free = another.callback_free;
+
+  for (const auto &blk : another.blocks) {
+    data_block blk_copy;
+    blk_copy.tag = blk.tag;
+    blk_copy.bytes = blk.bytes;
+    blk_copy.file_offset = blk.file_offset;
+    if (blk.data != nullptr) {
+      assert(this->callback_malloc != nullptr);
+      blk_copy.data = this->callback_malloc(blk.bytes);
+      memcpy(blk_copy.data, blk.data, blk.bytes);
+      blk_copy.has_ownership = true;
+    } else {
+      blk_copy.data = nullptr;
+    }
+
+    this->blocks.emplace_back(blk_copy);
+  }
+}
+
+fractal_utils::binfile::binfile(const binfile &another) {
+  this->copy_from(another);
+}
+
+fractal_utils::binfile::binfile(binfile &&another)
+    : callback_malloc(another.callback_malloc),
+      callback_free(another.callback_free), blocks(std::move(another.blocks)) {}
+
 fractal_utils::binfile::~binfile() { this->remove_all_blocks(); }
+
+const fractal_utils::binfile &
+fractal_utils::binfile::operator=(const binfile &another) noexcept {
+  this->copy_from(another);
+  return *this;
+}
+
+const fractal_utils::binfile &
+fractal_utils::binfile::operator=(binfile &&another) noexcept {
+  this->remove_all_blocks();
+
+  this->blocks.reserve(another.blocks.size());
+
+  this->callback_malloc = another.callback_malloc;
+  this->callback_free = another.callback_free;
+  return *this;
+}
 
 uint64_t get_file_size(FILE *fp_r) noexcept {
   const uint64_t idx = ftell(fp_r);

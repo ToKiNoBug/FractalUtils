@@ -50,6 +50,9 @@ struct data_block {
 };
 
 class binfile {
+private:
+  void copy_from(const binfile &another) noexcept;
+
 public:
   std::vector<data_block> blocks;
 
@@ -58,7 +61,14 @@ public:
 
   void remove_all_blocks() noexcept;
 
+  binfile() = default;
+  binfile(const binfile &another);
+  binfile(binfile &&another);
+
   ~binfile();
+
+  const binfile &operator=(const binfile &another) noexcept;
+  const binfile &operator=(binfile &&another) noexcept;
 
   fractal_utils::data_block *find_block_single(int64_t tag) noexcept;
   const fractal_utils::data_block *
