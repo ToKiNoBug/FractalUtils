@@ -19,11 +19,11 @@ add_library(core_utils STATIC
 
 # add include directories
 set(core_install_headers
-    core_utils.h
-    fractal_binfile.h
-    fractal_colors.h
-    fractal_map.h
-    hex_convert.h
+  core_utils.h
+  fractal_binfile.h
+  fractal_colors.h
+  fractal_map.h
+  hex_convert.h
 )
 
 add_library(fractal_utils::core_utils ALIAS core_utils)
@@ -32,10 +32,10 @@ target_compile_features(core_utils PUBLIC cxx_std_17)
 
 # add include directories
 target_include_directories(core_utils
-    PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    INTERFACE
-    $<INSTALL_INTERFACE:include>
+  PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  INTERFACE
+  $<INSTALL_INTERFACE:include>
 )
 
 # install the target and create export-set
@@ -44,7 +44,7 @@ install(TARGETS core_utils
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include
+  INCLUDES DESTINATION include
 )
 
 # install header file
@@ -54,7 +54,7 @@ install(FILES ${core_install_headers} DESTINATION include/fractal_utils)
 install(EXPORT fractal_utils_core-targets
   FILE fractal_utilscore_utilsTargets.cmake
   NAMESPACE fractal_utils::
-    DESTINATION lib/cmake/fractal_utils
+  DESTINATION lib/cmake/fractal_utils
 )
 
 if(NOT ${FractalUtils_build_examples})
@@ -69,3 +69,6 @@ target_link_libraries(test_colors PRIVATE core_utils)
 
 add_executable(test_hex test_hex.cpp)
 target_link_libraries(test_hex PRIVATE core_utils)
+
+add_executable(test_scale test_scale.cpp)
+target_link_libraries(test_scale PRIVATE core_utils)

@@ -100,3 +100,13 @@ fractal_utils::fractal_map::fractal_map(fractal_map &&src)
   src.call_free_on_destructor = false;
   // src.element_bytes = 0;
 }
+
+#include <cmath>
+
+int fractal_utils::compute_skip_indices(int size, double ratio, int png_count,
+                                        int png_index) noexcept {
+  assert(ratio > 1);
+  const double len = std::pow(ratio, -double(png_index) / png_count);
+
+  return (1 - len) / 2 * size;
+}

@@ -293,6 +293,19 @@ public:
   }
 };
 
+int compute_skip_indices(int size, double ratio, int png_count,
+                         int png_index) noexcept;
+
+inline int skip_rows(int full_rows, double ratio, int png_count,
+                     int png_index) noexcept {
+  return compute_skip_indices(full_rows, ratio, png_count, png_index);
+}
+
+inline int skip_cols(int full_cols, double ratio, int png_count,
+                     int png_index) noexcept {
+  return compute_skip_indices(full_cols, ratio, png_count, png_index);
+}
+
 } // namespace fractal_utils
 
 #endif
