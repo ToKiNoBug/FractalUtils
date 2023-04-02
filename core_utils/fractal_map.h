@@ -242,8 +242,8 @@ public:
       relative_offset_rc[idx] = (position[idx] + 0.5) / (total_size[idx]) - 0.5;
     }
 
-    ret[0] += relative_offset_rc[1] * this->x_span;
-    ret[1] -= relative_offset_rc[0] * this->y_span;
+    ret[0] += relative_offset_rc[1] * double(this->x_span);
+    ret[1] -= relative_offset_rc[0] * double(this->y_span);
     return ret;
   }
 
