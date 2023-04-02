@@ -9,20 +9,21 @@ class QMouseEvent;
 
 class scalable_label : public QLabel {
   Q_OBJECT
-public:
+ public:
   explicit scalable_label(QWidget *parent = nullptr);
-signals:
+ signals:
 
   void zoomed(std::array<int, 2> pos, bool is_scaling_up);
   void moved(std::array<int, 2> pos);
 
-private:
+ private:
   std::mutex lock;
 
-protected:
+ protected:
   void wheelEvent(QWheelEvent *event) override;
 
   void mouseMoveEvent(QMouseEvent *event) override;
+  void mouseDoubleClickEvent(QMouseEvent *event) override;
 };
 
-#endif // FRACTALUTILS_ZOOM_UTILS_SCALABLE_LABEL_H
+#endif  // FRACTALUTILS_ZOOM_UTILS_SCALABLE_LABEL_H
