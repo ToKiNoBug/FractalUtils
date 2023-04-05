@@ -182,7 +182,7 @@ void zoom_utils_mainwindow::display_range() noexcept {
       abort();
     }
 
-    ui->show_center_hex->setText(QString::fromStdString(hex));
+    ui->show_center_hex->setText(QString::fromLocal8Bit(hex));
   }
 }
 
@@ -262,7 +262,7 @@ void zoom_utils_mainwindow::on_btn_repaint_clicked() {
   size_t size_of_center_data = 0;
   this->window->center_data(&size_of_center_data);
   {
-    const std::string hex = this->ui->show_center_hex->text().toStdString();
+    const std::string hex = this->ui->show_center_hex->text().toUtf8().data();
     std::string err;
 
     this->callback_hex_decode_fun(hex, *(this->window), err);
@@ -272,7 +272,7 @@ void zoom_utils_mainwindow::on_btn_repaint_clicked() {
           this, "Invalid hex string",
           QStringLiteral("this->callback_hex_decode_fun failed to decode "
                          "hex string \"%1\" to binary. \nDetail: \n%2")
-              .arg(QString::fromStdString(hex))
+              .arg(QString::fromUtf8(hex.data()))
               .arg(QString::fromUtf8(err.data())));
 
       this->lock.unlock();
