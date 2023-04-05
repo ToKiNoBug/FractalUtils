@@ -1,6 +1,6 @@
 
 cmake_minimum_required(VERSION 3.15)
-project(FractalUtils VERSION 2.2.2 LANGUAGES CXX)
+project(FractalUtils VERSION 2.2.3 LANGUAGES CXX)
 
 option(FractalUtils_no_install "Disable installation for this lib." OFF)
 option(FractalUtils_no_test "Disable testing for this lib." TRUE)

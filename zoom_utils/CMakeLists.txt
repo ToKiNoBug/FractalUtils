@@ -86,7 +86,7 @@ if(${WIN32})
     message(WARNING "Fractal Utils failed to find windeployqt.")
   else()
     message(STATUS "windeployqt found at ${FU_windeployqt}")
-    add_custom_target(FU_test-zoomer-deployqt ALL
+    add_custom_target(FU_test-zoomer-deployqt
       COMMAND ${FU_windeployqt} test_zoom_utils.exe
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
       DEPENDS test_zoom_utils)

@@ -36,6 +36,11 @@ struct file_header {
 
   int8_t data[32];
 
+  int8_t *custom_part() noexcept;
+  const int8_t *custom_part() const noexcept;
+
+  static size_t custom_part_len() noexcept;
+
   bool is_valid() const noexcept;
 };
 
@@ -54,6 +59,7 @@ private:
   void copy_from(const binfile &another) noexcept;
 
 public:
+  file_header header;
   std::vector<data_block> blocks;
 
   void *(*callback_malloc)(size_t) = malloc;
@@ -93,6 +99,10 @@ bool serialize_to_memory(const data_block *const blocks,
 
 bool serialize_to_file(const data_block *const src, const uint64_t block_num,
                        const bool write_header,
+                       const char *const filename) noexcept;
+
+bool serialize_to_file(const data_block *const src, const uint64_t block_num,
+                       const file_header *header_nullable,
                        const char *const filename) noexcept;
 
 bool write_data_block(::FILE *const file_ptr_wb,

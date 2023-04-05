@@ -51,6 +51,18 @@ bool fractal_utils::file_header::is_valid() const noexcept {
   return true;
 }
 
+int8_t *fractal_utils::file_header::custom_part() noexcept {
+  return this->data + sizeof(__cmp);
+}
+
+const int8_t *fractal_utils::file_header::custom_part() const noexcept {
+  return this->data + sizeof(__cmp);
+}
+
+size_t fractal_utils::file_header::custom_part_len() noexcept {
+  return 32 - sizeof(__cmp);
+}
+
 bool fractal_utils::serialize_to_memory(
     const data_block *const src, const uint64_t block_num,
     const bool write_header, void *const dest_beg, const uint64_t dest_capacity,
@@ -211,8 +223,9 @@ bool fractal_utils::parse_from_memory(
 
 bool fractal_utils::serialize_to_file(const data_block *const src,
                                       const uint64_t block_num,
-                                      const bool write_header,
+                                      const file_header *header_nullable,
                                       const char *const filename) noexcept {
+
   if (filename == nullptr) {
     return false;
   }
@@ -228,9 +241,8 @@ bool fractal_utils::serialize_to_file(const data_block *const src,
     return false;
   }
 
-  if (write_header) {
-    file_header fhd;
-    fwrite(&fhd, 1, sizeof(fhd), fp);
+  if (header_nullable != nullptr) {
+    fwrite(header_nullable, 1, sizeof(file_header), fp);
   }
 
   for (uint64_t bidx = 0; bidx < block_num; bidx++) {
@@ -267,6 +279,16 @@ void fractal_utils::binfile::remove_all_blocks() noexcept {
   }
 
   this->blocks.clear();
+}
+
+bool fractal_utils::serialize_to_file(const data_block *const src,
+                                      const uint64_t block_num,
+                                      const bool write_header,
+                                      const char *const filename) noexcept {
+  file_header fhd;
+
+  return fractal_utils::serialize_to_file(
+      src, block_num, (write_header ? &fhd : nullptr), filename);
 }
 
 void fractal_utils::binfile::copy_from(const binfile &another) noexcept {
@@ -359,7 +381,8 @@ bool fractal_utils::binfile::save_to_file(
     const char *filename, const bool wirte_header) const noexcept {
 
   return ::fractal_utils::serialize_to_file(
-      this->blocks.data(), this->blocks.size(), wirte_header, filename);
+      this->blocks.data(), this->blocks.size(),
+      (wirte_header ? &this->header : nullptr), filename);
 }
 
 bool fractal_utils::binfile::parse_from_file(const char *const filename,
@@ -399,6 +422,7 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
           filename);
       return false;
     }
+    this->header = fh;
   }
 
   while (true) {
