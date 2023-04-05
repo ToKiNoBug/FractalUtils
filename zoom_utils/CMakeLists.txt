@@ -37,24 +37,26 @@ target_include_directories(zoom_utils
   INTERFACE
   $<INSTALL_INTERFACE:include>)
 
-# install the target and create export-set
-install(TARGETS zoom_utils
-  EXPORT fractal_utils_zoom_utils-targets
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include/fractal_utils
-)
+if(NOT ${FractalUtils_no_install})
+  # install the target and create export-set
+  install(TARGETS zoom_utils
+    EXPORT fractal_utils_zoom_utils-targets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include/fractal_utils
+  )
 
-# install header file
-install(FILES zoom_utils.h DESTINATION include/fractal_utils)
+  # install header file
+  install(FILES zoom_utils.h DESTINATION include/fractal_utils)
 
-# generate and install export file
-install(EXPORT fractal_utils_zoom_utils-targets
-  FILE fractal_utilszoom_utilsTargets.cmake
-  NAMESPACE fractal_utils::
-  DESTINATION lib/cmake/fractal_utils
-)
+  # generate and install export file
+  install(EXPORT fractal_utils_zoom_utils-targets
+    FILE fractal_utilszoom_utilsTargets.cmake
+    NAMESPACE fractal_utils::
+    DESTINATION lib/cmake/fractal_utils
+  )
+endif()
 
 if(NOT ${FractalUtils_build_examples})
   return()
@@ -75,4 +77,24 @@ target_link_libraries(test_zoom_utils PRIVATE
 
 if(QT_VERSION_MAJOR EQUAL 6)
   qt_finalize_executable(test_zoom_utils)
+endif()
+
+if(${WIN32})
+  find_program(FU_windeployqt NAME windeployqt PATHS ${CMAKE_PREFIX_PATH})
+
+  if(NOT FU_windeployqt)
+    message(WARNING "Fractal Utils failed to find windeployqt.")
+  else()
+    message(STATUS "windeployqt found at ${FU_windeployqt}")
+    add_custom_target(FU_test-zoomer-deployqt ALL
+      COMMAND ${FU_windeployqt} test_zoom_utils.exe
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      DEPENDS test_zoom_utils)
+  endif()
+endif()
+
+if(NOT ${FractalUtils_no_test})
+  add_test(NAME FractalUtils_test_zoom_utils
+    COMMAND test_zoom_utils
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()

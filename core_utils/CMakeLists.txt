@@ -38,24 +38,26 @@ target_include_directories(core_utils
   $<INSTALL_INTERFACE:include>
 )
 
-# install the target and create export-set
-install(TARGETS core_utils
-  EXPORT fractal_utils_core-targets
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include
-)
+if(NOT ${FractalUtils_no_install})
+  # install the target and create export-set
+  install(TARGETS core_utils
+    EXPORT fractal_utils_core-targets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+  )
 
-# install header file
-install(FILES ${core_install_headers} DESTINATION include/fractal_utils)
+  # install header file
+  install(FILES ${core_install_headers} DESTINATION include/fractal_utils)
 
-# generate and install export file
-install(EXPORT fractal_utils_core-targets
-  FILE fractal_utilscore_utilsTargets.cmake
-  NAMESPACE fractal_utils::
-  DESTINATION lib/cmake/fractal_utils
-)
+  # generate and install export file
+  install(EXPORT fractal_utils_core-targets
+    FILE fractal_utilscore_utilsTargets.cmake
+    NAMESPACE fractal_utils::
+    DESTINATION lib/cmake/fractal_utils
+  )
+endif()
 
 if(NOT ${FractalUtils_build_examples})
   return()

@@ -1,6 +1,14 @@
 
 cmake_minimum_required(VERSION 3.15)
-project(FractalUtils VERSION 2.2.1 LANGUAGES CXX)
+project(FractalUtils VERSION 2.2.2 LANGUAGES CXX)
+
+option(FractalUtils_no_install "Disable installation for this lib." OFF)
+option(FractalUtils_no_test "Disable testing for this lib." TRUE)
+option(FractalUtils_build_examples "Build examples" ON)
+
+if(NOT ${FractalUtils_no_test})
+  enable_testing()
+endif()
 
 # set(CMAKE_CXX_STANDARD 17)
 
@@ -10,10 +18,6 @@ if(NOT DEFINED CMAKE_INSTALL_PREFIX)
 endif()
 
 include(add_compiler_path_to_prefix.cmake)
-
-if(NOT DEFINED FractalUtils_build_examples)
-  set(FractalUtils_build_examples ON)
-endif()
 
 # message(STATUS "CMAKE_CXX_COMPILER_ID = " ${CMAKE_CXX_COMPILER_ID})
 # message(STATUS "CMAKE_CXX_COMPILER_FRONTEND_VARIANT = "

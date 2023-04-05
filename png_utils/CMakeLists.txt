@@ -25,24 +25,26 @@ target_include_directories(png_utils
     $<INSTALL_INTERFACE:include>
 )
 
-# install the target and create export-set
-install(TARGETS png_utils
-    EXPORT fractal_utils_png_utils-targets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include/fractal_utils
-)
+if(NOT ${FractalUtils_no_install})
+    # install the target and create export-set
+    install(TARGETS png_utils
+        EXPORT fractal_utils_png_utils-targets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include/fractal_utils
+    )
 
-# install header file
-install(FILES png_utils.h DESTINATION include/fractal_utils)
+    # install header file
+    install(FILES png_utils.h DESTINATION include/fractal_utils)
 
-# generate and install export file
-install(EXPORT fractal_utils_png_utils-targets
-    FILE fractal_utilspng_utilsTargets.cmake
-    NAMESPACE fractal_utils::
-    DESTINATION lib/cmake/fractal_utils
-)
+    # generate and install export file
+    install(EXPORT fractal_utils_png_utils-targets
+        FILE fractal_utilspng_utilsTargets.cmake
+        NAMESPACE fractal_utils::
+        DESTINATION lib/cmake/fractal_utils
+    )
+endif()
 
 if(NOT ${FractalUtils_build_examples})
     return()

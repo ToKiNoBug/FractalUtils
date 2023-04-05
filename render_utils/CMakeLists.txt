@@ -15,22 +15,24 @@ target_include_directories(render_utils
     INTERFACE
     $<INSTALL_INTERFACE:include>)
 
-install(TARGETS render_utils
-    EXPORT fractal_utils_render_utils-targets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include/fractal_utils)
+if(NOT ${FractalUtils_no_install})
+    install(TARGETS render_utils
+        EXPORT fractal_utils_render_utils-targets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include/fractal_utils)
 
-# install header file
-install(FILES render_utils.h DESTINATION include/fractal_utils)
+    # install header file
+    install(FILES render_utils.h DESTINATION include/fractal_utils)
 
-# generate and install export file
-install(EXPORT fractal_utils_render_utils-targets
-    FILE fractal_utilsrender_utilsTargets.cmake
-    NAMESPACE fractal_utils::
-    DESTINATION lib/cmake/fractal_utils
-)
+    # generate and install export file
+    install(EXPORT fractal_utils_render_utils-targets
+        FILE fractal_utilsrender_utilsTargets.cmake
+        NAMESPACE fractal_utils::
+        DESTINATION lib/cmake/fractal_utils
+    )
+endif()
 
 if(NOT ${FractalUtils_build_examples})
     return()
