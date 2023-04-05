@@ -18,7 +18,15 @@ template <typename float_t>
 }
 
 void callback_destroy_center_wind(wind_base *const w);
-}  // namespace fractal_utils
+
+std::string default_hex_encode_fun(const fractal_utils::wind_base &wind_src,
+                                   std::string &err);
+
+void default_hex_decode_fun(std::string_view hex,
+                            fractal_utils::wind_base &wind_dest,
+                            std::string &err);
+
+} // namespace fractal_utils
 
 // Qt mainwindow class
 
@@ -28,7 +36,7 @@ class zoom_utils_mainwindow;
 
 class zoom_utils_mainwindow : public QMainWindow {
   Q_OBJECT
- public:
+public:
   using create_wind_callback_fun_t = fractal_utils::wind_base *(*)();
   using destroy_wind_callback_fun_t = void (*)(fractal_utils::wind_base *const);
   using compute_fractal_callback_fun_t =
@@ -44,13 +52,19 @@ class zoom_utils_mainwindow : public QMainWindow {
                const fractal_utils::fractal_map &map_u8c3_do_not_resize,
                const char *filename);
 
- private:
+  using hex_encode_fun_t = std::string (*)(
+      const fractal_utils::wind_base &wind_src, std::string &err);
+  using hex_decode_fun_t = void (*)(std::string_view hex,
+                                    fractal_utils::wind_base &wind_dest,
+                                    std::string &err);
+
+private:
   // this initialize function should not be invoked by other callers
   explicit zoom_utils_mainwindow(QWidget *parent,
                                  const std::array<int, 2> &window_size,
                                  uint32_t map_fractal_element_size, int scale);
 
- public:
+public:
   // initialize with type of floating point
   template <typename float_t>
   explicit zoom_utils_mainwindow(float_t parameter_for_type_deduction,
@@ -87,7 +101,7 @@ class zoom_utils_mainwindow : public QMainWindow {
 
   void display_range() noexcept;
 
- private:
+private:
   Ui::zoom_utils_mainwindow *ui;
   fractal_utils::wind_base *window{nullptr};
 
@@ -99,10 +113,14 @@ class zoom_utils_mainwindow : public QMainWindow {
 
   std::mutex lock;
 
- public:
+public:
   compute_fractal_callback_fun_t callback_compute_fun = nullptr;
   render_fractal_callback_fun_t callback_render_fun = nullptr;
   export_frame_callback_fun_t callback_export_fun = nullptr;
+  hex_encode_fun_t callback_hex_encode_fun =
+      fractal_utils::default_hex_encode_fun;
+  hex_decode_fun_t callback_hex_decode_fun =
+      fractal_utils::default_hex_decode_fun;
   void *custom_parameters = nullptr;
   fractal_utils::fractal_map map_fractal;
   // list of file extension name seperated by double colon ;; example :
@@ -111,10 +129,10 @@ class zoom_utils_mainwindow : public QMainWindow {
 
   const int scale;
 
- private:
+private:
   QImage img_u8c3;
 
- public slots:
+public slots:
 
   void received_wheel_move(std::array<int, 2> pos, bool is_scaling_up);
   void received_mouse_move(std::array<int, 2> pos);
@@ -125,4 +143,4 @@ class zoom_utils_mainwindow : public QMainWindow {
   void on_btn_save_frame_clicked();
 };
 
-#endif  // FRACTALUTILS_ZOOM_UTILS_H
+#endif // FRACTALUTILS_ZOOM_UTILS_H

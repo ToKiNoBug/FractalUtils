@@ -170,14 +170,19 @@ void zoom_utils_mainwindow::display_range() noexcept {
   }
 
   {
-    QString str = QStringLiteral("0x");
-    size_t bytes = 0;
-    void *bin = this->window->center_data(&bytes);
+    std::string err;
+    std::string hex = this->callback_hex_encode_fun(*this->window, err);
 
-    str +=
-        QByteArray::fromRawData(reinterpret_cast<char *>(bin), bytes).toHex();
+    if (!err.empty()) {
+      QMessageBox::critical(
+          this, "Failed to encode binary to hex string.",
+          QStringLiteral("this->callback_hex_encode_fun failed. \nDetail: %1\n")
+              .arg(QString::fromUtf8(err.data())));
 
-    ui->show_center_hex->setText(str);
+      abort();
+    }
+
+    ui->show_center_hex->setText(QString::fromStdString(hex));
   }
 }
 
@@ -256,25 +261,24 @@ void zoom_utils_mainwindow::on_btn_repaint_clicked() {
 
   size_t size_of_center_data = 0;
   this->window->center_data(&size_of_center_data);
+  {
+    const std::string hex = this->ui->show_center_hex->text().toStdString();
+    std::string err;
 
-  QString hex = this->ui->show_center_hex->text();
+    this->callback_hex_decode_fun(hex, *(this->window), err);
 
-  if (hex.startsWith("0x") || hex.startsWith("0X")) {
-    hex = hex.last(hex.size() - 2);
+    if (!err.empty()) {
+      QMessageBox::critical(
+          this, "Invalid hex string",
+          QStringLiteral("this->callback_hex_decode_fun failed to decode "
+                         "hex string \"%1\" to binary. \nDetail: \n%2")
+              .arg(QString::fromStdString(hex))
+              .arg(QString::fromUtf8(err.data())));
+
+      this->lock.unlock();
+      return;
+    }
   }
-
-  // std::string str = hex.toStdString();
-  // printf("hex string = %s\n", str.data());
-
-  QByteArray qba = QByteArray::fromHex(hex.toUtf8());
-
-  if (qba.length() != size_of_center_data) {
-    printf("\nError : hex have invalid length : should be %i but infact %i\n",
-           int(size_of_center_data), (int)qba.length());
-    abort();
-  }
-
-  memcpy(this->window->center_data(), qba.data(), size_of_center_data);
 
   double new_x_span = this->ui->show_scale_x->text().toDouble();
   double new_y_span = this->ui->show_scale_y->text().toDouble();
@@ -329,4 +333,47 @@ void zoom_utils_mainwindow::on_btn_save_frame_clicked() {
     return;
   }
   return;
+}
+
+#include <hex_convert.h>
+
+std::string
+fractal_utils::default_hex_encode_fun(const fractal_utils::wind_base &wind_src,
+                                      std::string &err) {
+  err.clear();
+
+  size_t len = 0;
+  const void *const src = wind_src.center_data(&len);
+
+  std::string ret;
+  ret.resize(len * 32);
+
+  auto strlen_opt =
+      fractal_utils::bin_2_hex(src, len, ret.data(), ret.size(), true);
+
+  assert(strlen_opt.has_value());
+
+  ret.resize(strlen_opt.value());
+  return ret;
+}
+
+void fractal_utils::default_hex_decode_fun(std::string_view hex,
+                                           fractal_utils::wind_base &wind_dest,
+                                           std::string &err) {
+  err.clear();
+  size_t dst_bytes = 0;
+  void *const dst = wind_dest.center_data(&dst_bytes);
+
+  auto bytes = fractal_utils::hex_2_bin(hex, dst, dst_bytes);
+
+  if (!bytes.has_value()) {
+    err = "Failed to convert hex to binary, the hex string may be invalid.";
+    return;
+  }
+
+  if (bytes.value() != dst_bytes) {
+    err = "The length of hex is invalid. Expected " +
+          std::to_string(dst_bytes) + " bytes, but actually " +
+          std::to_string(bytes.value()) + " bytes written.";
+  }
 }
