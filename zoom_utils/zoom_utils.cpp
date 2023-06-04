@@ -181,7 +181,7 @@ void zoom_utils_mainwindow::display_range() noexcept {
       abort();
     }
 
-    ui->show_center_hex->setText(QString::fromStdString(hex));
+    ui->show_center_hex->setText(QString::fromLatin1(hex.c_str()));
   }
 }
 
