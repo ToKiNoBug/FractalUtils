@@ -21,7 +21,6 @@ This file is part of FractalUtils.
 #ifndef FRACTALUTILS_COREUTILS_BINARCHIVE_H
 #define FRACTALUTILS_COREUTILS_BINARCHIVE_H
 
-#include "fractal_binfile.h"
 #include <istream>
 #include <optional>
 #include <ostream>
@@ -32,6 +31,20 @@ This file is part of FractalUtils.
 #include <vector>
 
 namespace fractal_utils {
+
+struct file_header {
+  file_header();
+
+  int8_t data[32];
+
+  int8_t *custom_part() noexcept;
+  const int8_t *custom_part() const noexcept;
+
+  static size_t custom_part_len() noexcept;
+
+  bool is_valid() const noexcept;
+};
+
 class data_segment {
 public:
   struct segment_length {

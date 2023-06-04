@@ -71,9 +71,8 @@ if(NOT ${FractalUtils_build_examples})
   return()
 endif()
 
-add_executable(test_binfile test_binfile.cpp)
-target_link_libraries(test_binfile PRIVATE core_utils)
-
+# add_executable(test_binfile test_binfile.cpp)
+# target_link_libraries(test_binfile PRIVATE core_utils)
 add_executable(test_colors test_colors.cpp)
 target_link_libraries(test_colors PRIVATE core_utils)
 

@@ -25,26 +25,15 @@ This file is part of FractalUtils.
 #include <stdint.h>
 #include <stdio.h>
 
+#include "binary_archive.h"
 #include <cstdlib>
 #include <memory>
 #include <vector>
 
+
 namespace fractal_utils {
 
-struct file_header {
-  file_header();
-
-  int8_t data[32];
-
-  int8_t *custom_part() noexcept;
-  const int8_t *custom_part() const noexcept;
-
-  static size_t custom_part_len() noexcept;
-
-  bool is_valid() const noexcept;
-};
-
-struct data_block {
+struct [[deprecated("Use binary_archive instead")]] data_block {
   int64_t tag;
   uint64_t bytes;
 
@@ -54,7 +43,7 @@ struct data_block {
   bool has_ownership{false};
 };
 
-class binfile {
+class [[deprecated("Use binary_archive instead")]] binfile {
 private:
   void copy_from(const binfile &another) noexcept;
 
@@ -87,26 +76,27 @@ public:
                     const bool wirte_header) const noexcept;
 };
 
-bool parse_from_memory(const void *const data, const uint64_t bytes,
-                       std::vector<data_block> *const data_blocks) noexcept;
+[[deprecated("Use binary_archive instead")]] bool
+parse_from_memory(const void *const data, const uint64_t bytes,
+                  std::vector<data_block> *const data_blocks) noexcept;
 
 /// returns true when is finished.
-bool serialize_to_memory(const data_block *const blocks,
-                         const uint64_t block_num, const bool write_header,
-                         void *const dest, const uint64_t dest_capacity,
-                         uint64_t *const dest_bytes_used,
-                         uint64_t *const blocks_written) noexcept;
+[[deprecated("Use binary_archive instead")]] bool serialize_to_memory(
+    const data_block *const blocks, const uint64_t block_num,
+    const bool write_header, void *const dest, const uint64_t dest_capacity,
+    uint64_t *const dest_bytes_used, uint64_t *const blocks_written) noexcept;
 
-bool serialize_to_file(const data_block *const src, const uint64_t block_num,
-                       const bool write_header,
-                       const char *const filename) noexcept;
+[[deprecated("Use binary_archive instead")]] bool
+serialize_to_file(const data_block *const src, const uint64_t block_num,
+                  const bool write_header, const char *const filename) noexcept;
 
-bool serialize_to_file(const data_block *const src, const uint64_t block_num,
-                       const file_header *header_nullable,
-                       const char *const filename) noexcept;
+[[deprecated("Use binary_archive instead")]] bool
+serialize_to_file(const data_block *const src, const uint64_t block_num,
+                  const file_header *header_nullable,
+                  const char *const filename) noexcept;
 
-bool write_data_block(::FILE *const file_ptr_wb,
-                      const data_block &block) noexcept;
+[[deprecated("Use binary_archive instead")]] bool
+write_data_block(::FILE *const file_ptr_wb, const data_block &block) noexcept;
 
 } // namespace fractal_utils
 
