@@ -2,9 +2,21 @@
 cmake_minimum_required(VERSION 3.15)
 project(FractalUtils VERSION 2.2.3 LANGUAGES CXX)
 
-option(FractalUtils_no_install "Disable installation for this lib." OFF)
-option(FractalUtils_no_test "Disable testing for this lib." TRUE)
-option(FractalUtils_build_examples "Build examples" ON)
+if(${CMAKE_SOURCE_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
+  set(FractalUtils_is_sub_project OFF)
+  set(FractalUtils_is_not_sub_project ON)
+else()
+  set(FractalUtils_is_sub_project ON)
+  set(FractalUtils_is_not_sub_project OFF)
+endif()
+
+option(FractalUtils_no_install "Disable installation for this lib." ${FractalUtils_is_sub_project})
+option(FractalUtils_no_test "Disable testing for this lib." ${FractalUtils_is_sub_project})
+option(FractalUtils_build_examples "Build examples" ${FractalUtils_is_not_sub_project})
+
+if(${FractalUtils_no_install})
+  message(STATUS "Installation is disabled for FractalUtils, this is designed to be used as an external project")
+endif()
 
 if(NOT ${FractalUtils_no_test})
   enable_testing()
@@ -17,7 +29,8 @@ if(NOT DEFINED CMAKE_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
 endif()
 
-include(add_compiler_path_to_prefix.cmake)
+include(cmake/add_compiler_path_to_prefix.cmake)
+include(cmake/configure_3rdparty.cmake)
 
 # message(STATUS "CMAKE_CXX_COMPILER_ID = " ${CMAKE_CXX_COMPILER_ID})
 # message(STATUS "CMAKE_CXX_COMPILER_FRONTEND_VARIANT = "

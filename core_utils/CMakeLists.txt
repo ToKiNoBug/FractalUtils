@@ -6,6 +6,9 @@ add_library(core_utils STATIC
   fractal_binfile.h
   fractal_binfile.cpp
 
+  binary_archive.h
+  binary_archive.cpp
+
   fractal_map.h
   fractal_map.cpp
 
@@ -17,6 +20,10 @@ add_library(core_utils STATIC
   hex_convert.h
   hex_convert.cpp)
 
+find_package(fmt REQUIRED)
+
+target_link_libraries(core_utils PUBLIC fmt::fmt)
+
 # add include directories
 set(core_install_headers
   core_utils.h
@@ -24,11 +31,12 @@ set(core_install_headers
   fractal_colors.h
   fractal_map.h
   hex_convert.h
+  binary_archive.h
 )
 
 add_library(fractal_utils::core_utils ALIAS core_utils)
 
-target_compile_features(core_utils PUBLIC cxx_std_17)
+target_compile_features(core_utils PUBLIC cxx_std_20)
 
 # add include directories
 target_include_directories(core_utils
@@ -74,3 +82,6 @@ target_link_libraries(test_hex PRIVATE core_utils)
 
 add_executable(test_scale test_scale.cpp)
 target_link_libraries(test_scale PRIVATE core_utils)
+
+add_executable(test_binary_archive test_binary_archive.cpp)
+target_link_libraries(test_binary_archive PRIVATE core_utils)
