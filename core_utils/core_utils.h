@@ -22,9 +22,11 @@ This file is part of FractalUtils.
 #ifndef FRACTAL_UTILS_CORE_UTILS_H
 #define FRACTAL_UTILS_CORE_UTILS_H
 
+#include "binary_archive.h"
 #include "fractal_binfile.h"
 #include "fractal_colors.h"
 #include "fractal_map.h"
 #include "hex_convert.h"
+
 
 #endif // FRACTAL_UTILS_CORE_UTILS_H
