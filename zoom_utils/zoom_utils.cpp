@@ -36,7 +36,7 @@ zoom_utils_mainwindow::zoom_utils_mainwindow(
                QImage::Format::Format_RGB888),
       scale(__scale),
       map_fractal(window_size[0], window_size[1], map_fractal_element_size) {
-  ui->setupUi(this);
+  this->ui->setupUi(this);
 
   connect(this->ui->display, &scalable_label::moved, this,
           &zoom_utils_mainwindow::received_mouse_move);
@@ -58,14 +58,13 @@ zoom_utils_mainwindow::zoom_utils_mainwindow(
 }
 
 zoom_utils_mainwindow::~zoom_utils_mainwindow() {
-  delete ui;
 
   this->callback_destroy_center_wind(this->window);
-
   while (!this->previous_windows.empty()) {
     this->callback_destroy_center_wind(this->previous_windows.top());
     this->previous_windows.pop();
   }
+  delete ui;
 }
 
 void fractal_utils::callback_destroy_center_wind(wind_base *const w) {
@@ -262,7 +261,7 @@ void zoom_utils_mainwindow::on_btn_repaint_clicked() {
   size_t size_of_center_data = 0;
   this->window->center_data(&size_of_center_data);
   {
-    const std::string hex = this->ui->show_center_hex->text().toStdString();
+    const std::string hex = this->ui->show_center_hex->text().toLatin1().data();
     std::string err;
 
     this->callback_hex_decode_fun(hex, *(this->window), err);
