@@ -21,6 +21,7 @@ This file is part of FractalUtils.
 
 #include "png_utils.h"
 
+#include <fmt/format.h>
 #include <png.h>
 #include <stdio.h>
 
@@ -94,55 +95,7 @@ void destroy_write_struct(write_struct *const w) {
 
 bool fractal_utils::write_png(const char *const filename, const color_space cs,
                               const fractal_map &map) noexcept {
-  using namespace fractal_utils;
-  const bool is_ok = uint32_t(cs) == map.element_bytes;
-
-  if (!is_ok) {
-    printf("\nError : function write_png failed. The given color space is "
-           "u8c%i, but the size of element is %u.\n",
-           int(cs), map.element_bytes);
-    return false;
-  }
-
-  write_struct wt = create_write_struct(filename);
-
-  if (!wt.success) {
-    return false;
-  }
-
-  png_init_io(wt.png, wt.fp);
-
-  switch (cs) {
-  case color_space::u8c1:
-    png_set_IHDR(wt.png, wt.info, map.cols, map.rows, 8, PNG_COLOR_TYPE_GRAY,
-                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-                 PNG_FILTER_TYPE_BASE);
-    break;
-  case color_space::u8c3:
-    png_set_IHDR(wt.png, wt.info, map.cols, map.rows, 8, PNG_COLOR_TYPE_RGB,
-                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-                 PNG_FILTER_TYPE_BASE);
-    break;
-  case color_space::u8c4:
-    png_set_IHDR(wt.png, wt.info, map.cols, map.rows, 8, PNG_COLOR_TYPE_RGBA,
-                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-                 PNG_FILTER_TYPE_BASE);
-    png_set_swap_alpha(wt.png);
-    break;
-  }
-
-  png_write_info(wt.png, wt.info);
-
-  for (uint64_t r = 0; r < map.rows; r++) {
-    png_write_row(wt.png, reinterpret_cast<const uint8_t *>(map.data) +
-                              r * map.cols * map.element_bytes);
-  }
-
-  png_write_end(wt.png, wt.info);
-
-  destroy_write_struct(&wt);
-
-  return true;
+  return fractal_utils::write_png(filename, cs, constant_view{map});
 }
 
 bool fractal_utils::write_png(const char *const filename, const color_space cs,
@@ -182,6 +135,60 @@ bool fractal_utils::write_png(const char *const filename, const color_space cs,
 
   for (uint64_t r = 0; r < rows; r++) {
     png_write_row(wt.png, reinterpret_cast<const uint8_t *>(row_ptrs[r]));
+  }
+
+  png_write_end(wt.png, wt.info);
+
+  destroy_write_struct(&wt);
+
+  return true;
+}
+
+bool fractal_utils::write_png(const char *const filename, const color_space cs,
+                              constant_view map) noexcept {
+
+  using namespace fractal_utils;
+  const bool is_ok = uint32_t(cs) == map.element_bytes();
+
+  if (!is_ok) {
+    fmt::print("\nError : function write_png failed. The given color space is "
+               "u8c{}, but the size of element is {}.\n",
+               int(cs), map.element_bytes());
+    return false;
+  }
+
+  write_struct wt = create_write_struct(filename);
+
+  if (!wt.success) {
+    return false;
+  }
+
+  png_init_io(wt.png, wt.fp);
+
+  switch (cs) {
+  case color_space::u8c1:
+    png_set_IHDR(wt.png, wt.info, map.cols(), map.rows(), 8,
+                 PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE,
+                 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+    break;
+  case color_space::u8c3:
+    png_set_IHDR(wt.png, wt.info, map.cols(), map.rows(), 8, PNG_COLOR_TYPE_RGB,
+                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
+                 PNG_FILTER_TYPE_BASE);
+    break;
+  case color_space::u8c4:
+    png_set_IHDR(wt.png, wt.info, map.cols(), map.rows(), 8,
+                 PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE,
+                 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+    png_set_swap_alpha(wt.png);
+    break;
+  }
+
+  png_write_info(wt.png, wt.info);
+
+  for (uint64_t r = 0; r < map.rows(); r++) {
+    png_write_row(wt.png, reinterpret_cast<const uint8_t *>(map.data()) +
+                              r * map.cols() * map.element_bytes());
   }
 
   png_write_end(wt.png, wt.info);

@@ -24,6 +24,7 @@ This file is part of FractalUtils.
 
 #include "fractal_colors.h"
 #include "fractal_map.h"
+#include "unique_map.h"
 #include <functional>
 
 namespace fractal_utils {
@@ -38,24 +39,23 @@ template <typename A, typename B, typename pixel_t> struct render_AB_options {
 };
 
 template <typename A, typename B, typename pixel_t>
-void render_AB(const fractal_map &mat_A, const fractal_map &mat_B,
-               fractal_map &mat_img,
+void render_AB(constant_view mat_A, constant_view mat_B, map_view mat_img,
                const render_AB_options<A, B, pixel_t> &options) noexcept {
-  assert(mat_A.element_bytes == sizeof(A));
-  assert(mat_B.element_bytes == sizeof(B));
-  assert(mat_img.element_bytes == sizeof(pixel_t));
+  assert(mat_A.element_bytes() == sizeof(A));
+  assert(mat_B.element_bytes() == sizeof(B));
+  assert(mat_img.element_bytes() == sizeof(pixel_t));
 
-  assert(mat_A.rows == mat_B.rows);
-  assert(mat_B.rows == mat_img.rows);
+  assert(mat_A.rows() == mat_B.rows());
+  assert(mat_B.rows() == mat_img.rows());
 
-  assert(mat_A.cols == mat_B.cols);
-  assert(mat_B.cols == mat_img.cols);
+  assert(mat_A.cols() == mat_B.cols());
+  assert(mat_B.cols() == mat_img.cols());
 
   assert(options.row_beg < options.row_end);
-  assert(options.row_end <= mat_A.rows);
+  assert(options.row_end <= mat_A.rows());
 
   assert(options.col_beg < options.col_end);
-  assert(options.col_end <= mat_A.cols);
+  assert(options.col_end <= mat_A.cols());
 
   assert(bool(options.fun_color));
 
@@ -73,6 +73,14 @@ void render_AB(const fractal_map &mat_A, const fractal_map &mat_B,
           options.fun_color(mat_A.at<A>(r, c), mat_B.at<B>(r, c));
     }
   }
+}
+
+template <typename A, typename B, typename pixel_t>
+void render_AB(const fractal_map &mat_A, const fractal_map &mat_B,
+               fractal_map &mat_img,
+               const render_AB_options<A, B, pixel_t> &options) noexcept {
+  render_AB<A, B, pixel_t>(constant_view{mat_A}, constant_view{mat_B},
+                           map_view{mat_img}, options);
 }
 
 } // namespace fractal_utils
