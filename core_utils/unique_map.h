@@ -35,6 +35,15 @@ public:
   [[deprecated]] inline auto element_count() const noexcept {
     return this->size();
   }
+
+  inline bool operator==(const map_base &B) const noexcept {
+    return (this->m_rows == B.m_rows) && (this->m_cols == B.m_cols) &&
+           (this->m_ele_bytes == B.m_ele_bytes);
+  }
+
+  inline bool operator!=(const map_base &B) const noexcept {
+    return !this->operator==(B);
+  }
 };
 
 #define FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CONST_ACCESSER_MEMBER_FUNCTIONS       \
@@ -198,6 +207,7 @@ public:
   unique_map(unique_map &&) = default;
   unique_map(const unique_map &);
 
+  explicit unique_map(internal::map_base);
   unique_map(size_t r, size_t c, size_t ele_bytes);
   explicit operator fractal_map() noexcept;
   explicit operator internal::const_fractal_map_t() const noexcept;
@@ -212,6 +222,9 @@ public:
 
   void resize(size_t r, size_t c) noexcept;
   void reset(size_t r, size_t c, size_t ele_bytes) noexcept;
+  inline void reset(internal::map_base mb) noexcept {
+    this->reset(mb.rows(), mb.cols(), mb.element_bytes());
+  }
 
   void reserve(size_t sz) noexcept;
   inline void reserve(size_t r, size_t c) noexcept { this->reserve(r * c); }

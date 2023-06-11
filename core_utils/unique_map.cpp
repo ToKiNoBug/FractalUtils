@@ -9,6 +9,10 @@ unique_map::unique_map(const unique_map &src) : internal::map_base{src} {
   memcpy(this->m_data.get(), src.m_data.get(), src.bytes());
 }
 
+unique_map::unique_map(internal::map_base base) : internal::map_base{base} {
+  this->m_data.reset(malloc(base.bytes()));
+}
+
 unique_map::unique_map(size_t r, size_t c, size_t ele_bytes)
     : internal::map_base{r, c, ele_bytes} {
   this->m_data.reset(malloc(r * c * ele_bytes));

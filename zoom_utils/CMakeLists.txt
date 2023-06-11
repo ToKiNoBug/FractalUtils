@@ -19,6 +19,10 @@ endif()
 add_library(zoom_utils STATIC
   zoom_utils.h
   zoom_utils.cpp
+
+  zoom_widget.h
+  zoom_widget.cpp
+
   scalable_label.h
   scalable_label.cpp)
 

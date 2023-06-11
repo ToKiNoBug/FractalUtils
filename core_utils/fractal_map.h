@@ -169,6 +169,8 @@ public:
   template <typename T> inline bool float_type_matches() const noexcept {
     return typeid(T) == this->float_typeinfo();
   }
+
+  [[nodiscard]] virtual wind_base *create_another() const noexcept = 0;
 };
 
 template <typename float_t> class center_wind : public wind_base {
@@ -304,6 +306,10 @@ public:
 
   const std::type_info &float_typeinfo() const noexcept override {
     return typeid(float_t);
+  }
+
+  [[nodiscard]] wind_base *create_another() const noexcept override {
+    return new center_wind<float_t>;
   }
 };
 
