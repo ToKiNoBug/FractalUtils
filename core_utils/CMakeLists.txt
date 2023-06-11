@@ -18,11 +18,20 @@ add_library(core_utils STATIC
   color_sources.cpp
 
   hex_convert.h
-  hex_convert.cpp)
+  hex_convert.cpp
+
+  unique_map.h
+  unique_map.cpp
+)
 
 find_package(fmt REQUIRED)
 
-target_link_libraries(core_utils PUBLIC fmt::fmt)
+# find_package(Boost COMPONENTS container REQUIRED)
+target_link_libraries(core_utils PUBLIC
+  fmt::fmt
+
+  # Boost::container
+)
 
 # add include directories
 set(core_install_headers
@@ -32,6 +41,7 @@ set(core_install_headers
   fractal_map.h
   hex_convert.h
   binary_archive.h
+  unique_map.h
 )
 
 add_library(fractal_utils::core_utils ALIAS core_utils)

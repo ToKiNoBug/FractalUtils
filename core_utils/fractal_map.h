@@ -22,12 +22,12 @@ This file is part of FractalUtils.
 #ifndef FRACTALUTILS_FRACTAL_MAP_H
 #define FRACTALUTILS_FRACTAL_MAP_H
 
+#include <array>
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
-
-#include <array>
 #include <type_traits>
+#include <typeinfo>
 
 #ifdef FRACTAL_UTILS_HAVE_CXX_20
 #include <ranges>
@@ -161,6 +161,14 @@ public:
 
   virtual void set_x_span(double __x_span) noexcept = 0;
   virtual void set_y_span(double __y_span) noexcept = 0;
+
+  virtual size_t float_size() const noexcept = 0;
+
+  virtual const std::type_info &float_typeinfo() const noexcept = 0;
+
+  template <typename T> inline bool float_type_matches() const noexcept {
+    return typeid(T) == this->float_typeinfo();
+  }
 };
 
 template <typename float_t> class center_wind : public wind_base {
@@ -290,6 +298,12 @@ public:
 
   void set_y_span(double __y_span) noexcept override {
     this->y_span = float_t(__y_span);
+  }
+
+  size_t float_size() const noexcept override { return sizeof(float_t); }
+
+  const std::type_info &float_typeinfo() const noexcept override {
+    return typeid(float_t);
   }
 };
 

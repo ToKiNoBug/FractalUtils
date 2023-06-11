@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <mutex>
 #include <stack>
+#include <string_view>
 
 #include "core_utils.h"
 
