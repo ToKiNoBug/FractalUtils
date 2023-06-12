@@ -22,7 +22,7 @@ public:
   map_base(size_t r, size_t c, size_t ele_bytes)
       : m_rows(r), m_cols(c), m_ele_bytes(ele_bytes) {}
   inline size_t rows() const noexcept { return this->m_rows; }
-  inline size_t cols() const noexcept { return this->m_rows; }
+  inline size_t cols() const noexcept { return this->m_cols; }
   inline size_t element_bytes() const noexcept { return this->m_ele_bytes; }
   inline size_t size() const noexcept { return this->m_rows * this->m_cols; }
   inline size_t bytes() const noexcept {
