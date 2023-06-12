@@ -24,6 +24,7 @@ This file is part of FractalUtils.
 
 #include <optional>
 #include <string_view>
+#include <cstdint>
 
 namespace fractal_utils {
 

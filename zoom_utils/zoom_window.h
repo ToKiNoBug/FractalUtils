@@ -21,7 +21,7 @@ class zoom_utils_mainwindow;
 
 namespace fractal_utils {
 
-struct push_option {
+struct push_options {
   bool save_map{true};
   bool save_image{true};
   bool save_custom{true};
@@ -56,7 +56,7 @@ private:
   QString m_frame_file_extensions{""};
   std::list<compute_result> m_window_stack;
 
-  push_option push_opt;
+  push_options push_opt;
   ::fractal_utils::internal::map_base map_base;
   int m_scale{1};
 
@@ -85,8 +85,8 @@ protected:
                                std::any &custom) const noexcept;
 
 public:
-  push_option push_option() const noexcept { return this->push_opt; }
-  void set_push_option(fractal_utils::push_option opt) noexcept {
+  push_options push_option() const noexcept { return this->push_opt; }
+  void set_push_option(fractal_utils::push_options opt) noexcept {
     this->push_opt = opt;
   }
 
