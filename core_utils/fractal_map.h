@@ -171,6 +171,12 @@ public:
   }
 
   [[nodiscard]] virtual wind_base *create_another() const noexcept = 0;
+
+  virtual bool operator==(const wind_base &another) const noexcept = 0;
+
+  inline bool operator!=(const wind_base &another) const noexcept {
+    return !operator==(another);
+  }
 };
 
 template <typename float_t> class center_wind : public wind_base {
@@ -310,6 +316,18 @@ public:
 
   [[nodiscard]] wind_base *create_another() const noexcept override {
     return new center_wind<float_t>;
+  }
+
+  bool operator==(const wind_base &another) const noexcept override {
+    auto anotherp = dynamic_cast<const center_wind<float_t> *>(&another);
+    if (anotherp == nullptr) {
+      return false;
+    }
+
+    return (this->center[0] == anotherp->center[0]) &&
+           (this->center[1] == anotherp->center[1]) &&
+           (this->x_span == anotherp->x_span) &&
+           (this->y_span == anotherp->y_span);
   }
 };
 
