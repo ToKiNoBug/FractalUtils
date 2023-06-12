@@ -31,7 +31,10 @@
 *.out
 *.app
 
+# IDE files
 compile_commands.json
 .cache/*
 CMakeLists.txt.user
 .vscode/*
+build/*
+.idea/*
