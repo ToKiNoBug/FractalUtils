@@ -32,12 +32,12 @@ QImage scale_image(const QImage &src, int scale) noexcept;
 class zoom_window : public QMainWindow {
   Q_OBJECT
 
-private:
+ private:
   Ui::zoom_utils_mainwindow *ui;
 
-public:
+ public:
   explicit zoom_window(QWidget *parent = nullptr);
-  virtual ~zoom_window();
+  ~zoom_window() override;
 
   struct compute_result {
     compute_result() = default;
@@ -52,7 +52,7 @@ public:
     std::any custom_data;
   };
 
-private:
+ private:
   QString m_frame_file_extensions{""};
   std::list<compute_result> m_window_stack;
 
@@ -60,15 +60,15 @@ private:
   ::fractal_utils::internal::map_base map_base;
   int m_scale{1};
 
-private:
+ private:
   void compute_current() noexcept;
   void render_current() noexcept;
 
   void push(compute_result &&) noexcept;
 
-protected:
-  virtual std::unique_ptr<fractal_utils::wind_base>
-  create_wind() const noexcept = 0;
+ protected:
+  [[nodiscard]] virtual std::unique_ptr<fractal_utils::wind_base> create_wind()
+      const noexcept = 0;
 
   virtual std::string encode_hex(const fractal_utils::wind_base &wind_src,
                                  std::string &err) const noexcept;
@@ -84,13 +84,15 @@ protected:
                                constant_view fractal, constant_view image_u8c3,
                                std::any &custom) const noexcept;
 
-public:
-  push_options push_option() const noexcept { return this->push_opt; }
+ public:
+  [[nodiscard]] push_options push_option() const noexcept {
+    return this->push_opt;
+  }
   void set_push_option(fractal_utils::push_options opt) noexcept {
     this->push_opt = opt;
   }
 
-  const auto &frame_file_extensions() const noexcept {
+  [[nodiscard]] const auto &frame_file_extensions() const noexcept {
     return this->m_frame_file_extensions;
   }
   auto &frame_file_extensions() noexcept {
@@ -100,17 +102,21 @@ public:
     this->m_frame_file_extensions = ffes;
   }
 
-  const auto &current_result() const noexcept {
+  [[nodiscard]] const auto &current_result() const noexcept {
     return this->m_window_stack.back();
   }
   auto &current_result() noexcept { return this->m_window_stack.back(); }
 
-  size_t rows() const noexcept { return this->map_base.rows(); }
-  size_t cols() const noexcept { return this->map_base.cols(); }
-  size_t fractal_element_bytes() const noexcept {
+  [[nodiscard]] inline size_t rows() const noexcept {
+    return this->map_base.rows();
+  }
+  [[nodiscard]] inline size_t cols() const noexcept {
+    return this->map_base.cols();
+  }
+  [[nodiscard]] inline size_t fractal_element_bytes() const noexcept {
     return this->map_base.element_bytes();
   }
-  inline int scale() const noexcept { return this->m_scale; }
+  [[nodiscard]] inline int scale() const noexcept { return this->m_scale; }
   void set_scale(int s) noexcept {
     this->m_scale = s;
     this->refresh_image_display();
@@ -121,7 +127,7 @@ public:
   virtual void refresh_image_display() noexcept;
   virtual void refresh_range_display() noexcept;
 
-public slots:
+ public slots:
 
   void received_wheel_move(std::array<int, 2> pos, bool is_scaling_up);
   void received_mouse_move(std::array<int, 2> pos);
@@ -132,6 +138,6 @@ public slots:
   void on_btn_save_frame_clicked();
 };
 
-} // namespace fractal_utils
+}  // namespace fractal_utils
 
-#endif // FRACTALUTILS_ZOOMUTILS_ZOOMWIDGET_H
+#endif  // FRACTALUTILS_ZOOMUTILS_ZOOMWIDGET_H
