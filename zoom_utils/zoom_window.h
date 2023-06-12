@@ -12,7 +12,7 @@
 
 namespace fractal_utils {
 
-class zoom_widget;
+class zoom_window;
 }
 
 namespace Ui {
@@ -29,15 +29,15 @@ struct push_option {
 
 QImage scale_image(const QImage &src, int scale) noexcept;
 
-class zoom_widget : public QMainWindow {
+class zoom_window : public QMainWindow {
   Q_OBJECT
 
 private:
   Ui::zoom_utils_mainwindow *ui;
 
 public:
-  explicit zoom_widget(QWidget *parent = nullptr);
-  ~zoom_widget();
+  explicit zoom_window(QWidget *parent = nullptr);
+  ~zoom_window();
 
   struct compute_result {
     compute_result() = default;
@@ -54,7 +54,7 @@ public:
 
 private:
   QString m_frame_file_extensions{""};
-  std::stack<compute_result, std::vector<compute_result>> m_window_stack;
+  std::list<compute_result> m_window_stack;
 
   push_option push_opt;
   ::fractal_utils::internal::map_base map_base;
@@ -72,16 +72,14 @@ protected:
 
   virtual std::string encode_hex(const fractal_utils::wind_base &wind_src,
                                  std::string &err) const noexcept;
-  virtual void
-  decode_hex(std::string_view hex,
-             std::unique_ptr<fractal_utils::wind_base> &wind_unique_ptr,
-             std::string &err) const noexcept;
+  virtual void decode_hex(std::string_view hex,
+                          std::unique_ptr<wind_base> &wind_unique_ptr,
+                          std::string &err) const noexcept;
 
-  virtual void compute(const fractal_utils::wind_base &wind, map_view fractal,
+  virtual void compute(const wind_base &wind, map_view fractal,
                        std::any &custom) const noexcept = 0;
-  virtual void render(constant_view fractal,
-                      const fractal_utils::wind_base &wind, map_view image_u8c3,
-                      std::any &custom) const noexcept = 0;
+  virtual void render(constant_view fractal, const wind_base &wind,
+                      map_view image_u8c3, std::any &custom) const noexcept = 0;
   virtual QString export_frame(QString filename, const wind_base &wind,
                                constant_view fractal, constant_view image_u8c3,
                                std::any &custom) const noexcept;
@@ -103,9 +101,9 @@ public:
   }
 
   const auto &current_result() const noexcept {
-    return this->m_window_stack.top();
+    return this->m_window_stack.back();
   }
-  auto &current_result() noexcept { return this->m_window_stack.top(); }
+  auto &current_result() noexcept { return this->m_window_stack.back(); }
 
   size_t rows() const noexcept { return this->map_base.rows(); }
   size_t cols() const noexcept { return this->map_base.cols(); }

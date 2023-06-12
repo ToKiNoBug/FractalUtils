@@ -1,4 +1,4 @@
-#include "zoom_widget.h"
+#include "zoom_window.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -6,16 +6,16 @@
 #include "scalable_label.h"
 #include "ui_zoom_utils_mainwindow.h"
 
-using fractal_utils::zoom_widget;
+using fractal_utils::zoom_window;
 
-zoom_widget::zoom_widget(QWidget *parent)
+zoom_window::zoom_window(QWidget *parent)
     : QMainWindow(parent), ui{new Ui::zoom_utils_mainwindow} {
   this->ui->setupUi(this);
 
   connect(this->ui->display, &scalable_label::moved, this,
-          &zoom_widget::received_mouse_move);
+          &zoom_window::received_mouse_move);
   connect(this->ui->display, &scalable_label::zoomed, this,
-          &zoom_widget::received_wheel_move);
+          &zoom_window::received_wheel_move);
   {
     QSizePolicy p;
     p.setHorizontalPolicy(QSizePolicy::Fixed);
@@ -24,31 +24,56 @@ zoom_widget::zoom_widget(QWidget *parent)
   }
 }
 
-zoom_widget::~zoom_widget() { delete this->ui; }
+zoom_window::~zoom_window() { delete this->ui; }
 
-zoom_widget::compute_result::compute_result(const compute_result &src)
+zoom_window::compute_result::compute_result(const compute_result &src)
     : fractal{src.fractal}, image{src.image}, custom_data{src.custom_data} {
-  auto wind_p = src.wind->create_another();
-  src.wind->copy_to(wind_p);
+  if (src.wind == nullptr) {
+    this->wind.reset();
+  } else {
+    auto wind_p = src.wind->create_another();
+    src.wind->copy_to(wind_p);
 
-  this->wind.reset(wind_p);
+    this->wind.reset(wind_p);
+  }
 }
 
-zoom_widget::compute_result::compute_result(size_t r, size_t c,
+zoom_window::compute_result::compute_result(size_t r, size_t c,
                                             size_t fractal_ele_bytes)
     : fractal{unique_map{r, c, fractal_ele_bytes}},
       image{QImage{QSize{(int)c, (int)r}, QImage::Format::Format_RGB888}} {
   memset(this->image.value().scanLine(0), 0, this->image.value().sizeInBytes());
 }
 
-void zoom_widget::reset(size_t r, size_t c, size_t fractal_ele_bytes) noexcept {
+void zoom_window::reset(size_t r, size_t c, size_t fractal_ele_bytes) noexcept {
   while (!this->m_window_stack.empty()) {
-    this->m_window_stack.pop();
+    this->m_window_stack.pop_back();
   }
 
   this->map_base = {r, c, fractal_ele_bytes};
+  {
+    compute_result temp{r, c, fractal_ele_bytes};
+    temp.wind = this->create_wind();
+    this->m_window_stack.emplace_back(std::move(temp));
+  }
+
+  {
+    const auto &windp = this->current_result().wind;
+    this->ui->show_scale_x->setText(QString::number(windp->displayed_x_span()));
+    this->ui->show_scale_y->setText(QString::number(windp->displayed_y_span()));
+
+    this->refresh_range_display();
+  }
+  {
+    std::string hex, err;
+    hex = this->encode_hex(*this->current_result().wind, err);
+    if (!err.empty()) {
+      return;
+    }
+
+    this->ui->show_center_hex->setText(QString::fromLatin1(hex));
+  }
   // #warning here
-  this->m_window_stack.emplace(compute_result{r, c, fractal_ele_bytes});
 }
 
 QImage fractal_utils::scale_image(const QImage &src, int scale) noexcept {
@@ -78,7 +103,7 @@ QImage fractal_utils::scale_image(const QImage &src, int scale) noexcept {
   return ret;
 }
 
-void zoom_widget::refresh_image_display() noexcept {
+void zoom_window::refresh_image_display() noexcept {
   this->ui->display->resize(this->rows() * this->scale(),
                             this->cols() * this->scale());
 
@@ -90,9 +115,9 @@ void zoom_widget::refresh_image_display() noexcept {
   }
 }
 
-void zoom_widget::compute_current() noexcept {
+void zoom_window::compute_current() noexcept {
   assert(this->m_window_stack.size() > 0);
-  auto &top = this->m_window_stack.top();
+  auto &top = this->m_window_stack.back();
 
   if (!top.fractal.has_value()) {
     top.fractal.emplace(unique_map{this->map_base});
@@ -104,9 +129,9 @@ void zoom_widget::compute_current() noexcept {
   this->compute(*top.wind, top.fractal.value(), top.custom_data);
 }
 
-void zoom_widget::render_current() noexcept {
+void zoom_window::render_current() noexcept {
   assert(this->m_window_stack.size() > 0);
-  auto &top = this->m_window_stack.top();
+  auto &top = this->m_window_stack.back();
 
   const QSize expected_size{(int)this->cols(), (int)this->rows()};
   if (!top.image.has_value() || top.image.value().size() != expected_size) {
@@ -119,8 +144,8 @@ void zoom_widget::render_current() noexcept {
       top.custom_data);
 }
 
-void zoom_widget::refresh_range_display() noexcept {
-  assert(this->m_window_stack.empty());
+void zoom_window::refresh_range_display() noexcept {
+  assert(!this->m_window_stack.empty());
 
   auto current_wind = this->current_result().wind.get();
   const auto center = current_wind->displayed_center();
@@ -162,7 +187,7 @@ void zoom_widget::refresh_range_display() noexcept {
   }
 }
 
-void zoom_widget::received_mouse_move(std::array<int, 2> pos) {
+void zoom_window::received_mouse_move(std::array<int, 2> pos) {
   pos[0] /= this->scale();
   pos[1] /= this->scale();
   std::array<double, 2> coord =
@@ -173,7 +198,7 @@ void zoom_widget::received_mouse_move(std::array<int, 2> pos) {
       QStringLiteral("Mouse : (%1, %2)").arg(coord[0]).arg(coord[1]));
 }
 
-void zoom_widget::push(compute_result &&new_res) noexcept {
+void zoom_window::push(compute_result &&new_res) noexcept {
 
   auto &old = this->current_result();
 
@@ -188,10 +213,10 @@ void zoom_widget::push(compute_result &&new_res) noexcept {
   }
 
   // #warning here
-  this->m_window_stack.emplace(std::move(new_res));
+  this->m_window_stack.emplace_back(std::move(new_res));
 }
 
-void zoom_widget::received_wheel_move(std::array<int, 2> pos,
+void zoom_window::received_wheel_move(std::array<int, 2> pos,
                                       bool is_scaling_up) {
   /*if (!this->lock.try_lock()) {
     return;
@@ -208,6 +233,8 @@ void zoom_widget::received_wheel_move(std::array<int, 2> pos,
     compute_result res{this->rows(), this->cols(),
                        this->fractal_element_bytes()};
     res.wind = this->create_wind();
+    old.wind->copy_to(res.wind.get());
+
     res.custom_data = old.custom_data;
 
     res.wind->update_center({(int)this->rows(), (int)this->cols()}, pos,
@@ -227,13 +254,14 @@ void zoom_widget::received_wheel_move(std::array<int, 2> pos,
   // this->lock.unlock();
 }
 
-void zoom_widget::on_btn_revert_clicked() {
+void zoom_window::on_btn_revert_clicked() {
   if (this->m_window_stack.size() <= 1) {
     return;
   }
 
-  this->m_window_stack.pop();
+  this->m_window_stack.pop_back();
 
+  this->ui->btn_revert->setDisabled(this->m_window_stack.size() <= 1);
   this->refresh_range_display();
   auto &cur = this->current_result();
   if (!cur.fractal.has_value()) {
@@ -247,19 +275,18 @@ void zoom_widget::on_btn_revert_clicked() {
   this->refresh_image_display();
 }
 
-void zoom_widget::on_btn_repaint_clicked() {
+void zoom_window::on_btn_repaint_clicked() {
   auto &old = this->current_result();
-  {
-    compute_result res{this->rows(), this->cols(),
-                       this->fractal_element_bytes()};
-    res.wind = this->create_wind();
-    old.wind->copy_to(res.wind.get());
 
+  {
+    // get current wind
+    auto current_wind = this->create_wind();
+    old.wind->copy_to(current_wind.get());
     {
       std::string current_hex =
           this->ui->show_center_hex->text().toLatin1().data();
       std::string err;
-      this->decode_hex(current_hex, res.wind, err);
+      this->decode_hex(current_hex, current_wind, err);
       if (!err.empty()) {
 
         QMessageBox::critical(
@@ -274,11 +301,19 @@ void zoom_widget::on_btn_repaint_clicked() {
 
       const double new_x_span = this->ui->show_scale_x->text().toDouble();
       const double new_y_span = this->ui->show_scale_y->text().toDouble();
-      res.wind->set_x_span(new_x_span);
-      res.wind->set_y_span(new_y_span);
+      current_wind->set_x_span(new_x_span);
+      current_wind->set_y_span(new_y_span);
     }
 
-    this->push(std::move(res));
+    if (*current_wind != *old.wind) {
+      compute_result res{this->rows(), this->cols(),
+                         this->fractal_element_bytes()};
+      res.wind = std::move(current_wind);
+      res.custom_data = old.custom_data;
+      this->push(std::move(res));
+    } else {
+      // do not push, compute the current frame again
+    }
   }
 
   this->refresh_range_display();
@@ -288,7 +323,7 @@ void zoom_widget::on_btn_repaint_clicked() {
   this->refresh_image_display();
 }
 
-void zoom_widget::on_btn_save_image_clicked() {
+void zoom_window::on_btn_save_image_clicked() {
   if (this->m_window_stack.empty() ||
       !this->current_result().image.has_value()) {
     QMessageBox::warning(this, "Can not save as image",
@@ -310,16 +345,16 @@ void zoom_widget::on_btn_save_image_clicked() {
   }
 }
 
-QString zoom_widget::export_frame(QString filename, const wind_base &wind,
+QString zoom_window::export_frame(QString filename, const wind_base &wind,
                                   constant_view fractal,
                                   constant_view image_u8c3,
                                   std::any &custom) const noexcept {
   return "Can not export the frame because virtual function named "
          "\"export_frame\" is not overrided. This reply is from the default "
-         "implementation of zoom_widget.";
+         "implementation of zoom_window.";
 }
 
-void zoom_widget::on_btn_save_frame_clicked() {
+void zoom_window::on_btn_save_frame_clicked() {
   if (this->m_frame_file_extensions.isEmpty()) {
     return;
   }
@@ -366,7 +401,7 @@ void zoom_widget::on_btn_save_frame_clicked() {
 
 #include "hex_convert.h"
 
-std::string zoom_widget::encode_hex(const fractal_utils::wind_base &wind_src,
+std::string zoom_window::encode_hex(const fractal_utils::wind_base &wind_src,
                                     std::string &err) const noexcept {
   err.clear();
 
@@ -385,7 +420,7 @@ std::string zoom_widget::encode_hex(const fractal_utils::wind_base &wind_src,
   return ret;
 }
 
-void zoom_widget::decode_hex(
+void zoom_window::decode_hex(
     std::string_view hex, std::unique_ptr<fractal_utils::wind_base> &wind_dest,
     std::string &err) const noexcept {
   err.clear();
