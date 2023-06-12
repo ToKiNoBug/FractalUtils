@@ -51,13 +51,13 @@ public:
                                                                                \
   template <typename T> const T *address(size_t idx) const noexcept {          \
     static_assert(!std::is_same_v<T, void>, "T should not be void");           \
-    assert(sizeof(T) == this->m_ele_bytes);                                    \
+    assert(sizeof(T) == static_cast<const derived *>(this)->element_bytes());  \
     return reinterpret_cast<const T *>(this->impl_data()) + idx;               \
   }                                                                            \
                                                                                \
   template <typename T> const T *address(size_t r, size_t c) const noexcept {  \
     static_assert(!std::is_same_v<T, void>, "T should not be void");           \
-    assert(sizeof(T) == this->m_ele_bytes);                                    \
+    assert(sizeof(T) == static_cast<const derived *>(this)->element_bytes());  \
     this->assert_for_size(r, c);                                               \
     return this->address<T>(                                                   \
         r * reinterpret_cast<const derived *>(this)->cols() + c);              \
@@ -135,14 +135,14 @@ public:
   void *data() noexcept { return this->impl_data(); }
   template <typename T> T *address(size_t idx) noexcept {
     static_assert(!std::is_same_v<T, void>, "T should not be void");
-    assert(sizeof(T) == this->m_ele_bytes);
+    assert(sizeof(T) == static_cast<derived *>(this)->element_bytes());
     this->assert_for_size(idx);
     return reinterpret_cast<T *>(this->impl_data()) + idx;
   }
 
   template <typename T> T *address(size_t r, size_t c) noexcept {
     static_assert(!std::is_same_v<T, void>, "T should not be void");
-    assert(sizeof(T) == this->m_ele_bytes);
+    assert(sizeof(T) == static_cast<derived *>(this)->element_bytes());
     this->assert_for_size(r, c);
     return this->address<T>(
         r * reinterpret_cast<const derived *>(this)->cols() + c);
@@ -204,7 +204,7 @@ private:
 
 public:
   unique_map() = default;
-  unique_map(unique_map &&) = default;
+  unique_map(unique_map &&);
   unique_map(const unique_map &);
 
   explicit unique_map(internal::map_base);

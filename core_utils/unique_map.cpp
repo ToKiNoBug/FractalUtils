@@ -6,16 +6,27 @@ using namespace fractal_utils;
 
 unique_map::unique_map(const unique_map &src) : internal::map_base{src} {
   this->m_data.reset(allocate_memory_aligned(64, src.bytes()));
-  memcpy(this->m_data.get(), src.m_data.get(), src.bytes());
+  if (src.bytes() > 0)
+    memcpy(this->m_data.get(), src.m_data.get(), src.bytes());
+  this->m_capacity = src.bytes();
+}
+
+unique_map::unique_map(unique_map &&src)
+    : internal::map_base{src}, m_data{std::move(src.m_data)},
+      m_capacity{src.capacity_bytes()} {
+  src.reset(0, 0, src.element_bytes());
+  src.m_capacity = 0;
 }
 
 unique_map::unique_map(internal::map_base base) : internal::map_base{base} {
-  this->m_data.reset(malloc(base.bytes()));
+  this->m_data.reset(allocate_memory_aligned(64, base.bytes()));
+  this->m_capacity = base.bytes();
 }
 
 unique_map::unique_map(size_t r, size_t c, size_t ele_bytes)
     : internal::map_base{r, c, ele_bytes} {
-  this->m_data.reset(malloc(r * c * ele_bytes));
+  this->m_data.reset(allocate_memory_aligned(64, r * c * ele_bytes));
+  this->m_capacity = r * c * ele_bytes;
 }
 
 unique_map::operator fractal_map() noexcept {
@@ -39,8 +50,11 @@ void unique_map::reset(size_t r, size_t c, size_t ele_bytes) noexcept {
     static_cast<internal::map_base &>(*this) = new_base;
     return;
   }
+
+  // if the matrix is not empty
+  this->reserve_bytes(new_base.bytes());
+  static_cast<internal::map_base &>(*this) = new_base;
   const size_t new_bytes = this->bytes();
-  this->reserve(r, c);
   if (old_bytes < new_bytes) {
     memset(reinterpret_cast<uint8_t *>(this->data()) + old_bytes, 0,
            new_bytes - old_bytes);
