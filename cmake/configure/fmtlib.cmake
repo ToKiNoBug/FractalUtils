@@ -6,12 +6,12 @@ endif()
 
 include(FetchContent)
 
-message(Downloading fmtlib...)
-FetchContent_Declare(fmtlib
+message(STATUS "Downloading fmtlib...")
+FetchContent_Declare(fmt
     GIT_REPOSITORY https://github.com/fmtlib/fmt.git
     GIT_TAG 10.0.0
     OVERRIDE_FIND_PACKAGE)
 
-FetchContent_MakeAvailable(fmtlib)
+FetchContent_MakeAvailable(fmt)
 
 find_package(fmt REQUIRED)
