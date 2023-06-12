@@ -20,11 +20,15 @@ add_library(zoom_utils STATIC
   zoom_utils.h
   zoom_utils.cpp
 
-  zoom_widget.h
-  zoom_widget.cpp
+  zoom_window.h
+  zoom_window.cpp
 
   scalable_label.h
   scalable_label.cpp)
+
+set(FractalUtils_zoom_utils_headers
+  zoom_utils.h
+  zoom_window.h)
 
 target_link_libraries(zoom_utils PUBLIC
   Qt6::Widgets
@@ -52,7 +56,7 @@ if(NOT ${FractalUtils_no_install})
   )
 
   # install header file
-  install(FILES zoom_utils.h DESTINATION include/fractal_utils)
+  install(FILES ${FractalUtils_zoom_utils_headers} DESTINATION include/fractal_utils)
 
   # generate and install export file
   install(EXPORT fractal_utils_zoom_utils-targets
@@ -67,21 +71,24 @@ if(NOT ${FractalUtils_build_examples})
 endif()
 
 # example executable
-if(6 GREATER_EQUAL 6)
-  qt_add_executable(test_zoom_utils
-    MANUAL_FINALIZATION
-    test_zoom_utils.cpp)
-endif()
+add_executable(test_zoom_utils
+  test_zoom_utils.cpp)
+
+add_executable(test_zoom_window
+  test_zoom_window.cpp)
 
 find_package(OpenMP REQUIRED)
 target_link_libraries(test_zoom_utils PRIVATE
   zoom_utils
   Qt6::Widgets
-  core_utils OpenMP::OpenMP_CXX)
+  core_utils
+  OpenMP::OpenMP_CXX)
 
-if(QT_VERSION_MAJOR EQUAL 6)
-  qt_finalize_executable(test_zoom_utils)
-endif()
+target_link_libraries(test_zoom_window PRIVATE
+  zoom_utils
+  Qt6::Widgets
+  core_utils
+  OpenMP::OpenMP_CXX)
 
 if(${WIN32})
   find_program(FU_windeployqt NAME windeployqt PATHS ${CMAKE_PREFIX_PATH})
