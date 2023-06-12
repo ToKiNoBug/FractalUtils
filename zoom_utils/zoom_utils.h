@@ -1,12 +1,12 @@
 #ifndef FRACTALUTILS_ZOOM_UTILS_H
 #define FRACTALUTILS_ZOOM_UTILS_H
 
+#include "core_utils.h"
+#include "zoom_window.h"
 #include <QMainWindow>
 #include <mutex>
 #include <stack>
 #include <string_view>
-
-#include "core_utils.h"
 
 class zoom_utils_mainwindow;
 
@@ -29,13 +29,7 @@ void default_hex_decode_fun(std::string_view hex,
 
 } // namespace fractal_utils
 
-// Qt mainwindow class
-
-namespace Ui {
-class zoom_utils_mainwindow;
-}
-
-class zoom_utils_mainwindow : public QMainWindow {
+class zoom_utils_mainwindow : public fractal_utils::zoom_window {
   Q_OBJECT
 public:
   using create_wind_callback_fun_t = fractal_utils::wind_base *(*)();
@@ -94,25 +88,14 @@ public:
   create_wind_callback_fun_t create_windows_function() const noexcept;
   destroy_wind_callback_fun_t destroy_windows_function() const noexcept;
 
-  int rows() const noexcept;
-
-  int cols() const noexcept;
-
   void compute_and_paint() noexcept;
 
   void display_range() noexcept;
 
 private:
-  Ui::zoom_utils_mainwindow *ui;
-  fractal_utils::wind_base *window{nullptr};
-
-  std::stack<fractal_utils::wind_base *> previous_windows;
-
   create_wind_callback_fun_t callback_create_wind = nullptr;
   destroy_wind_callback_fun_t callback_destroy_center_wind =
       fractal_utils::callback_destroy_center_wind;
-
-  std::mutex lock;
 
 public:
   compute_fractal_callback_fun_t callback_compute_fun = nullptr;
@@ -123,25 +106,6 @@ public:
   hex_decode_fun_t callback_hex_decode_fun =
       fractal_utils::default_hex_decode_fun;
   void *custom_parameters = nullptr;
-  fractal_utils::fractal_map map_fractal;
-  // list of file extension name seperated by double colon ;; example :
-  // .tbf;;.bs_frame
-  QString frame_file_extension_list = "";
-
-  const int scale;
-
-private:
-  QImage img_u8c3;
-
-public slots:
-
-  void received_wheel_move(std::array<int, 2> pos, bool is_scaling_up);
-  void received_mouse_move(std::array<int, 2> pos);
-
-  void on_btn_revert_clicked();
-  void on_btn_repaint_clicked();
-  void on_btn_save_image_clicked();
-  void on_btn_save_frame_clicked();
 };
 
 #endif // FRACTALUTILS_ZOOM_UTILS_H
