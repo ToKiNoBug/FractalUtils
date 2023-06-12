@@ -18,10 +18,12 @@ zoom_window::zoom_window(QWidget *parent)
           &zoom_window::received_wheel_move);
   {
     QSizePolicy p;
-    p.setHorizontalPolicy(QSizePolicy::Fixed);
-    p.setVerticalPolicy(QSizePolicy::Fixed);
+    p.setHorizontalPolicy(QSizePolicy::Expanding);
+    p.setVerticalPolicy(QSizePolicy::Expanding);
     this->ui->display->setSizePolicy(p);
   }
+
+  this->setAttribute(Qt::WA_DeleteOnClose, false);
 }
 
 zoom_window::~zoom_window() { delete this->ui; }
@@ -64,6 +66,8 @@ void zoom_window::reset(size_t r, size_t c, size_t fractal_ele_bytes) noexcept {
 
     this->refresh_range_display();
   }
+  // this->ui->display->setFixedSize(QSize{(int)this->cols(),
+  // (int)this->rows()});
   {
     std::string hex, err;
     hex = this->encode_hex(*this->current_result().wind, err);
@@ -73,7 +77,6 @@ void zoom_window::reset(size_t r, size_t c, size_t fractal_ele_bytes) noexcept {
 
     this->ui->show_center_hex->setText(QString::fromLatin1(hex));
   }
-  // #warning here
 }
 
 QImage fractal_utils::scale_image(const QImage &src, int scale) noexcept {
@@ -104,8 +107,11 @@ QImage fractal_utils::scale_image(const QImage &src, int scale) noexcept {
 }
 
 void zoom_window::refresh_image_display() noexcept {
-  this->ui->display->resize(this->rows() * this->scale(),
-                            this->cols() * this->scale());
+  assert(this->scale() > 0);
+  /*
+  this->ui->display->setFixedSize(this->cols() * this->scale(),
+                                  this->rows() * this->scale());*/
+  this->ui->display->setScaledContents(false);
 
   if (!this->current_result().image.has_value()) {
     this->ui->display->setPixmap(QPixmap{});

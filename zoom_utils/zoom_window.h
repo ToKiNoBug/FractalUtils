@@ -37,11 +37,11 @@ private:
 
 public:
   explicit zoom_window(QWidget *parent = nullptr);
-  ~zoom_window();
+  virtual ~zoom_window();
 
   struct compute_result {
     compute_result() = default;
-
+    compute_result(compute_result &&) = default;
     // this function is required by std::stack
     compute_result(const compute_result &);
     compute_result(size_t r, size_t c, size_t fractal_ele_bytes);
