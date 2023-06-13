@@ -1,0 +1,17 @@
+* text=crlf
+*.bat text eol=crlf
+*.sh text eol=lf
+*.jpg -text
+*.png -text
+
+*.h eol=crlf
+*.hpp eol=crlf
+*.c eol=crlf
+*.cpp eol=crlf
+*.ui eol=crlf
+*.cmake eol=crlf
+*.txt eol=crlf
+*.json eol=crlf
+*.in eol=crlf
+*.ts eol=crlf
+*.md eol=crlf
