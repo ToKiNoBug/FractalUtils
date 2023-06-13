@@ -1,6 +1,12 @@
 project(FractalUtils_video_utils LANGUAGES CXX)
 cmake_minimum_required(VERSION 3.15)
 
+find_package(PNG QUIET)
+if(NOT ${PNG_FOUND})
+    message(WARNING video_utils depends on png_utils, but libpng is not found. video_utils will not be built.)
+    return()
+endif()
+
 find_package(fmt REQUIRED)
 find_package(OpenMP REQUIRED)
 
@@ -10,6 +16,7 @@ add_library(video_utils STATIC
 target_compile_features(video_utils PUBLIC cxx_std_20)
 target_link_libraries(video_utils PUBLIC
         core_utils
+        png_utils
         fmt::fmt
         OpenMP::OpenMP_CXX)
 target_include_directories(video_utils

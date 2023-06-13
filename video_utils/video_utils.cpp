@@ -1,7 +1,10 @@
 #include "video_utils.h"
+#include "png_utils.h"
 #include <fmt/format.h>
 #include <filesystem>
 #include <omp.h>
+#include <atomic>
+#include <mutex>
 
 namespace stdfs = std::filesystem;
 using namespace fractal_utils;
@@ -258,4 +261,192 @@ bool video_executor_base::run_compute() const noexcept {
   return true;
 }
 
-bool video_executor_base::run_render() const noexcept {}
+std::vector<video_executor_base::render_status>
+video_executor_base::render_task_status() const noexcept {
+  const auto &common = *this->m_task.common;
+  const auto &ct = *this->m_task.compute;
+  const auto &rt = *this->m_task.render;
+  std::vector<render_status> ret;
+  ret.resize(common.archive_num);
+  // std::fill(ret.begin(), ret.end(), render_status::not_rendered);
+
+#pragma omp parallel for default(none) shared(common, ct, rt, ret) \
+    schedule(dynamic)
+  for (int aidx = 0; aidx < common.archive_num; aidx++) {
+    std::string buffer;
+    buffer.resize(1024);
+    int existing_image_count{0};
+    for (int iidx = 0; iidx < rt.image_count(); iidx++) {
+      this->image_filename(aidx, iidx, buffer);
+      if (can_be_regular_file(buffer)) {
+        existing_image_count++;
+      }
+    }
+
+    if (existing_image_count == 0) {
+      ret[aidx] = render_status::not_rendered;
+      continue;
+    }
+    if (existing_image_count == rt.image_count()) {
+      ret[aidx] = render_status::all_rendered;
+      continue;
+    }
+    ret[aidx] = render_status::partly_rendered;
+  }
+
+  return ret;
+}
+
+bool video_executor_base::run_render() const noexcept {
+  const auto &common = *this->m_task.common;
+  const auto &ct = *this->m_task.compute;
+  const auto &rt = *this->m_task.render;
+
+  const auto render_status = this->render_task_status();
+  assert(render_status.size() == common.archive_num);
+
+  std::atomic<int> fully_rendered_archive_count{0};
+  {
+    std::string filename;
+    filename.reserve(1024);
+    std::vector<uint8_t> buffer_archive;
+    buffer_archive.reserve(common.suggested_load_buffer_size());
+    for (int aidx = 0; aidx < render_status.size(); aidx++) {
+      const auto status = render_status[aidx];
+      if (status == render_status::all_rendered) {
+        fully_rendered_archive_count++;
+        continue;
+      }
+      this->archive_filename(aidx, filename);
+      if (!can_be_regular_file(filename)) {
+        fmt::print(
+            "Images of {} are not fully rendered, but this archive file is "
+            "missing.\n",
+            filename);
+        return false;
+      }
+      if (!this->check_archive(filename, buffer_archive, nullptr)) {
+        fmt::print(
+            "Images of {} are not fully rendered, but this archive file is "
+            "corrupted.\n",
+            filename);
+        return false;
+      }
+    }
+  }
+
+  const int already_rendered_archives = fully_rendered_archive_count;
+
+  std::mutex lock;
+
+#pragma omp parallel for default(none)                                        \
+    shared(common, ct, rt, render_status, lock, fully_rendered_archive_count) \
+    schedule(dynamic)
+  for (int aidx = 0; aidx < common.archive_num; aidx++) {
+    if (render_status[aidx] == render_status::all_rendered) {
+      continue;
+    }
+
+    thread_local std::any archive;
+    thread_local std::vector<uint8_t> buffer;
+    thread_local std::string filename;
+    thread_local unique_map image_u8c3{common.rows, common.cols, 3};
+    thread_local std::vector<const void *> row_ptrs;
+
+    buffer.resize(common.suggested_load_buffer_size());
+    filename.reserve(1024);
+    row_ptrs.reserve(common.cols);
+
+    this->archive_filename(aidx, filename);
+
+    if (lock.try_lock()) {
+      fmt::print("[{} / {} : {}%] : Rendering {}\n",
+                 fully_rendered_archive_count, common.archive_num,
+                 100.0f * fully_rendered_archive_count / common.archive_num,
+                 filename);
+      lock.unlock();
+    }
+
+    {
+      auto err = this->load_archive(filename, buffer, archive);
+      if (!archive.has_value() || !err.empty()) {
+        std::lock_guard<std::mutex> lkgd{lock};
+        fmt::print("Fatal : failed to load {}, detail: {}.\n", filename, err);
+        continue;
+      }
+    }
+
+    const bool render_once = rt.render_once;
+    if (render_once) {
+      auto err = this->render(archive, aidx, 0, image_u8c3);
+      if (!err.empty()) {
+        std::lock_guard<std::mutex> lkgd{lock};
+        fmt::print(
+            "Fatal: failed to render {} with image_idx = {}, render_once = {}, "
+            "detail: {}\n",
+            filename, 0, render_once, err);
+        continue;
+      }
+    }
+
+    std::string image_filename;
+    image_filename.reserve(1024);
+
+    bool fail_to_render{false};
+    for (int iidx = 0; iidx < rt.image_count(); iidx++) {
+      this->image_filename(aidx, iidx, image_filename);
+
+      if (!render_once) {
+        auto err = this->render(archive, aidx, 0, image_u8c3);
+        if (!err.empty()) {
+          std::lock_guard<std::mutex> lkgd{lock};
+          fmt::print(
+              "Fatal: failed to render {} with image_idx = {}, render_once = "
+              "{}, "
+              "detail: {}\n",
+              filename, 0, render_once, err);
+          fail_to_render = true;
+          break;
+        }
+      }
+
+      const int skip_r =
+          skip_rows(common.rows, common.ratio, rt.image_per_frame, iidx);
+      const int skip_c =
+          skip_cols(common.cols, common.ratio, rt.image_per_frame, iidx);
+
+      const int image_rows = common.rows - 2 * skip_r;
+      const int image_cols = common.cols - 2 * skip_c;
+
+      row_ptrs.resize(image_rows);
+      for (int r = 0; r < image_rows; r++) {
+        const int absolute_r = r + skip_r;
+        row_ptrs[r] = image_u8c3.address<pixel_RGB>(absolute_r, skip_c);
+      }
+
+      if (!write_png(image_filename.c_str(), color_space::u8c3, row_ptrs.data(),
+                     image_rows, image_cols)) {
+        std::lock_guard<std::mutex> lkgd{lock};
+        fmt::print(
+            "Fatal: failed to save {} with archive filename= {} with image_idx "
+            "= {}, render_once = {}\n",
+            image_filename, filename, 0, render_once);
+        fail_to_render = true;
+        break;
+      }
+    }
+
+    if (fail_to_render) {
+      continue;
+    }
+
+    fully_rendered_archive_count++;
+  }
+
+  if (fully_rendered_archive_count != common.archive_num) {
+    fmt::print("{} archives failed to be rendered.\n",
+               common.archive_num - fully_rendered_archive_count);
+    return false;
+  }
+  return true;
+}

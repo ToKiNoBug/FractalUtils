@@ -38,10 +38,15 @@ class render_task_base {
   virtual ~render_task_base() = default;
   int image_per_frame;
   int extra_image_num;
-  int threads;
+  int threads{4};
+  bool render_once;
   std::string image_prefix;
   std::string image_suffix;
   std::string image_extension{"png"};
+
+  [[nodiscard]] inline int image_count() const noexcept {
+    return this->image_per_frame + this->extra_image_num;
+  }
 };
 
 class video_task_base {
@@ -121,6 +126,14 @@ class video_executor_base {
   [[nodiscard]] std::vector<uint8_t> compute_task_status(
       std::string &buf_filename, std::any &buf_archive,
       std::span<uint8_t> buffer) const noexcept;
+
+  enum class render_status : uint8_t {
+    not_rendered,
+    partly_rendered,
+    all_rendered
+  };
+  [[nodiscard]] std::vector<render_status> render_task_status() const noexcept;
+
   [[nodiscard]] virtual bool run_compute() const noexcept;
 
   [[nodiscard]] virtual bool run_render() const noexcept;
