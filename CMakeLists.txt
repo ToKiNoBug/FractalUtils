@@ -2,6 +2,8 @@
 cmake_minimum_required(VERSION 3.15)
 project(FractalUtils VERSION 2.2.3 LANGUAGES CXX)
 
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 if(${CMAKE_SOURCE_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
   set(FractalUtils_is_sub_project OFF)
   set(FractalUtils_is_not_sub_project ON)
@@ -21,8 +23,6 @@ endif()
 if(NOT ${FractalUtils_no_test})
   enable_testing()
 endif()
-
-# set(CMAKE_CXX_STANDARD 17)
 
 # set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

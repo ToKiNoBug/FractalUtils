@@ -11,25 +11,25 @@ std::optional<full_task> video_executor_base::load_task(
   err.clear();
   auto ci = this->load_common_info(err);
   if (ci == nullptr || !err.empty()) {
-    err = std::format("Failed to load common info. Details: {}", err);
+    err = fmt::format("Failed to load common info. Details: {}", err);
     return std::nullopt;
   }
 
   auto ct = this->load_compute_task(err);
   if (ct == nullptr || !err.empty()) {
-    err = std::format("Failed to load compute task. Details: {}", err);
+    err = fmt::format("Failed to load compute task. Details: {}", err);
     return std::nullopt;
   }
 
   auto rt = this->load_render_task(err);
   if (ct == nullptr || !err.empty()) {
-    err = std::format("Failed to load render task. Details: {}", err);
+    err = fmt::format("Failed to load render task. Details: {}", err);
     return std::nullopt;
   }
 
   auto vt = this->load_video_task(err);
   if (ct == nullptr || !err.empty()) {
-    err = std::format("Failed to load video task. Details: {}", err);
+    err = fmt::format("Failed to load video task. Details: {}", err);
     return std::nullopt;
   }
 
@@ -54,7 +54,7 @@ void video_executor_base::archive_filename(int archive_index,
                                            std::string &ret) const noexcept {
   ret.clear();
   const auto &ct = this->m_task.compute;
-  std::format_to(std::back_inserter(ret), "{}archive{}{}.{}",
+  fmt::format_to(std::back_inserter(ret), "{}archive{}{}.{}",
                  ct->archive_prefix, archive_index, ct->archive_suffix,
                  ct->archive_extension);
 }
@@ -72,11 +72,11 @@ void video_executor_base::image_filename(int archive_index, int image_idx,
   ret.clear();
 
   if (image_idx < rt->image_per_frame) {
-    std::format_to(std::back_inserter(ret), "{}image{}-{}{}.{}",
+    fmt::format_to(std::back_inserter(ret), "{}image{}-{}{}.{}",
                    rt->image_prefix, archive_index, image_idx, rt->image_suffix,
                    rt->image_extension);
   } else {
-    std::format_to(std::back_inserter(ret), "{}image{}-e{}{}.{}",
+    fmt::format_to(std::back_inserter(ret), "{}image{}-e{}{}.{}",
                    rt->image_prefix, archive_index, image_idx, rt->image_suffix,
                    rt->image_extension);
   }
@@ -94,11 +94,11 @@ void video_executor_base::video_temp_filename(int archive_index, bool is_extra,
   ret.clear();
   const auto &vt = this->m_task.video;
   if (!is_extra) {
-    std::format_to(std::back_inserter(ret), "{}temp{}{}.{}",
+    fmt::format_to(std::back_inserter(ret), "{}temp{}{}.{}",
                    vt->temp_config.video_prefix, archive_index,
                    vt->temp_config.video_suffix, vt->temp_config.extension);
   } else {
-    std::format_to(std::back_inserter(ret), "{}temp-extra{}{}.{}",
+    fmt::format_to(std::back_inserter(ret), "{}temp-extra{}{}.{}",
                    vt->temp_config.video_prefix, archive_index,
                    vt->temp_config.video_suffix, vt->temp_config.extension);
   }
@@ -115,7 +115,7 @@ void video_executor_base::product_filename(std::string &ret) const noexcept {
   ret.clear();
   const auto &vt = this->m_task.video;
   const auto &pc = vt->product_config;
-  std::format_to(std::back_inserter(ret), "{}{}{}.{}", pc.video_prefix,
+  fmt::format_to(std::back_inserter(ret), "{}{}{}.{}", pc.video_prefix,
                  vt->product_name, pc.video_suffix, pc.extension);
 }
 
