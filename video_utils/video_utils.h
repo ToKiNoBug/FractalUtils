@@ -8,17 +8,24 @@
 #include <memory>
 #include <optional>
 #include <any>
+#include <variant>
 
 namespace fractal_utils {
 
-struct common_info_base {
+class common_info_base {
+ public:
+  virtual ~common_info_base() = default;
   size_t rows;
   size_t cols;
   int archive_num;
   double ratio;
+
+  virtual size_t suggested_load_buffer_size() const noexcept { return 1 << 20; }
 };
 
-struct compute_task_base {
+class compute_task_base {
+ public:
+  virtual ~compute_task_base() = default;
   std::unique_ptr<wind_base> start_window{nullptr};
   std::string archive_prefix;
   std::string archive_suffix;
@@ -26,7 +33,9 @@ struct compute_task_base {
   int threads;
 };
 
-struct render_task_base {
+class render_task_base {
+ public:
+  virtual ~render_task_base() = default;
   int image_per_frame;
   int extra_image_num;
   int threads;
@@ -35,7 +44,10 @@ struct render_task_base {
   std::string image_extension{"png"};
 };
 
-struct video_task_base {
+class video_task_base {
+ public:
+  virtual ~video_task_base() = default;
+
   struct video_config {
     std::string extension{"mp4"};
     std::string encoder{"x264"};
@@ -99,6 +111,16 @@ class video_executor_base {
 
   [[nodiscard]] bool load_task() noexcept;
 
+  // 1 -> finished
+  [[nodiscard]] std::vector<uint8_t> compute_task_status() const noexcept {
+    std::string buf;
+    buf.reserve(1024);
+    std::any buf_archive;
+    return this->compute_task_status(buf, buf_archive, {});
+  }
+  [[nodiscard]] std::vector<uint8_t> compute_task_status(
+      std::string &buf_filename, std::any &buf_archive,
+      std::span<uint8_t> buffer) const noexcept;
   [[nodiscard]] virtual bool run_compute() const noexcept;
 
   [[nodiscard]] virtual bool run_render() const noexcept;
@@ -127,16 +149,26 @@ class video_executor_base {
   [[nodiscard]] virtual err_info_t save_archive(
       const std::any &, std::string_view filename) const noexcept = 0;
 
-  [[nodiscard]] virtual bool check_archive(
+  [[nodiscard]] inline bool check_archive(
       std::string_view filename,
+      std::any *return_archive_nullable) const noexcept {
+    return this->check_archive(filename, {}, return_archive_nullable);
+  }
+  [[nodiscard]] virtual bool check_archive(
+      std::string_view filename, std::span<uint8_t> buffer,
       std::any *return_archive_nullable) const noexcept;
 
-  [[nodiscard]] virtual std::any load_archive(
-      std::string_view filename, std::string &err) const noexcept = 0;
+  inline std::string load_archive(std::string_view filename,
+                                  std::any &archive) const noexcept {
+    return this->load_archive(filename, {}, archive);
+  }
+  [[nodiscard]] virtual std::string load_archive(
+      std::string_view filename, std::span<uint8_t> buffer,
+      std::any &archive) const noexcept = 0;
 
-  [[nodiscard]] virtual err_info_t render_archive(
-      const std::any &archive, int archive_index, int image_idx,
-      map_view map) const noexcept = 0;
+  [[nodiscard]] virtual std::string render(const std::any &archive,
+                                           int archive_index, int image_idx,
+                                           map_view map) const noexcept = 0;
 };
 
 }  // namespace fractal_utils
