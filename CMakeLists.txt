@@ -29,6 +29,10 @@ if(NOT DEFINED CMAKE_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
 endif()
 
+if(${MSVC})
+  add_compile_options("/EHsc")
+endif()
+
 include(cmake/add_compiler_path_to_prefix.cmake)
 include(cmake/configure_3rdparty.cmake)
 
