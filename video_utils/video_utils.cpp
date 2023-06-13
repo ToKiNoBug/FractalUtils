@@ -37,9 +37,10 @@ std::optional<full_task> video_executor_base::load_task(
 }
 
 bool video_executor_base::check_archive(
-    std::string_view filename, std::any *return_archive) const noexcept {
-  std::string err;
-  auto ar = this->load_archive(filename, err);
+    std::string_view filename, std::span<uint8_t> buffer,
+    std::any *return_archive) const noexcept {
+  std::any ar;
+  std::string err = this->load_archive(filename, buffer, ar);
   if (!ar.has_value() || !err.empty()) {
     return false;
   }
@@ -165,20 +166,15 @@ bool video_executor_base::load_task() noexcept {
   return true;
 }
 
-bool video_executor_base::run_compute() const noexcept {
+std::vector<uint8_t> video_executor_base::compute_task_status(
+    std::string &filename, std::any &archive,
+    std::span<uint8_t> buffer) const noexcept {
   const auto &common = *this->m_task.common;
-  const auto &ct = *this->m_task.compute;
-
-  omp_set_num_threads(ct.threads);
-
-  // 1 -> finished
   std::vector<uint8_t> task_lut;
   task_lut.resize(common.archive_num);
   std::fill(task_lut.begin(), task_lut.end(), false);
 
-  std::string filename;
-  filename.reserve(4096);
-  std::any archive;
+  filename.reserve(1024);
   for (int aidx = 0; aidx < common.archive_num; aidx++) {
     this->archive_filename(aidx, filename);
 
@@ -186,7 +182,7 @@ bool video_executor_base::run_compute() const noexcept {
       continue;
     }
 
-    if (this->check_archive(filename, nullptr)) {
+    if (this->check_archive(filename, buffer, nullptr)) {
       fmt::print(
           "{} exists but is found to be corrupted, it will be generated "
           "again.\n",
@@ -202,6 +198,26 @@ bool video_executor_base::run_compute() const noexcept {
           filename);
     }
   }
+
+  return task_lut;
+}
+
+bool video_executor_base::run_compute() const noexcept {
+  const auto &common = *this->m_task.common;
+  const auto &ct = *this->m_task.compute;
+
+  omp_set_num_threads(ct.threads);
+
+  std::any archive;
+  std::string filename;
+  filename.reserve(1024);
+  std::vector<uint8_t> load_archive_buffer;
+
+  load_archive_buffer.resize(common.suggested_load_buffer_size());
+  // 1 -> finished
+  const auto task_lut =
+      this->compute_task_status(filename, archive, load_archive_buffer);
+  filename.clear();
 
   int finished_tasks{0};
   for (auto status : task_lut) {
@@ -241,3 +257,5 @@ bool video_executor_base::run_compute() const noexcept {
              common.archive_num - already_finished_tasks);
   return true;
 }
+
+bool video_executor_base::run_render() const noexcept {}
