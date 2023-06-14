@@ -9,6 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 COMPONENTS Widgets)
+find_package(OpenMP REQUIRED)
 
 if(NOT ${QT_FOUND})
   message(WARNING "Qt6 Widgets not found. zoom_utils will not be built.")

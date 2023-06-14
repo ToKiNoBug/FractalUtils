@@ -12,7 +12,8 @@ find_package(OpenMP REQUIRED)
 
 add_library(video_utils STATIC
         video_utils.h
-        video_utils.cpp)
+        video_utils.cpp
+        video_utils_makevideo.cpp)
 target_compile_features(video_utils PUBLIC cxx_std_20)
 target_link_libraries(video_utils PUBLIC
         core_utils

@@ -5,9 +5,19 @@
 #include <omp.h>
 #include <atomic>
 #include <mutex>
+#include <fstream>
 
 namespace stdfs = std::filesystem;
 using namespace fractal_utils;
+
+std::string common_info_base::size_expression_4ffmpeg() const noexcept {
+  return fmt::format("{}x{}", this->cols, this->rows);
+}
+
+std::string video_task_base::video_config::encode_expr_4ffmpeg()
+    const noexcept {
+  return fmt::format("-c:v {} {}", this->encoder, this->encoder_flags);
+}
 
 std::optional<full_task> video_executor_base::load_task(
     std::string &err) const noexcept {
@@ -33,9 +43,9 @@ std::optional<full_task> video_executor_base::load_task(
   auto vt = this->load_video_task(err);
   if (ct == nullptr || !err.empty()) {
     err = fmt::format("Failed to load video task. Details: {}", err);
+
     return std::nullopt;
   }
-
   return full_task{std::move(ci), std::move(ct), std::move(rt), std::move(vt)};
 }
 
@@ -76,12 +86,28 @@ void video_executor_base::image_filename(int archive_index, int image_idx,
   ret.clear();
 
   if (image_idx < rt->image_per_frame) {
-    fmt::format_to(std::back_inserter(ret), "{}image{}-{}{}.{}",
+    fmt::format_to(std::back_inserter(ret), "{}image{:06}-{}{}.{}",
                    rt->image_prefix, archive_index, image_idx, rt->image_suffix,
                    rt->image_extension);
   } else {
-    fmt::format_to(std::back_inserter(ret), "{}image{}-e{}{}.{}",
+    fmt::format_to(std::back_inserter(ret), "{}image-extra{:06}{}{}.{}",
                    rt->image_prefix, archive_index, image_idx, rt->image_suffix,
+                   rt->image_extension);
+  }
+}
+
+void video_executor_base::image_filename_4ffmpeg(
+    int archive_index, bool is_extra, std::string &ret) const noexcept {
+  ret.clear();
+  const auto &rt = this->m_task.render;
+
+  if (!is_extra) {
+    fmt::format_to(std::back_inserter(ret), "{}image%06d-{}{}.{}",
+                   rt->image_prefix, archive_index, rt->image_suffix,
+                   rt->image_extension);
+  } else {
+    fmt::format_to(std::back_inserter(ret), "{}image-extra%06d{}{}.{}",
+                   rt->image_prefix, archive_index, rt->image_suffix,
                    rt->image_extension);
   }
 }
@@ -98,11 +124,11 @@ void video_executor_base::video_temp_filename(int archive_index, bool is_extra,
   ret.clear();
   const auto &vt = this->m_task.video;
   if (!is_extra) {
-    fmt::format_to(std::back_inserter(ret), "{}temp{}{}.{}",
+    fmt::format_to(std::back_inserter(ret), "{}temp{:06}{}.{}",
                    vt->temp_config.video_prefix, archive_index,
                    vt->temp_config.video_suffix, vt->temp_config.extension);
   } else {
-    fmt::format_to(std::back_inserter(ret), "{}temp-extra{}{}.{}",
+    fmt::format_to(std::back_inserter(ret), "{}temp-extra{:06}{}.{}",
                    vt->temp_config.video_prefix, archive_index,
                    vt->temp_config.video_suffix, vt->temp_config.extension);
   }
@@ -112,6 +138,23 @@ std::string video_executor_base::video_temp_filename(
     int archive_index, bool is_extra) const noexcept {
   std::string ret;
   this->video_temp_filename(archive_index, is_extra, ret);
+  return ret;
+}
+
+void video_executor_base::video_second_temp_filename(
+    int archive_index, std::string &ret) const noexcept {
+  ret.clear();
+  const auto &vt = *this->m_task.video;
+  fmt::format_to(std::back_inserter(ret), "{}second-temp{:06}{}.{}",
+                 vt.temp_config.video_prefix, archive_index,
+                 vt.temp_config.video_suffix, vt.temp_config.extension);
+}
+
+std::string video_executor_base::video_second_temp_filename(
+    int archive_index) const noexcept {
+  std::string ret;
+  ret.reserve(1024);
+  this->video_second_temp_filename(archive_index, ret);
   return ret;
 }
 
@@ -145,6 +188,10 @@ bool can_be_regular_file(const stdfs::path &filename) noexcept {
   } catch (...) {
     return false;
   }
+}
+
+bool fractal_utils::can_be_regular_file(std::string_view filename) noexcept {
+  return ::can_be_regular_file(stdfs::path{filename});
 }
 
 bool create_required_dirs(const stdfs::path &filename) noexcept {
@@ -339,7 +386,9 @@ bool video_executor_base::run_render() const noexcept {
 
   std::mutex lock;
 
-#pragma omp parallel for default(none)                                        \
+  omp_set_num_threads(rt.threads);
+
+#pragma omp parallel for default(shared)                                      \
     shared(common, ct, rt, render_status, lock, fully_rendered_archive_count) \
     schedule(dynamic)
   for (int aidx = 0; aidx < common.archive_num; aidx++) {
@@ -360,10 +409,11 @@ bool video_executor_base::run_render() const noexcept {
     this->archive_filename(aidx, filename);
 
     if (lock.try_lock()) {
-      fmt::print("[{} / {} : {}%] : Rendering {}\n",
-                 fully_rendered_archive_count, common.archive_num,
-                 100.0f * fully_rendered_archive_count / common.archive_num,
-                 filename);
+      fmt::print(
+          "[{} / {} : {}%] : Rendering {}\n", int(fully_rendered_archive_count),
+          common.archive_num,
+          100.0f * int(fully_rendered_archive_count) / common.archive_num,
+          filename);
       lock.unlock();
     }
 

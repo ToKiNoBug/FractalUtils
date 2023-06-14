@@ -21,6 +21,8 @@ class common_info_base {
   double ratio;
 
   virtual size_t suggested_load_buffer_size() const noexcept { return 1 << 20; }
+
+  std::string size_expression_4ffmpeg() const noexcept;
 };
 
 class compute_task_base {
@@ -59,6 +61,8 @@ class video_task_base {
     std::string encoder_flags;
     std::string video_prefix;
     std::string video_suffix;
+
+    std::string encode_expr_4ffmpeg() const noexcept;
   };
 
   video_config temp_config;
@@ -66,6 +70,7 @@ class video_task_base {
   std::string product_name;
   std::string ffmpeg_exe;
   int threads;
+  bool prefer_symlink{false};
 };
 
 struct full_task {
@@ -104,10 +109,18 @@ class video_executor_base {
   [[nodiscard]] std::string image_filename(int archive_index,
                                            int image_idx) const noexcept;
 
+  virtual void image_filename_4ffmpeg(int archive_index, bool is_extra,
+                                      std::string &ret) const noexcept;
+
   virtual void video_temp_filename(int archive_index, bool is_extra,
                                    std::string &ret) const noexcept;
   [[nodiscard]] std::string video_temp_filename(int archive_index,
                                                 bool is_extra) const noexcept;
+
+  virtual void video_second_temp_filename(int archive_index,
+                                          std::string &ret) const noexcept;
+  [[nodiscard]] std::string video_second_temp_filename(
+      int archive_index) const noexcept;
 
   virtual void product_filename(std::string &ret) const noexcept;
   [[nodiscard]] std::string product_filename() const noexcept;
@@ -138,7 +151,7 @@ class video_executor_base {
 
   [[nodiscard]] virtual bool run_render() const noexcept;
 
-  [[nodiscard]] virtual bool make_video() const noexcept;
+  [[nodiscard]] virtual bool make_video(bool dry_run) const noexcept;
 
  protected:
   // load functions
@@ -158,6 +171,10 @@ class video_executor_base {
 
   virtual void compute(int archive_idx, const wind_base &window,
                        std::any &ret) const noexcept = 0;
+
+  [[nodiscard]] virtual std::string render(const std::any &archive,
+                                           int archive_index, int image_idx,
+                                           map_view map) const noexcept = 0;
 
   [[nodiscard]] virtual err_info_t save_archive(
       const std::any &, std::string_view filename) const noexcept = 0;
@@ -179,11 +196,19 @@ class video_executor_base {
       std::string_view filename, std::span<uint8_t> buffer,
       std::any &archive) const noexcept = 0;
 
-  [[nodiscard]] virtual std::string render(const std::any &archive,
-                                           int archive_index, int image_idx,
-                                           map_view map) const noexcept = 0;
+  bool make_temp_video(int aidx, bool dry_run) const noexcept;
+  bool make_temp_extra_video(int aidx, bool dry_run) const noexcept;
+  bool make_second_temp_video(int aidx, bool dry_run) const noexcept;
+  bool make_second_temp_list_txt(std::string_view txt_filename,
+                                 std::span<const std::string> concate_sources,
+                                 bool dry_run) const noexcept;
+  bool make_product_video(std::string_view txt_filename,
+                          bool dry_run) const noexcept;
 };
 
+[[nodiscard]] int run_command(std::string_view command, bool dry_run) noexcept;
+
+[[nodiscard]] bool can_be_regular_file(std::string_view filename) noexcept;
 }  // namespace fractal_utils
 
 #endif  // FRACTALUTILS_VIDEOUTILS_VIDEOUTILS_H
