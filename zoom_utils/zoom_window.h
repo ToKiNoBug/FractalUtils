@@ -4,7 +4,6 @@
 #include "core_utils.h"
 #include <QMainWindow>
 #include <any>
-#include <list>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -54,7 +53,7 @@ class zoom_window : public QMainWindow {
 
  private:
   QString m_frame_file_extensions{""};
-  std::list<compute_result> m_window_stack;
+  std::stack<compute_result> m_window_stack;
 
   push_options push_opt;
   ::fractal_utils::internal::map_base map_base;
@@ -103,9 +102,9 @@ class zoom_window : public QMainWindow {
   }
 
   [[nodiscard]] const auto &current_result() const noexcept {
-    return this->m_window_stack.back();
+    return this->m_window_stack.top();
   }
-  auto &current_result() noexcept { return this->m_window_stack.back(); }
+  auto &current_result() noexcept { return this->m_window_stack.top(); }
 
   [[nodiscard]] inline size_t rows() const noexcept {
     return this->map_base.rows();

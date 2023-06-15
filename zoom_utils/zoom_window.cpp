@@ -51,14 +51,14 @@ zoom_window::compute_result::compute_result(size_t r, size_t c,
 
 void zoom_window::reset(size_t r, size_t c, size_t fractal_ele_bytes) noexcept {
   while (!this->m_window_stack.empty()) {
-    this->m_window_stack.pop_back();
+    this->m_window_stack.pop();
   }
 
   this->map_base = {r, c, fractal_ele_bytes};
   {
     compute_result temp{r, c, fractal_ele_bytes};
     temp.wind = this->create_wind();
-    this->m_window_stack.emplace_back(std::move(temp));
+    this->m_window_stack.emplace(std::move(temp));
   }
 
   {
@@ -125,7 +125,7 @@ void zoom_window::refresh_image_display() noexcept {
 
 void zoom_window::compute_current() noexcept {
   assert(this->m_window_stack.size() > 0);
-  auto &top = this->m_window_stack.back();
+  auto &top = this->m_window_stack.top();
 
   if (!top.fractal.has_value()) {
     top.fractal.emplace(unique_map{this->map_base});
@@ -139,7 +139,7 @@ void zoom_window::compute_current() noexcept {
 
 void zoom_window::render_current() noexcept {
   assert(this->m_window_stack.size() > 0);
-  auto &top = this->m_window_stack.back();
+  auto &top = this->m_window_stack.top();
 
   const QSize expected_size{(int)this->cols(), (int)this->rows()};
   if (!top.image.has_value() || top.image.value().size() != expected_size) {
@@ -220,7 +220,7 @@ void zoom_window::push(compute_result &&new_res) noexcept {
   }
 
   // #warning here
-  this->m_window_stack.emplace_back(std::move(new_res));
+  this->m_window_stack.emplace(std::move(new_res));
 }
 
 void zoom_window::received_wheel_move(std::array<int, 2> pos,
@@ -266,7 +266,7 @@ void zoom_window::on_btn_revert_clicked() {
     return;
   }
 
-  this->m_window_stack.pop_back();
+  this->m_window_stack.pop();
 
   this->ui->btn_revert->setDisabled(this->m_window_stack.size() <= 1);
   this->refresh_range_display();
