@@ -91,6 +91,11 @@ target_link_libraries(test_zoom_window PRIVATE
   core_utils
   OpenMP::OpenMP_CXX)
 
+set_target_properties(test_zoom_utils PROPERTIES
+        WIN32_EXECUTABLE TRUE)
+set_target_properties(test_zoom_window PROPERTIES
+        WIN32_EXECUTABLE TRUE)
+
 if(${WIN32})
   find_program(FU_windeployqt NAME windeployqt PATHS ${CMAKE_PREFIX_PATH})
 

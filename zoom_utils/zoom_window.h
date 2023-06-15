@@ -42,8 +42,8 @@ class zoom_window : public QMainWindow {
   struct compute_result {
     compute_result() = default;
     compute_result(compute_result &&) = default;
-    // this function is required by std::stack
-    compute_result(const compute_result &);
+    // this function is required by std::stack but never called
+    [[noreturn]] compute_result(const compute_result &);
     compute_result(size_t r, size_t c, size_t fractal_ele_bytes);
 
     std::unique_ptr<fractal_utils::wind_base> wind{nullptr};

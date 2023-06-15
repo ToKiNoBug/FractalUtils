@@ -29,7 +29,9 @@ zoom_window::zoom_window(QWidget *parent)
 zoom_window::~zoom_window() { delete this->ui; }
 
 zoom_window::compute_result::compute_result(const compute_result &src)
-    : fractal{src.fractal}, image{src.image}, custom_data{src.custom_data} {
+//: fractal{src.fractal}, image{src.image}, custom_data{src.custom_data}
+{
+  abort();
   if (src.wind == nullptr) {
     this->wind.reset();
   } else {
@@ -205,7 +207,6 @@ void zoom_window::received_mouse_move(std::array<int, 2> pos) {
 }
 
 void zoom_window::push(compute_result &&new_res) noexcept {
-
   auto &old = this->current_result();
 
   if (!this->push_opt.save_custom) {
@@ -294,7 +295,6 @@ void zoom_window::on_btn_repaint_clicked() {
       std::string err;
       this->decode_hex(current_hex, current_wind, err);
       if (!err.empty()) {
-
         QMessageBox::critical(
             this, "Invalid hex string",
             QStringLiteral("this->callback_hex_decode_fun failed to decode "
@@ -392,7 +392,6 @@ void zoom_window::on_btn_save_frame_clicked() {
                                          (size_t)img.width(), 3},
                            cur.custom_data);
   } else {
-
     err = this->export_frame(path, *cur.wind, cur.fractal.value(),
                              constant_view{nullptr, 0, 0, 3}, cur.custom_data);
   }
