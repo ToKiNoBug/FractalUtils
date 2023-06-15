@@ -87,8 +87,8 @@ bool video_executor_base::make_video(bool dry_run) const noexcept {
   }
 
   fmt::print(
-      "Second temp videos are generated with {} secceeded and {} failed.\n",
-      int(finished_count) - first_temp_count, failed_count);
+      "Second temp videos are generated with {} succeeded and {} failed.\n",
+      int(finished_count) - first_temp_count, int(failed_count));
   if (failed_count > 0) {
     return false;
   }
