@@ -21,8 +21,7 @@ add_library(core_utils STATIC
   hex_convert.cpp
 
   unique_map.h
-  unique_map.cpp
-)
+  unique_map.cpp)
 
 find_package(fmt REQUIRED)
 
@@ -42,6 +41,7 @@ set(core_install_headers
   hex_convert.h
   binary_archive.h
   unique_map.h
+        
 )
 
 add_library(fractal_utils::core_utils ALIAS core_utils)

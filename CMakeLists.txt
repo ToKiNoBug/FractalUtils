@@ -51,6 +51,7 @@ add_subdirectory(render_utils)
 add_subdirectory(png_utils)
 add_subdirectory(zoom_utils)
 add_subdirectory(video_utils)
+add_subdirectory(multiprecision_utils)
 
 # include CMakePackageConfigHelpers macro
 include(CMakePackageConfigHelpers)
