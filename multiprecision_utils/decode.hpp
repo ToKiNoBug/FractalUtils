@@ -42,13 +42,15 @@ uintX_t decode_uintX(std::span<const uint8_t> u8_src,
 
 template <typename flt_t>
   requires is_boost_multiprecision_float<flt_t>
-flt_t decode_boost_floatX(const void *src) noexcept {
+flt_t decode_boost_floatX(std::span<const uint8_t> src) noexcept {
   static_assert(!std::is_trivial_v<flt_t>);
 
   constexpr int precision = precision_of_float_v<flt_t>;
+  assert(src.size() == precision * 4);
+
   using uintX_t = uint_by_precision_t<precision>;
 
-  constexpr int total_bits = bits_of_uint_v<uintX_t>();
+  constexpr int total_bits = bits_of_uint_v<uintX_t>;
 
   constexpr int bits = flt_t::backend_type::bit_count;
   constexpr int bits_encoded = bits - 1;
@@ -85,6 +87,34 @@ flt_t decode_boost_floatX(const void *src) noexcept {
 
   return result;
 }
+
+template <typename float_t>
+std::optional<float_t> decode_float(
+    std::span<const uint8_t, precision_of_float_v<float_t> * 4> src) noexcept {}
 }  // namespace internal
+
+template <typename float_t>
+std::optional<float_t> decode_float(std::span<const uint8_t> src) noexcept {
+  constexpr size_t expected_bytes = precision_of_float_v<float_t> * 4;
+  if (src.size() != expected_bytes) {
+    return std::nullopt;
+  }
+
+  constexpr bool is_trivial = std::is_trivial_v<float_t>;
+  constexpr bool is_boost = is_boost_multiprecision_float<float_t>;
+
+  static_assert(is_trivial || is_boost, "Unknown floating-point types");
+
+  if constexpr (is_trivial) {
+    return *reinterpret_cast<const float_t *>(src.data());
+  }
+
+  if constexpr (is_boost) {
+    return internal::decode_boost_floatX<float_t>(src);
+  }
+
+  return std::nullopt;
+}
+
 }  // namespace fractal_utils
 #endif  // FRACTALUTILS_DECODE_HPP

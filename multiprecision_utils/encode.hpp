@@ -67,16 +67,15 @@ void encode_boost_floatX(const flt_t &flt, std::span<uint8_t> dst) noexcept {
 }  // namespace internal
 
 template <typename float_t>
-std::optional<size_t> encode_float(const float_t &flt,
-                                   std::span<uint8_t> dest) noexcept {
+size_t encode_float(const float_t &flt, std::span<uint8_t> dest) noexcept {
   constexpr size_t required_bytes = precision_of_float_v<float_t> * 4;
   if (dest.size() < required_bytes) {
-    return std::nullopt;
+    return 0;
   }
   constexpr bool is_trivial = std::is_trivial_v<float_t>;
   constexpr bool is_boost = is_boost_multiprecision_float<float_t>;
 
-  static_assert(is_trivial || is_boost, "Uknown floating-point stype");
+  static_assert(is_trivial || is_boost, "Unknown floating-point types");
 
   if constexpr (is_trivial) {
     *reinterpret_cast<float_t *>(dest.data()) = flt;
@@ -87,7 +86,7 @@ std::optional<size_t> encode_float(const float_t &flt,
     internal::encode_boost_floatX<float_t>(flt, dest);
     return required_bytes;
   }
-  return std::nullopt;
+  return 0;
 }
 }  // namespace fractal_utils
 

@@ -22,16 +22,28 @@ void test() noexcept {
   static_assert(precision_of_uint_v<uint_by_precision_t<precision>> ==
                 precision);
 
-  float_by_precision_t<precision> floatX = precision / 3.0;
+  // const double original = precision / 3.0;
+
+  // cout << "original = " << original;
+
+  float_by_precision_t<precision> floatX = precision;
+  floatX /= 3;
+
+  cout << "floatX = " << floatX;
   static_assert(precision_of_float_v<decltype(floatX)> == precision);
 
   uint8_t buffer[precision * 4];
 
-  auto opt_encode = encode_float(floatX, buffer);
-  handle_error(opt_encode.has_value());
-  handle_error(opt_encode.value() == precision * 4);
+  auto encoded_bytes = encode_float(floatX, buffer);
+  handle_error(encoded_bytes == precision * 4);
 
-  cout << " - passed." << endl;
+  auto decode_value = decode_float<decltype(floatX)>(buffer);
+
+  handle_error(decode_value.has_value());
+  cout << ", decoded value = " << decode_value.value();
+  handle_error(decode_value.value() == floatX);
+
+  cout << " -- [passed]" << endl;
 }
 
 int main(int, char**) {
@@ -52,7 +64,12 @@ int main(int, char**) {
   test<8>();
   test<16>();
   test<32>();
-  //  test<2>();
+  test<64>();
+  test<128>();
+  test<256>();
+  test<512>();
+  test<1024>();
+  test<2048>();
 
   return 0;
 }
