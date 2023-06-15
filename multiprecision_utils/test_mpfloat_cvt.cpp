@@ -28,8 +28,10 @@ void test() noexcept {
 
   float_by_precision_t<precision> floatX = precision;
   floatX /= 3;
-
+#ifndef __GNUC__
   cout << "floatX = " << floatX;
+#endif
+
   static_assert(precision_of_float_v<decltype(floatX)> == precision);
 
   uint8_t buffer[precision * 4];
@@ -40,7 +42,11 @@ void test() noexcept {
   auto decode_value = decode_float<decltype(floatX)>(buffer);
 
   handle_error(decode_value.has_value());
+
+#ifndef __GNUC__
   cout << ", decoded value = " << decode_value.value();
+#endif
+
   handle_error(decode_value.value() == floatX);
 
   cout << " -- [passed]" << endl;
