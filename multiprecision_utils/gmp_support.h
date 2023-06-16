@@ -11,8 +11,12 @@
 #include <type_traits>
 #include <cstdint>
 #include <concepts>
-#include "multiprecision_utils.h"
 #include <vector>
+#include <optional>
+#include <span>
+
+#include "mp_ints.hpp"
+#include "mp_floats.hpp"
 
 namespace fractal_utils {
 
@@ -35,8 +39,8 @@ void write_to_data(uint8_t **datapp, T t) noexcept {
   *datapp += sizeof(T);
 }
 
-size_t encode_gmp_float(const __mpf_struct *number,
-                        std::span<uint8_t> dst_span) noexcept;
+size_t encode_gmp_float_impl(const __mpf_struct *number,
+                             std::span<uint8_t> dst_span) noexcept;
 
 template <typename T>
   requires std::is_trivial_v<T>
@@ -46,8 +50,8 @@ void read_from_data(const uint8_t **datapp, T &t) noexcept {
   // return t;
 }
 
-bool decode_gmp_float(std::span<const uint8_t> src,
-                      __mpf_struct *number) noexcept;
+bool decode_gmp_float_impl(std::span<const uint8_t> src,
+                           __mpf_struct *number) noexcept;
 
 }  // namespace internal
 

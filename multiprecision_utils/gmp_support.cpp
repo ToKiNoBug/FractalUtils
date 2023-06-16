@@ -14,8 +14,8 @@ size_t fu_internal::required_bytes(const __mpf_struct *number) noexcept {
   return fixed_space + limb_num(number) * sizeof(mp_limb_t);
 }
 
-size_t fu_internal::encode_gmp_float(const __mpf_struct *number,
-                                     std::span<uint8_t> dst_span) noexcept {
+size_t fu_internal::encode_gmp_float_impl(
+    const __mpf_struct *number, std::span<uint8_t> dst_span) noexcept {
   assert(dst_span.size() >= required_bytes(number));
   // const int limb_num = std::abs(number->_mp_size);
 
@@ -32,8 +32,8 @@ size_t fu_internal::encode_gmp_float(const __mpf_struct *number,
   return required_bytes(number);
 }
 
-bool fu_internal::decode_gmp_float(std::span<const uint8_t> src,
-                                   __mpf_struct *number) noexcept {
+bool fu_internal::decode_gmp_float_impl(std::span<const uint8_t> src,
+                                        __mpf_struct *number) noexcept {
   // mpf_clear(number);
 
   decltype(number->_mp_prec) prec;
@@ -83,7 +83,7 @@ size_t fractal_utils::encode_gmp_float(const gmp_float_t &number,
     return 0;
   }
 
-  return internal::encode_gmp_float(number.backend().data(), dest);
+  return internal::encode_gmp_float_impl(number.backend().data(), dest);
 }
 
 std::vector<uint8_t> fractal_utils::encode_gmp_float(
@@ -99,7 +99,7 @@ std::optional<fractal_utils::gmp_float_t> fractal_utils::decode_gmp_float(
     std::span<const uint8_t> src) noexcept {
   fractal_utils::gmp_float_t ret;
 
-  const bool ok = internal::decode_gmp_float(src, ret.backend().data());
+  const bool ok = internal::decode_gmp_float_impl(src, ret.backend().data());
   if (ok) {
     return ret;
   }

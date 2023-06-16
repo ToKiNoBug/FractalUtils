@@ -9,6 +9,10 @@
 #include "mp_floats.hpp"
 #include <span>
 
+#ifdef FRACTALUTILS_MULTIPRECISIONUTILS_GMP_SUPPORT
+#include "gmp_support.h"
+#endif
+
 namespace fractal_utils {
 namespace internal {
 
@@ -95,23 +99,38 @@ std::optional<float_t> decode_float(
 
 template <typename float_t>
 std::optional<float_t> decode_float(std::span<const uint8_t> src) noexcept {
-  constexpr size_t expected_bytes = precision_of_float_v<float_t> * 4;
-  if (src.size() != expected_bytes) {
-    return std::nullopt;
-  }
-
   constexpr bool is_trivial = std::is_trivial_v<float_t>;
   constexpr bool is_boost = is_boost_multiprecision_float<float_t>;
+  constexpr bool is_gmp = is_boost_gmp_float<float_t>;
 
-  static_assert(is_trivial || is_boost, "Unknown floating-point types");
+  constexpr bool is_ieee = is_trivial || is_boost;
 
-  if constexpr (is_trivial) {
-    return *reinterpret_cast<const float_t *>(src.data());
+  static_assert(is_trivial || is_boost || is_gmp,
+                "Unknown floating-point types");
+  if constexpr (is_ieee) {
+    constexpr size_t boost_expected_bytes = precision_of_float_v<float_t> * 4;
+    if (is_ieee && (src.size() != boost_expected_bytes)) {
+      return std::nullopt;
+    }
+
+    if constexpr (is_trivial) {
+      return *reinterpret_cast<const float_t *>(src.data());
+    }
+
+    if constexpr (is_boost) {
+      return internal::decode_boost_floatX<float_t>(src);
+    }
   }
 
-  if constexpr (is_boost) {
-    return internal::decode_boost_floatX<float_t>(src);
+#ifndef FRACTALUTILS_MULTIPRECISIONUTILS_GMP_SUPPORT
+  static_assert(!is_gmp,
+                "GMP support is disabled, there is not rule to decode boost "
+                "wrapped gmp types.");
+#else
+  if constexpr (is_gmp) {
+    return decode_gmp_float(src);
   }
+#endif
 
   return std::nullopt;
 }

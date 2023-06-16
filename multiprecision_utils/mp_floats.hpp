@@ -21,6 +21,17 @@ concept is_boost_multiprecision_float = requires(const flt_t &flt) {
   flt_t::backend_type::max_exponent;
 };
 
+template <typename flt_t>
+concept is_boost_gmp_float = requires(const flt_t &flt) {
+  requires !std::is_trivial_v<flt_t>;
+  flt.backend();
+  flt.backend().data();
+  flt.backend().data()->_mp_prec;
+  flt.backend().data()->_mp_size;
+  flt.backend().data()->_mp_exp;
+  *flt.backend().data()->_mp_d;
+};
+
 constexpr int suggested_exponent_bits_of(int precision) noexcept {
   if (!is_valid_precision(precision)) {
     return 0;
