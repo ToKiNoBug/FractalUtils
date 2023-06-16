@@ -72,6 +72,11 @@ std::optional<size_t> fractal_utils::hex_2_bin(std::string_view sv, void *dst,
                                     dst_capacity);
 }
 
+std::optional<size_t> fractal_utils::hex_2_bin(
+    std::string_view sv, std::span<uint8_t> dest) noexcept {
+  return ::fractal_utils::hex_2_bin(sv, dest.data(), dest.size());
+}
+
 constexpr inline char u8_to_hex_char(uint8_t val) noexcept {
   if (val < 10) {
     return val + '0';
@@ -109,4 +114,11 @@ std::optional<size_t> fractal_utils::bin_2_hex(const void *src,
   }
 
   return dst_offset;
+}
+
+std::optional<size_t> fractal_utils::bin_2_hex(std::span<const uint8_t> src,
+                                               std::span<char> dst,
+                                               bool starts_with_0x) noexcept {
+  return ::fractal_utils::bin_2_hex(src.data(), src.size(), dst.data(),
+                                    dst.size(), starts_with_0x);
 }

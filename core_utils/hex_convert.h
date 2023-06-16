@@ -25,6 +25,7 @@ This file is part of FractalUtils.
 #include <optional>
 #include <string_view>
 #include <cstdint>
+#include <span>
 
 namespace fractal_utils {
 
@@ -33,10 +34,15 @@ std::optional<size_t> hex_2_bin(const char *src_beg, const char *src_end,
 
 std::optional<size_t> hex_2_bin(std::string_view, void *dst,
                                 size_t dst_capacity) noexcept;
+std::optional<size_t> hex_2_bin(std::string_view,
+                                std::span<uint8_t> dest) noexcept;
 
 std::optional<size_t> bin_2_hex(const void *src, size_t src_bytes, char *dst,
                                 size_t dst_capacity,
                                 bool starts_with_0x) noexcept;
-} // namespace fractal_utils
+std::optional<size_t> bin_2_hex(std::span<const uint8_t> src,
+                                std::span<char> dst,
+                                bool starts_with_0x) noexcept;
+}  // namespace fractal_utils
 
-#endif // FRACTAL_UTILS_CORE_UTILS_HEX_CONVERT_H
+#endif  // FRACTAL_UTILS_CORE_UTILS_HEX_CONVERT_H
