@@ -13,7 +13,7 @@ if(${out_temp} LESS 0)
     list(APPEND CMAKE_PREFIX_PATH ${temp})
 
     # set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH};${temp})
-    message("CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}")
+    message(STATUS "CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}")
 endif()
 
 unset(temp)

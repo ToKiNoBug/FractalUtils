@@ -38,7 +38,7 @@ set(FractalUitls_optional_deps)
 set(FractalUtils_multiprecision_gmp_support false)
 set(FractalUtils_multiprecision_mpfr_support false)
 
-find_package(GMP)
+find_package(GMP QUIET)
 if(GMP_FOUND OR LINUX)
     find_file(gmp_header_file "gmp.h")
     if(gmp_header_file)
@@ -51,7 +51,7 @@ if(GMP_FOUND OR LINUX)
     endif()
 endif()
 
-find_package(MPFR)
+find_package(MPFR QUIET)
 if(MPFR_FOUND OR LINUX)
     list(APPEND FractalUtils_optional_deps mpfr)
     set(FractalUtils_multiprecision_mpfr_support true)
@@ -101,7 +101,6 @@ if(${FractalUtils_multiprecision_mpfr_support})
     target_compile_definitions(multiprecision_utils PUBLIC
             FRACTALUTILS_MULTIPRECISIONUTILS_MPFR_SUPPORT=1)
 endif()
-
 
 
 add_library(fractal_utils::multiprecision_utils ALIAS multiprecision_utils)

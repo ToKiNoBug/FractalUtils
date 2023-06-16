@@ -132,6 +132,30 @@ consteval int extract_precision_float() {
 template <typename float_t>
 constexpr int precision_of_float_v =
     internal::extract_precision_float<float_t, 1>();
+
+enum class float_backend_lib { unknown, standard, quadmath, boost, gmp, mpfr };
+
+template <typename T>
+constexpr float_backend_lib backend_of() noexcept {
+  if constexpr (std::is_trivial_v<T>) {
+#ifdef __GNUC__
+    if constexpr (std::is_same_v<T, __float128>) {
+      return float_backend_lib::quadmath;
+    }
+#endif
+    return float_backend_lib::standard;
+  }
+
+  if constexpr (is_boost_gmp_float<T>) {
+    return float_backend_lib::boost;
+  }
+
+  if constexpr (is_boost_gmp_float<T>) {
+    return float_backend_lib::gmp;
+  }
+
+  return float_backend_lib::unknown;
+}
 }  // namespace fractal_utils
 
 #endif  // FRACTALUTILS_MULTIPRECISIONUTILS_MPFLOATS_HPP
