@@ -31,13 +31,12 @@ QImage scale_img(const QImage &src, int scale) noexcept {
 zoom_utils_mainwindow::zoom_utils_mainwindow(
     QWidget *parent, const std::array<int, 2> &window_size,
     uint32_t map_fractal_element_size, int __scale)
-    : QMainWindow(parent),
-      ui(new Ui::zoom_utils_mainwindow),
+    : QMainWindow(parent), ui(new Ui::zoom_utils_mainwindow),
       img_u8c3(QSize(window_size[1], window_size[0]),
                QImage::Format::Format_RGB888),
       scale(__scale),
       map_fractal(window_size[0], window_size[1], map_fractal_element_size) {
-  this->ui->setupUi(this);
+  ui->setupUi(this);
 
   connect(this->ui->display, &scalable_label::moved, this,
           &zoom_utils_mainwindow::received_mouse_move);
@@ -59,12 +58,14 @@ zoom_utils_mainwindow::zoom_utils_mainwindow(
 }
 
 zoom_utils_mainwindow::~zoom_utils_mainwindow() {
+  delete ui;
+
   this->callback_destroy_center_wind(this->window);
+
   while (!this->previous_windows.empty()) {
     this->callback_destroy_center_wind(this->previous_windows.top());
     this->previous_windows.pop();
   }
-  delete ui;
 }
 
 void fractal_utils::callback_destroy_center_wind(wind_base *const w) {
@@ -181,7 +182,7 @@ void zoom_utils_mainwindow::display_range() noexcept {
       abort();
     }
 
-    ui->show_center_hex->setText(QString::fromLatin1(hex.c_str()));
+    ui->show_center_hex->setText(QString::fromStdString(hex));
   }
 }
 
@@ -271,7 +272,7 @@ void zoom_utils_mainwindow::on_btn_repaint_clicked() {
           this, "Invalid hex string",
           QStringLiteral("this->callback_hex_decode_fun failed to decode "
                          "hex string \"%1\" to binary. \nDetail: \n%2")
-              .arg(QString::fromStdString(hex), QString::fromUtf8(err.data())));
+              .arg(QString::fromUtf8(hex), QString::fromUtf8(err.data())));
 
       this->lock.unlock();
       return;
@@ -335,8 +336,9 @@ void zoom_utils_mainwindow::on_btn_save_frame_clicked() {
 
 #include <hex_convert.h>
 
-std::string fractal_utils::default_hex_encode_fun(
-    const fractal_utils::wind_base &wind_src, std::string &err) {
+std::string
+fractal_utils::default_hex_encode_fun(const fractal_utils::wind_base &wind_src,
+                                      std::string &err) {
   err.clear();
 
   size_t len = 0;
