@@ -50,7 +50,7 @@ uintX_t decode_uintX(std::span<const uint8_t> u8_src,
 
 template <typename flt_t>
   requires is_boost_multiprecision_float<flt_t>
-flt_t decode_boost_floatX(std::span<const uint8_t> src) noexcept {
+flt_t decode_boost_cpp_bin_float(std::span<const uint8_t> src) noexcept {
   static_assert(!std::is_trivial_v<flt_t>);
 
   constexpr int precision = precision_of_float_v<flt_t>;
@@ -125,7 +125,7 @@ std::optional<float_t> decode_float(std::span<const uint8_t> src) noexcept {
     }
 
     if constexpr (is_boost) {
-      return internal::decode_boost_floatX<float_t>(src);
+      return internal::decode_boost_cpp_bin_float<float_t>(src);
     }
   }
 

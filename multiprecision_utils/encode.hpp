@@ -43,7 +43,8 @@ void encode_uintX(const uintX_t &bin, std::span<uint8_t> u8_dst,
 
 template <typename flt_t>
   requires is_boost_multiprecision_float<flt_t>
-void encode_boost_floatX(const flt_t &flt, std::span<uint8_t> dst) noexcept {
+void encode_boost_cpp_bin_float(const flt_t &flt,
+                                std::span<uint8_t> dst) noexcept {
   static_assert(!std::is_trivial_v<flt_t>);
 
   constexpr int precision = precision_of_float_v<flt_t>;
@@ -101,7 +102,7 @@ size_t encode_float(const float_t &flt, std::span<uint8_t> dest) noexcept {
     }
 
     if constexpr (is_boost) {
-      internal::encode_boost_floatX<float_t>(flt, dest);
+      internal::encode_boost_cpp_bin_float<float_t>(flt, dest);
       return boost_required_bytes;
     }
   }
