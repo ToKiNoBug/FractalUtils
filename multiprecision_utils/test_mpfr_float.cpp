@@ -1,18 +1,13 @@
-//
-// Created by joseph on 6/16/23.
-//
-
-#include "gmp_support.h"
-#include <iostream>
-#include "hex_convert.h"
 #include "multiprecision_utils.h"
+#include <iostream>
+#include <core_utils.h>
 
 using std::cout, std::endl;
 using namespace fractal_utils;
 
-void test_gmp(int gmp_precision) noexcept {
-  gmp_float_t flt;
-  flt.precision(gmp_precision);
+void test_encode_decode(int mpfr_precision) noexcept {
+  boostmp::mpfr_float flt;
+  flt.precision(mpfr_precision);
   flt = -1;
   flt /= 3;
 
@@ -20,10 +15,10 @@ void test_gmp(int gmp_precision) noexcept {
 
   cout << "precision of flt = " << flt.precision() << endl;
 
-  auto binary = fractal_utils::encode_gmp_float(flt);
+  auto binary = fractal_utils::encode_boost_mpfr_float(flt);
 
   std::string buffer;
-  buffer.resize(2 * fractal_utils::required_bytes_of(flt) + 1024);
+  buffer.resize(2 * binary.size() + 1024);
 
   const auto str_bytes = bin_2_hex(binary, buffer, false);
   buffer.resize(str_bytes.value());
@@ -31,7 +26,7 @@ void test_gmp(int gmp_precision) noexcept {
   cout << "binary of flt = " << buffer << endl;
   cout << "Length = " << buffer.size() << endl;
 
-  auto decode_opt = decode_float<gmp_float_t>(binary);
+  auto decode_opt = decode_float<boostmp::mpfr_float>(binary);
   cout << "decode_opt.has_value() = " << decode_opt.has_value() << endl;
 
   if (decode_opt.has_value()) {
@@ -49,10 +44,9 @@ void test_gmp(int gmp_precision) noexcept {
   assert(binary.size() == encode_ret);
 }
 
-int main(int, char**) {
+int main(int argc, char** argv) {
   for (int p = 50; p < 2000; p++) {
-    test_gmp(p);
+    test_encode_decode(p);
   }
-
   return 0;
 }

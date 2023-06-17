@@ -13,6 +13,10 @@
 #include "gmp_support.h"
 #endif
 
+#ifdef FRACTALUTILS_MULTIPRECISIONUTILS_MPFR_SUPPORT
+#include "mpfr_support.h"
+#endif
+
 namespace fractal_utils {
 namespace internal {
 
@@ -103,11 +107,13 @@ std::optional<float_t> decode_float(std::span<const uint8_t> src) noexcept {
   constexpr bool is_boost = is_boost_multiprecision_float<float_t>;
   constexpr bool is_boost_gmp = is_boost_gmp_float<float_t>;
   constexpr bool is_gmpxx = is_gmpxx_float<float_t>;
+  constexpr bool is_boost_mpfr = is_boost_mpfr_float<float_t>;
 
   constexpr bool is_ieee = is_trivial || is_boost;
 
-  static_assert(is_trivial || is_boost || is_boost_gmp,
-                "Unknown floating-point types");
+  static_assert(
+      is_trivial || is_boost || is_boost_gmp || is_gmpxx || is_boost_mpfr,
+      "Unknown floating-point types");
   if constexpr (is_ieee) {
     constexpr size_t boost_expected_bytes = precision_of_float_v<float_t> * 4;
     if (src.size() != boost_expected_bytes) {
@@ -124,7 +130,7 @@ std::optional<float_t> decode_float(std::span<const uint8_t> src) noexcept {
   }
 
 #ifndef FRACTALUTILS_MULTIPRECISIONUTILS_GMP_SUPPORT
-  static_assert(!is_boost_gmp || is_gmpxx,
+  static_assert(!(is_boost_gmp || is_gmpxx),
                 "GMP support is disabled, there is not rule to decode boost "
                 "wrapped gmp types.");
 #else
@@ -133,6 +139,16 @@ std::optional<float_t> decode_float(std::span<const uint8_t> src) noexcept {
   }
   if constexpr (is_gmpxx) {
     return decode_gmpxx_float(src);
+  }
+#endif
+
+#ifndef FRACTALUTILS_MULTIPRECISIONUTILS_GMP_SUPPORT
+  static_assert(!is_boost_mpfr,
+                "MPFR support is disabled, there is not rule to decode boost "
+                "wrapped mpfr types.");
+#else
+  if constexpr (is_boost_mpfr) {
+    return decode_boost_mpfr_float(src);
   }
 #endif
 

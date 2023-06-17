@@ -6,11 +6,11 @@ find_package(Boost COMPONENTS multiprecision)
 
 set(FractalUtils_mp_boost_mp_target_name)
 unset(FractalUtils_mp_boost_include_dir)
-if(NOT ${BOOST_FOUND})
+if (NOT ${BOOST_FOUND})
     message(STATUS "Failed to find Boost::multiprecision by find_package, searching for its headers")
     find_file(boost_multiprecision_header_file "cpp_bin_float.hpp"
             PATH_SUFFIXES include/boost/multiprecision)
-    if(boost_multiprecision_header_file)
+    if (boost_multiprecision_header_file)
         message(STATUS "Found include/boost/multiprecision/cpp_bin_float.hpp at ${boost_multiprecision_header_file}")
         cmake_path(GET boost_multiprecision_header_file PARENT_PATH temp)
         cmake_path(GET temp PARENT_PATH temp)
@@ -22,42 +22,52 @@ if(NOT ${BOOST_FOUND})
         #target_include_directories(FractalUtils_interface_target_for_boost_multiprecision INTERFACE ${temp})
         #set(FractalUtils_mp_boost_mp_target_name FractalUtils_interface_target_for_boost_multiprecision)
         set(BOOST_FOUND TRUE)
-    endif()
+    endif ()
 
-else()
+else ()
     set(FractalUtils_mp_boost_mp_target_name "Boost::multiprecision")
-endif()
+endif ()
 
-if(NOT ${BOOST_FOUND})
+if (NOT ${BOOST_FOUND})
     message(WARNING "Boost::multiprecision is not found, so multiprecision_utils will be disabled.")
     return()
-endif()
+endif ()
 
 
-set(FractalUitls_optional_deps)
-set(FractalUtils_optional_sources)
+unset(FractalUtils_optional_sources)
 set(FractalUtils_multiprecision_gmp_support false)
 set(FractalUtils_multiprecision_mpfr_support false)
 
 find_package(GMP QUIET)
-if(GMP_FOUND OR LINUX)
+if (GMP_FOUND OR LINUX)
     find_file(gmp_header_file "gmp.h")
-    if(gmp_header_file)
+    if (gmp_header_file)
         cmake_path(GET gmp_header_file PARENT_PATH gmp_include_dir)
-        list(APPEND FractalUtils_optional_deps gmp)
-        list(APPEND FractalUtils_optional_sources gmp_support.cpp)
+        list(APPEND FractalUtils_optional_sources
+                gmp_support.h
+                gmp_support.cpp)
         set(FractalUtils_multiprecision_gmp_support true)
-    else()
+    else ()
         unset(gmp_include_dir)
-        message(WARNING "gmp should exist on in this platform, but gmp.h is not found. gmp support will be disabled.")
-    endif()
-endif()
+        message(WARNING "gmp should exist on this platform, but gmp.h is not found. gmp support will be disabled.")
+    endif ()
+endif ()
 
 find_package(MPFR QUIET)
-if(MPFR_FOUND OR LINUX)
-    list(APPEND FractalUtils_optional_deps mpfr)
-    set(FractalUtils_multiprecision_mpfr_support true)
-endif()
+if (MPFR_FOUND OR LINUX)
+    find_file(mpfr_header_file "mpfr.h")
+    if (mpfr_header_file)
+        cmake_path(GET mpfr_header_file PARENT_PATH mpfr_include_dir)
+        list(APPEND FractalUtils_optional_sources
+                mpfr_support.h
+                mpfr_support.cpp)
+        set(FractalUtils_multiprecision_mpfr_support true)
+    else ()
+        unset(mpfr_include_dir)
+        set(FractalUtils_multiprecision_mpfr_support false)
+        message(WARNING "mpfr should exist on this platform, but mpfr.h is not found. mpfr support will be disabled.")
+    endif ()
+endif ()
 
 
 # add include directories
@@ -70,6 +80,7 @@ set(multiprecision_install_headers
         mp_complex.hpp
 
         gmp_support.h
+        mpfr_support.h
         )
 
 message(STATUS "FractalUtils_optional_sources = ${FractalUtils_optional_sources}")
@@ -83,8 +94,8 @@ add_library(multiprecision_utils STATIC
 
 target_link_libraries(multiprecision_utils PUBLIC
         ${FractalUtils_mp_boost_mp_target_name}
-        ${FractalUitls_optional_deps}
         )
+
 
 target_compile_features(multiprecision_utils PUBLIC cxx_std_20)
 
@@ -94,24 +105,25 @@ target_include_directories(multiprecision_utils
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         ${FractalUtils_mp_boost_include_dir}
         ${gmp_include_dir}
+        ${mpfr_include_dir}
         INTERFACE
         $<INSTALL_INTERFACE:include>
         )
 
-if(${FractalUtils_multiprecision_gmp_support})
+if (${FractalUtils_multiprecision_gmp_support})
     target_compile_definitions(multiprecision_utils PUBLIC
             FRACTALUTILS_MULTIPRECISIONUTILS_GMP_SUPPORT=1)
-endif()
-if(${FractalUtils_multiprecision_mpfr_support})
+endif ()
+if (${FractalUtils_multiprecision_mpfr_support})
     target_compile_definitions(multiprecision_utils PUBLIC
             FRACTALUTILS_MULTIPRECISIONUTILS_MPFR_SUPPORT=1)
-endif()
+endif ()
 
 
 add_library(fractal_utils::multiprecision_utils ALIAS multiprecision_utils)
 
 
-if(NOT ${FractalUtils_no_install})
+if (NOT ${FractalUtils_no_install})
     # install the target and create export-set
     install(TARGETS multiprecision_utils
             EXPORT fractal_utils_multiprecision-targets
@@ -130,22 +142,40 @@ if(NOT ${FractalUtils_no_install})
             NAMESPACE fractal_utils::
             DESTINATION lib/cmake/fractal_utils
             )
-endif()
+endif ()
 
-if(NOT ${FractalUtils_build_examples})
-    return()
-endif()
-
-add_executable(test_boost_float test_boost_float.cpp)
-target_link_libraries(test_boost_float PRIVATE multiprecision_utils)
+if (${FractalUtils_build_examples})
+    add_executable(test_boost_float test_boost_float.cpp)
+    target_link_libraries(test_boost_float PRIVATE multiprecision_utils)
+endif ()
 
 
-if(${FractalUtils_multiprecision_gmp_support})
-    add_executable(test_gmp_float test_gmp_float.cpp)
-    target_link_libraries(test_gmp_float PRIVATE multiprecision_utils gmp core_utils)
 
-    add_executable(test_gmp_complex test_gmp_complex.cpp)
-    target_link_libraries(test_gmp_complex PRIVATE multiprecision_utils gmp)
-endif()
+if (${FractalUtils_multiprecision_gmp_support})
+    target_link_libraries(multiprecision_utils PUBLIC gmp)
 
-#${FractalUtils_multiprecision_mpfr_support}
+
+    if (${FractalUtils_build_examples})
+        add_executable(test_gmp_float test_gmp_float.cpp)
+        target_link_libraries(test_gmp_float PRIVATE
+                multiprecision_utils
+                core_utils)
+
+        add_executable(test_gmp_complex test_gmp_complex.cpp)
+        target_link_libraries(test_gmp_complex PRIVATE
+                multiprecision_utils)
+    endif ()
+endif ()
+
+if (${FractalUtils_multiprecision_mpfr_support})
+
+    target_link_libraries(multiprecision_utils PUBLIC mpfr)
+
+    if (${FractalUtils_build_examples})
+        add_executable(test_mpfr_float test_mpfr_float.cpp)
+        target_link_libraries(test_mpfr_float PRIVATE
+                multiprecision_utils
+                core_utils)
+    endif()
+
+endif ()

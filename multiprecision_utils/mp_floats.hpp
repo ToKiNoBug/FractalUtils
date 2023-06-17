@@ -41,6 +41,17 @@ concept is_gmpxx_float = requires(const flt_t &flt) {
   flt_t{1, 100};
 };
 
+template <typename flt_t>
+concept is_boost_mpfr_float = requires(const flt_t &flt) {
+  requires !std::is_trivial_v<flt_t>;
+  flt.backend();
+  flt.backend().data();
+  flt.backend().data()->_mpfr_prec;
+  flt.backend().data()->_mpfr_sign;
+  flt.backend().data()->_mpfr_exp;
+  *flt.backend().data()->_mpfr_d;
+};
+
 constexpr int suggested_exponent_bits_of(int precision) noexcept {
   if (!is_valid_precision(precision)) {
     return 0;
@@ -161,6 +172,10 @@ constexpr float_backend_lib backend_of() noexcept {
 
   if constexpr (is_boost_gmp_float<T>) {
     return float_backend_lib::gmp;
+  }
+
+  if constexpr (is_boost_mpfr_float<T>) {
+    return float_backend_lib::mpfr;
   }
 
   return float_backend_lib::unknown;
