@@ -1,6 +1,6 @@
 @PACKAGE_INIT@
 
-set(_fractal_utils_supported_components core_utils render_utils png_utils zoom_utils)
+set(_fractal_utils_supported_components core_utils render_utils png_utils zoom_utils video_utils multiprecision_utils)
 
 foreach(_comp ${fractal_utils_FIND_COMPONENTS})
   if (NOT _comp IN_LIST _fractal_utils_supported_components)
