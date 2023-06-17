@@ -35,6 +35,7 @@ endif()
 
 
 set(FractalUitls_optional_deps)
+set(FractalUtils_optional_sources)
 set(FractalUtils_multiprecision_gmp_support false)
 set(FractalUtils_multiprecision_mpfr_support false)
 
@@ -44,6 +45,7 @@ if(GMP_FOUND OR LINUX)
     if(gmp_header_file)
         cmake_path(GET gmp_header_file PARENT_PATH gmp_include_dir)
         list(APPEND FractalUtils_optional_deps gmp)
+        list(APPEND FractalUtils_optional_sources gmp_support.cpp)
         set(FractalUtils_multiprecision_gmp_support true)
     else()
         unset(gmp_include_dir)
@@ -65,13 +67,17 @@ set(multiprecision_install_headers
         mp_floats.hpp
         encode.hpp
         decode.hpp
+        mp_complex.hpp
 
         gmp_support.h
         )
 
+message(STATUS "FractalUtils_optional_sources = ${FractalUtils_optional_sources}")
+
 add_library(multiprecision_utils STATIC
         ${multiprecision_install_headers}
         empty.cpp
+        ${FractalUtils_optional_sources}
         )
 
 
@@ -95,7 +101,6 @@ target_include_directories(multiprecision_utils
 if(${FractalUtils_multiprecision_gmp_support})
     target_compile_definitions(multiprecision_utils PUBLIC
             FRACTALUTILS_MULTIPRECISIONUTILS_GMP_SUPPORT=1)
-    target_sources(multiprecision_utils PRIVATE gmp_support.cpp)
 endif()
 if(${FractalUtils_multiprecision_mpfr_support})
     target_compile_definitions(multiprecision_utils PUBLIC
@@ -134,9 +139,13 @@ endif()
 add_executable(test_boost_float test_boost_float.cpp)
 target_link_libraries(test_boost_float PRIVATE multiprecision_utils)
 
+
 if(${FractalUtils_multiprecision_gmp_support})
     add_executable(test_gmp_float test_gmp_float.cpp)
     target_link_libraries(test_gmp_float PRIVATE multiprecision_utils gmp core_utils)
+
+    add_executable(test_gmp_complex test_gmp_complex.cpp)
+    target_link_libraries(test_gmp_complex PRIVATE multiprecision_utils gmp)
 endif()
 
 #${FractalUtils_multiprecision_mpfr_support}

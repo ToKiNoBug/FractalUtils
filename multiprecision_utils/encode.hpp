@@ -74,11 +74,12 @@ template <typename float_t>
 size_t encode_float(const float_t &flt, std::span<uint8_t> dest) noexcept {
   constexpr bool is_trivial = std::is_trivial_v<float_t>;
   constexpr bool is_boost = is_boost_multiprecision_float<float_t>;
-  constexpr bool is_gmp = is_boost_gmp_float<float_t>;
+  constexpr bool is_boost_gmp = is_boost_gmp_float<float_t>;
+  constexpr bool is_gmpxx = is_gmpxx_float<float_t>;
 
   constexpr bool is_ieee = is_trivial || is_boost;
 
-  static_assert(is_trivial || is_boost || is_gmp,
+  static_assert(is_trivial || is_boost || is_boost_gmp || is_gmpxx,
                 "Unknown floating-point types");
 
   if constexpr (is_ieee) {
@@ -100,11 +101,14 @@ size_t encode_float(const float_t &flt, std::span<uint8_t> dest) noexcept {
   }
 
 #ifndef FRACTALUTILS_MULTIPRECISIONUTILS_GMP_SUPPORT
-  static_assert(!is_gmp,
+  static_assert(!is_boost_gmp || is_gmpxx,
                 "GMP support is disabled, there is not rule to encode boost "
                 "wrapped gmp types.");
 #else
-  if constexpr (is_gmp) {
+  if constexpr (is_boost_gmp) {
+    return encode_gmp_float(flt, dest);
+  }
+  if constexpr (is_gmpxx) {
     return encode_gmp_float(flt, dest);
   }
 #endif

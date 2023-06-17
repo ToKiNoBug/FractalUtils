@@ -32,6 +32,15 @@ concept is_boost_gmp_float = requires(const flt_t &flt) {
   *flt.backend().data()->_mp_d;
 };
 
+template <typename flt_t>
+concept is_gmpxx_float = requires(const flt_t &flt) {
+  requires !std::is_trivial_v<flt_t>;
+  flt.get_prec();
+  flt.set_prec(100);
+  flt.set_prec_raw(100);
+  flt_t{1, 100};
+};
+
 constexpr int suggested_exponent_bits_of(int precision) noexcept {
   if (!is_valid_precision(precision)) {
     return 0;

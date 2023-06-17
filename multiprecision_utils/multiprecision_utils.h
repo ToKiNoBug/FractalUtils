@@ -8,6 +8,7 @@
 
 #include "mp_ints.hpp"
 #include "mp_floats.hpp"
+#include "mp_complex.hpp"
 
 #include "encode.hpp"
 #include "decode.hpp"
