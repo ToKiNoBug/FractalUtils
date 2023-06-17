@@ -69,6 +69,21 @@ if (MPFR_FOUND OR LINUX)
     endif ()
 endif ()
 
+find_package(MPC QUIET)
+if (MPC_FOUND OR LINUX)
+    find_file(mpc_header_file "mpc.h")
+    if (mpc_header_file)
+        cmake_path(GET mpc_header_file PARENT_PATH mpc_include_dir)
+
+        set(FractalUtils_multiprecision_mpc_support true)
+    else()
+        unset(mpc_include_dir)
+        set(FractalUtils_multiprecision_mpc_support false)
+        message(WARNING "mpc should exist on this platform, but mpc.h is not found. mpc support will be disabled.")
+    endif ()
+
+endif ()
+
 
 # add include directories
 set(multiprecision_install_headers
@@ -81,6 +96,7 @@ set(multiprecision_install_headers
 
         gmp_support.h
         mpfr_support.h
+        mpc_support.h
         )
 
 message(STATUS "FractalUtils_optional_sources = ${FractalUtils_optional_sources}")
@@ -118,6 +134,10 @@ if (${FractalUtils_multiprecision_mpfr_support})
     target_compile_definitions(multiprecision_utils PUBLIC
             FRACTALUTILS_MULTIPRECISIONUTILS_MPFR_SUPPORT=1)
 endif ()
+if (${FractalUtils_multiprecision_mpc_support})
+    target_compile_definitions(multiprecision_utils PUBLIC
+            FRACTALUTILS_MULTIPRECISIONUTILS_MPC_SUPPORT=1)
+endif ()
 
 
 add_library(fractal_utils::multiprecision_utils ALIAS multiprecision_utils)
@@ -150,7 +170,6 @@ if (${FractalUtils_build_examples})
 endif ()
 
 
-
 if (${FractalUtils_multiprecision_gmp_support})
     target_link_libraries(multiprecision_utils PUBLIC gmp)
 
@@ -176,6 +195,11 @@ if (${FractalUtils_multiprecision_mpfr_support})
         target_link_libraries(test_mpfr_float PRIVATE
                 multiprecision_utils
                 core_utils)
-    endif()
+    endif ()
 
 endif ()
+
+if (${FractalUtils_multiprecision_mpc_support})
+
+    target_link_libraries(multiprecision_utils PUBLIC mpc)
+endif()
