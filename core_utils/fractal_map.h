@@ -312,8 +312,8 @@ class center_wind : public wind_base {
     }
 
     for (int zi = 0; zi < zoom_times; zi++) {
-      this->x_span /= float_t{zoom_ratio};
-      this->y_span /= float_t{zoom_ratio};
+      this->x_span /= zoom_ratio;
+      this->y_span /= zoom_ratio;
     }
   }
 
