@@ -33,26 +33,29 @@ fractal_utils::data_segment::data_segment(int64_t tag, variant_t &&var)
 
 bool fractal_utils::data_segment::has_ownership() const noexcept {
   switch (this->m_variant.index()) {
-  case 0:
-    return true;
-  case 1:
-    return false;
-  case 2:
-    return false;
+    case 0:
+      return true;
+    case 1:
+      return false;
+    case 2:
+      return false;
+    case 3:
+      return false;
   }
   assert(false);
   return false;
 }
 
 uint64_t fractal_utils::data_segment::bytes() const noexcept {
-
   switch (this->m_variant.index()) {
-  case 0:
-    return std::get<0>(this->m_variant).size();
-  case 1:
-    return std::get<1>(this->m_variant).size();
-  case 2:
-    return std::get<2>(this->m_variant).bytes;
+    case 0:
+      return std::get<0>(this->m_variant).size();
+    case 1:
+      return std::get<1>(this->m_variant).size();
+    case 2:
+      return std::get<2>(this->m_variant).bytes;
+    case 3:
+      return std::get<3>(this->m_variant).size();
   }
   assert(false);
   return 0;
@@ -60,15 +63,17 @@ uint64_t fractal_utils::data_segment::bytes() const noexcept {
 
 void *fractal_utils::data_segment::impl_data() const noexcept {
   switch (this->m_variant.index()) {
-  case 0:
-    return (void *)std::get<0>(this->m_variant).data();
-  case 1:
-    return (void *)std::get<1>(this->m_variant).data();
-  case 2:
-    return nullptr;
-  default:
-    assert(false);
-    return nullptr;
+    case 0:
+      return (void *)std::get<0>(this->m_variant).data();
+    case 1:
+      return (void *)std::get<1>(this->m_variant).data();
+    case 2:
+      return nullptr;
+    case 3:
+      return (void *)std::get<3>(this->m_variant).data();
+    default:
+      assert(false);
+      return nullptr;
   }
 }
 
@@ -79,18 +84,19 @@ inline bool read_size_correct(std::istream &is, char *data,
   return read_bytes == len;
 }
 
-template <typename T> bool read_val_check(std::istream &is, T &t) noexcept {
+template <typename T>
+bool read_val_check(std::istream &is, T &t) noexcept {
   return read_size_correct(is, reinterpret_cast<char *>(&t), sizeof(T));
 }
 
-std::optional<fractal_utils::data_segment>
-fractal_utils::read_segment_data(std::istream &is) noexcept {
+std::optional<fractal_utils::data_segment> fractal_utils::read_segment_data(
+    std::istream &is) noexcept {
   return read_segment_data(is, {}, nullptr);
 }
 
-std::optional<fractal_utils::data_segment>
-fractal_utils::read_segment_data(std::istream &is, std::span<uint8_t> buffer,
-                                 size_t *used_bytes_dest) noexcept {
+std::optional<fractal_utils::data_segment> fractal_utils::read_segment_data(
+    std::istream &is, std::span<uint8_t> buffer,
+    size_t *used_bytes_dest) noexcept {
   fractal_utils::data_segment ret;
   int64_t tag;
   if (!read_val_check(is, tag)) {
@@ -148,10 +154,9 @@ std::string fractal_utils::binary_archive::load(std::istream &is) noexcept {
   return this->load(is, {}, nullptr);
 }
 
-std::string
-fractal_utils::binary_archive::load(std::istream &is, std::span<uint8_t> buffer,
-                                    size_t *used_bytes_dest) noexcept {
-
+std::string fractal_utils::binary_archive::load(
+    std::istream &is, std::span<uint8_t> buffer,
+    size_t *used_bytes_dest) noexcept {
   this->m_segments.clear();
 
   if (!read_val_check(is, this->m_header)) {
@@ -168,7 +173,6 @@ fractal_utils::binary_archive::load(std::istream &is, std::span<uint8_t> buffer,
   // size_t offset = sizeof(this->m_header);
 
   while (true) {
-
     if (is.eof() || is.peek() == EOF) {
       break;
     }
@@ -214,8 +218,8 @@ fractal_utils::binary_archive::load(std::istream &is, std::span<uint8_t> buffer,
   return {};
 }
 
-std::string
-fractal_utils::binary_archive::load(std::string_view filename) noexcept {
+std::string fractal_utils::binary_archive::load(
+    std::string_view filename) noexcept {
   std::ifstream ifs{filename.data(), std::ios::binary};
 
   if (!ifs) {
@@ -226,11 +230,9 @@ fractal_utils::binary_archive::load(std::string_view filename) noexcept {
   ifs.close();
   return ret;
 }
-std::string
-fractal_utils::binary_archive::load(std::string_view filename,
-                                    std::span<uint8_t> buffer,
-                                    size_t *used_bytes_dest) noexcept {
-
+std::string fractal_utils::binary_archive::load(
+    std::string_view filename, std::span<uint8_t> buffer,
+    size_t *used_bytes_dest) noexcept {
   std::ifstream ifs{filename.data(), std::ios::binary};
 
   if (!ifs) {
@@ -278,8 +280,8 @@ bool fractal_utils::write_segment_data(std::ostream &os,
   return true;
 }
 
-std::string
-fractal_utils::binary_archive::save(std::ostream &os) const noexcept {
+std::string fractal_utils::binary_archive::save(
+    std::ostream &os) const noexcept {
   if (!write_val_correct(os, this->m_header)) {
     return "Failed to write header";
   }
@@ -292,8 +294,8 @@ fractal_utils::binary_archive::save(std::ostream &os) const noexcept {
   return {};
 }
 
-std::string
-fractal_utils::binary_archive::save(std::string_view filename) const noexcept {
+std::string fractal_utils::binary_archive::save(
+    std::string_view filename) const noexcept {
   std::ofstream ofs{filename.data(), std::ios::binary};
 
   if (!ofs) {
@@ -304,8 +306,8 @@ fractal_utils::binary_archive::save(std::string_view filename) const noexcept {
   return ret;
 }
 
-std::optional<size_t>
-fractal_utils::binary_archive::impl_find_first_of(int64_t tag) const noexcept {
+std::optional<size_t> fractal_utils::binary_archive::impl_find_first_of(
+    int64_t tag) const noexcept {
   for (size_t i = 0; i < this->m_segments.size(); i++) {
     if (this->m_segments[i].tag() == tag) {
       return i;
@@ -314,8 +316,8 @@ fractal_utils::binary_archive::impl_find_first_of(int64_t tag) const noexcept {
   return std::nullopt;
 }
 
-std::optional<size_t>
-fractal_utils::binary_archive::impl_find_last_of(int64_t tag) const noexcept {
+std::optional<size_t> fractal_utils::binary_archive::impl_find_last_of(
+    int64_t tag) const noexcept {
   for (ptrdiff_t i = this->m_segments.size() - 1; i >= 0; i--) {
     if (this->m_segments[i].tag() == tag) {
       return i;
@@ -324,16 +326,16 @@ fractal_utils::binary_archive::impl_find_last_of(int64_t tag) const noexcept {
   return std::nullopt;
 }
 
-fractal_utils::data_segment *
-fractal_utils::binary_archive::find_first_of(int64_t tag) noexcept {
+fractal_utils::data_segment *fractal_utils::binary_archive::find_first_of(
+    int64_t tag) noexcept {
   auto opt = this->impl_find_first_of(tag);
   if (opt.has_value()) {
     return &this->m_segments[opt.value()];
   }
   return nullptr;
 }
-const fractal_utils::data_segment *
-fractal_utils::binary_archive::find_first_of(int64_t tag) const noexcept {
+const fractal_utils::data_segment *fractal_utils::binary_archive::find_first_of(
+    int64_t tag) const noexcept {
   auto opt = this->impl_find_first_of(tag);
   if (opt.has_value()) {
     return &this->m_segments[opt.value()];
@@ -341,8 +343,8 @@ fractal_utils::binary_archive::find_first_of(int64_t tag) const noexcept {
   return nullptr;
 }
 
-fractal_utils::data_segment *
-fractal_utils::binary_archive::find_last_of(int64_t tag) noexcept {
+fractal_utils::data_segment *fractal_utils::binary_archive::find_last_of(
+    int64_t tag) noexcept {
   auto opt = this->impl_find_last_of(tag);
   if (opt.has_value()) {
     return &this->m_segments[opt.value()];
@@ -350,8 +352,8 @@ fractal_utils::binary_archive::find_last_of(int64_t tag) noexcept {
   return nullptr;
 }
 
-const fractal_utils::data_segment *
-fractal_utils::binary_archive::find_last_of(int64_t tag) const noexcept {
+const fractal_utils::data_segment *fractal_utils::binary_archive::find_last_of(
+    int64_t tag) const noexcept {
   auto opt = this->impl_find_last_of(tag);
   if (opt.has_value()) {
     return &this->m_segments[opt.value()];

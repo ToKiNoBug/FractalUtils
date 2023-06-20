@@ -46,19 +46,19 @@ struct file_header {
 };
 
 class data_segment {
-public:
+ public:
   struct segment_length {
     uint64_t bytes{0};
   };
-  using variant_t =
-      std::variant<std::vector<uint8_t>, std::span<uint8_t>, segment_length>;
+  using variant_t = std::variant<std::vector<uint8_t>, std::span<uint8_t>,
+                                 segment_length, std::span<const uint8_t>>;
 
-private:
+ private:
   int64_t m_tag{INT64_MAX};
   variant_t m_variant;
   // uint64_t m_offset{0};
 
-public:
+ public:
   data_segment() = default;
   data_segment(int64_t tag, const variant_t &var);
   data_segment(int64_t tag, variant_t &&var);
@@ -71,7 +71,8 @@ public:
 
   inline const auto &variant() const noexcept { return this->m_variant; }
   inline auto &variant() noexcept { return this->m_variant; }
-  template <class T> inline void set_variant(T &&t) noexcept {
+  template <class T>
+  inline void set_variant(T &&t) noexcept {
     this->m_variant = t;
   }
 
@@ -84,7 +85,7 @@ public:
   inline void *data() noexcept { return this->impl_data(); }
   inline const void *data() const noexcept { return this->impl_data(); }
 
-private:
+ private:
   void *impl_data() const noexcept;
 };
 
@@ -96,11 +97,11 @@ std::optional<data_segment> read_segment_data(std::istream &is,
 bool write_segment_data(std::ostream &os, const data_segment &) noexcept;
 
 class binary_archive {
-private:
+ private:
   file_header m_header;
   std::vector<data_segment> m_segments;
 
-public:
+ public:
   auto &header() noexcept { return this->m_header; }
   const auto &header() const noexcept { return this->m_header; }
   void set_header(const file_header &fh) noexcept { this->m_header = fh; }
@@ -125,10 +126,10 @@ public:
   data_segment *find_last_of(int64_t tag) noexcept;
   const data_segment *find_last_of(int64_t tag) const noexcept;
 
-private:
+ private:
   std::optional<size_t> impl_find_first_of(int64_t tag) const noexcept;
   std::optional<size_t> impl_find_last_of(int64_t tag) const noexcept;
 };
-}; // namespace fractal_utils
+};  // namespace fractal_utils
 
-#endif // FRACTALUTILS_COREUTILS_BINARCHIVE_H
+#endif  // FRACTALUTILS_COREUTILS_BINARCHIVE_H
