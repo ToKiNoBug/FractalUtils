@@ -12,7 +12,8 @@ unique_map::unique_map(const unique_map &src) : internal::map_base{src} {
 }
 
 unique_map::unique_map(unique_map &&src)
-    : internal::map_base{src}, m_data{std::move(src.m_data)},
+    : internal::map_base{src},
+      m_data{std::move(src.m_data)},
       m_capacity{src.capacity_bytes()} {
   src.reset(0, 0, src.element_bytes());
   src.m_capacity = 0;
@@ -29,6 +30,23 @@ unique_map::unique_map(size_t r, size_t c, size_t ele_bytes)
   this->m_capacity = r * c * ele_bytes;
 }
 
+unique_map &unique_map::operator=(const unique_map &src) & noexcept {
+  this->reset(src);
+  if (src.bytes() > 0) {
+    memcpy(this->m_data.get(), src.data(), src.bytes());
+  }
+  return *this;
+}
+
+unique_map &unique_map::operator=(unique_map &&src) & noexcept {
+  this->m_data = std::move(src.m_data);
+  this->m_capacity = src.m_capacity;
+  src.m_capacity = 0;
+  static_cast<internal::map_base &>(*this) = src;
+  src.reset(0, 0, this->element_bytes());
+  return *this;
+}
+
 unique_map::operator fractal_map() noexcept {
   return fractal_map{map_view{*this}};
 }
@@ -42,7 +60,6 @@ void unique_map::resize(size_t r, size_t c) noexcept {
 }
 
 void unique_map::reset(size_t r, size_t c, size_t ele_bytes) noexcept {
-
   const size_t old_bytes = this->bytes();
 
   const internal::map_base new_base{r, c, ele_bytes};
