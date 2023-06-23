@@ -21,6 +21,18 @@ target_include_directories(render_utils
     INTERFACE
     $<INSTALL_INTERFACE:include>)
 
+message(STATUS "Searching for nvcc compiler...")
+execute_process(COMMAND nvcc --version
+        ERROR_VARIABLE fu_nvcc_error)
+
+
+if(NOT fu_nvcc_error)
+    set(FractalUtils_cuda_support ON)
+    enable_language(CUDA)
+else()
+    message(STATUS "nvcc not found, cuda extension is disabled.")
+    set(FractalUtils_cuda_support OFF)
+endif ()
 
 
 if(NOT ${FractalUtils_no_install})
@@ -45,4 +57,9 @@ endif()
 
 if(NOT ${FractalUtils_build_examples})
     return()
+endif()
+
+if(${FractalUtils_cuda_support})
+    #add_executable(test_render_utils_cuda_extension test_render_utils_cuda_extension.cu)
+    #target_link_libraries(test_render_utils_cuda_extension PRIVATE render_utils)
 endif()

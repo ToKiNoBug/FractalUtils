@@ -11,7 +11,7 @@
 #error "This header file should only be included in a cuda source file."
 #endif
 
-#include "color_cvt_cuda.hpp"
+#include "color_cvt.hpp"
 
 namespace fractal_utils {
 
