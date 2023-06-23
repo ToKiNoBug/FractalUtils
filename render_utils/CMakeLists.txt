@@ -1,8 +1,14 @@
 project(FractalUtils_render_utils LANGUAGES CXX)
 cmake_minimum_required(VERSION 3.15)
 
+set(render_utils_install_headers
+        render_utils.h
+        color_cvt.hpp
+        color_cvt_cuda.hpp)
+
 add_library(render_utils STATIC
-    render_utils.h render_utils.cpp)
+        ${render_utils_install_headers}
+        render_utils.cpp)
 
 target_link_libraries(render_utils PUBLIC core_utils)
 add_library(fractal_utils::render_utils ALIAS render_utils)
@@ -15,6 +21,8 @@ target_include_directories(render_utils
     INTERFACE
     $<INSTALL_INTERFACE:include>)
 
+
+
 if(NOT ${FractalUtils_no_install})
     install(TARGETS render_utils
         EXPORT fractal_utils_render_utils-targets
@@ -24,7 +32,8 @@ if(NOT ${FractalUtils_no_install})
         INCLUDES DESTINATION include/fractal_utils)
 
     # install header file
-    install(FILES render_utils.h DESTINATION include/fractal_utils)
+    install(FILES ${render_utils_install_headers}
+            DESTINATION include/fractal_utils)
 
     # generate and install export file
     install(EXPORT fractal_utils_render_utils-targets
