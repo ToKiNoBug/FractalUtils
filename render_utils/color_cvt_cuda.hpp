@@ -7,7 +7,7 @@
 
 #include <cassert>
 
-#ifndef __CUDA__
+#ifndef __CUDACC__
 #error "This header file should only be included in a cuda source file."
 #endif
 

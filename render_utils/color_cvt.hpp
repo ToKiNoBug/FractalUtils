@@ -8,7 +8,7 @@
 #include <cassert>
 #include <cmath>
 
-#ifdef __CUDA__
+#ifdef __CUDACC__
 #define FRACTAL_UTILS_CUDA_HOST_DEVICE_FUN __host__ __device__
 #else
 #define FRACTAL_UTILS_CUDA_HOST_DEVICE_FUN
