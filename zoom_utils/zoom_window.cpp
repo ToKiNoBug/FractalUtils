@@ -433,3 +433,21 @@ void zoom_window::decode_hex(
           std::to_string(bytes.value()) + " bytes written.";
   }
 }
+
+void zoom_window::set_label_widget(scalable_label *label) & noexcept {
+  auto old_label = this->ui->display;
+  label->setPixmap(old_label->pixmap());
+  label->setSizePolicy(old_label->sizePolicy());
+
+  this->ui->display->deleteLater();
+  this->ui->display = label;
+  label->setParent(this);
+
+  this->refresh_image_display();
+}
+[[nodiscard]] scalable_label *zoom_window::label_widget() noexcept {
+  return this->ui->display;
+}
+[[nodiscard]] const scalable_label *zoom_window::label_widget() const noexcept {
+  return this->ui->display;
+}

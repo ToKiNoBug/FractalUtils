@@ -9,6 +9,8 @@
 #include <optional>
 #include <stack>
 
+#include "scalable_label.h"
+
 namespace fractal_utils {
 
 class zoom_window;
@@ -123,6 +125,10 @@ class zoom_window : public QMainWindow {
 
   virtual void refresh_image_display() noexcept;
   virtual void refresh_range_display() noexcept;
+
+  virtual void set_label_widget(scalable_label *label) & noexcept;
+  [[nodiscard]] scalable_label *label_widget() noexcept;
+  [[nodiscard]] const scalable_label *label_widget() const noexcept;
 
  public slots:
 
