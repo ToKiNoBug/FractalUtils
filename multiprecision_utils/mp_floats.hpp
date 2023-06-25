@@ -130,7 +130,7 @@ struct multiprecision_float_types<8> {
 
 template <int precision>
 using float_by_precision_t =
-    internal::multiprecision_float_types<precision>::float_t;
+    typename internal::multiprecision_float_types<precision>::float_t;
 
 namespace internal {
 template <typename float_t, int current_precision>

@@ -73,7 +73,7 @@ struct multiprecision_int_types<4> {
 
 template <int precision>
 using uint_by_precision_t =
-    internal::multiprecision_int_types<precision>::uint_t;
+    typename internal::multiprecision_int_types<precision>::uint_t;
 
 namespace internal {
 template <typename uint_t, int current_precision>
@@ -124,7 +124,7 @@ struct impl_intX<64> {
 }  // namespace internal
 
 template <int bits>
-using trivial_intX_t = internal::impl_intX<bits>::type;
+using trivial_intX_t = typename internal::impl_intX<bits>::type;
 
 constexpr int required_bits(int bits) noexcept {
   if (bits <= 0) {
