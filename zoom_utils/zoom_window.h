@@ -21,9 +21,8 @@ class zoom_utils_mainwindow;
 namespace fractal_utils {
 
 struct push_options {
-  bool save_map{true};
+  bool save_archive{true};
   bool save_image{true};
-  bool save_custom{true};
 };
 
 QImage scale_image(const QImage &src, int scale) noexcept;
@@ -46,9 +45,8 @@ class zoom_window : public QMainWindow {
     compute_result(size_t r, size_t c, size_t fractal_ele_bytes);
 
     std::unique_ptr<fractal_utils::wind_base> wind{nullptr};
-    std::optional<unique_map> fractal{std::nullopt};
+    std::any archive{};
     std::optional<QImage> image{std::nullopt};
-    std::any custom_data;
   };
 
  private:
@@ -75,12 +73,12 @@ class zoom_window : public QMainWindow {
                           std::unique_ptr<wind_base> &wind_unique_ptr,
                           std::string &err) const noexcept;
 
-  virtual void compute(const wind_base &wind, map_view fractal,
-                       std::any &custom) const noexcept = 0;
-  virtual void render(constant_view fractal, const wind_base &wind,
-                      map_view image_u8c3, std::any &custom) const noexcept = 0;
+  virtual void compute(const wind_base &wind,
+                       std::any &archive) const noexcept = 0;
+  virtual void render(std::any &archive, const wind_base &wind,
+                      map_view image_u8c3) const noexcept = 0;
   virtual QString export_frame(QString filename, const wind_base &wind,
-                               constant_view fractal, constant_view image_u8c3,
+                               constant_view image_u8c3,
                                std::any &custom) const noexcept;
 
  public:

@@ -29,7 +29,7 @@ zoom_window::zoom_window(QWidget *parent)
 zoom_window::~zoom_window() { delete this->ui; }
 
 zoom_window::compute_result::compute_result(const compute_result &src)
-//: fractal{src.fractal}, image{src.image}, custom_data{src.custom_data}
+//: fractal{src.fractal}, image{src.image}, archive{src.archive}
 {
   abort();
   if (src.wind == nullptr) {
@@ -44,8 +44,7 @@ zoom_window::compute_result::compute_result(const compute_result &src)
 
 zoom_window::compute_result::compute_result(size_t r, size_t c,
                                             size_t fractal_ele_bytes)
-    : fractal{unique_map{r, c, fractal_ele_bytes}},
-      image{QImage{QSize{(int)c, (int)r}, QImage::Format::Format_RGB888}} {
+    : image{QImage{QSize{(int)c, (int)r}, QImage::Format::Format_RGB888}} {
   memset(this->image.value().scanLine(0), 0, this->image.value().sizeInBytes());
 }
 
@@ -127,14 +126,7 @@ void zoom_window::compute_current() noexcept {
   assert(this->m_window_stack.size() > 0);
   auto &top = this->m_window_stack.top();
 
-  if (!top.fractal.has_value()) {
-    top.fractal.emplace(unique_map{this->map_base});
-  }
-
-  if (top.fractal.value() != this->map_base) {
-    top.fractal.value().reset(this->map_base);
-  }
-  this->compute(*top.wind, top.fractal.value(), top.custom_data);
+  this->compute(*top.wind, top.archive);
 }
 
 void zoom_window::render_current() noexcept {
@@ -147,9 +139,8 @@ void zoom_window::render_current() noexcept {
   }
 
   this->render(
-      top.fractal.value(), *top.wind,
-      map_view{top.image.value().scanLine(0), this->rows(), this->cols(), 3},
-      top.custom_data);
+      top.archive, *top.wind,
+      map_view{top.image.value().scanLine(0), this->rows(), this->cols(), 3});
 }
 
 void zoom_window::refresh_range_display() noexcept {
@@ -209,14 +200,11 @@ void zoom_window::received_mouse_move(std::array<int, 2> pos) {
 void zoom_window::push(compute_result &&new_res) noexcept {
   auto &old = this->current_result();
 
-  if (!this->push_opt.save_custom) {
-    old.custom_data.reset();
+  if (!this->push_opt.save_archive) {
+    old.archive.reset();
   }
   if (!this->push_opt.save_image) {
     old.image.reset();
-  }
-  if (!this->push_opt.save_map) {
-    old.fractal.reset();
   }
 
   // #warning here
@@ -242,7 +230,7 @@ void zoom_window::received_wheel_move(std::array<int, 2> pos,
     res.wind = this->create_wind();
     old.wind->copy_to(res.wind.get());
 
-    res.custom_data = old.custom_data;
+    res.archive = old.archive;
 
     res.wind->update_center({(int)this->rows(), (int)this->cols()}, pos,
                             (is_scaling_up) ? (ratio) : (1 / ratio));
@@ -271,7 +259,7 @@ void zoom_window::on_btn_revert_clicked() {
   this->ui->btn_revert->setDisabled(this->m_window_stack.size() <= 1);
   this->refresh_range_display();
   auto &cur = this->current_result();
-  if (!cur.fractal.has_value()) {
+  if (!cur.archive.has_value()) {
     this->compute_current();
   }
 
@@ -315,7 +303,7 @@ void zoom_window::on_btn_repaint_clicked() {
       compute_result res{this->rows(), this->cols(),
                          this->fractal_element_bytes()};
       res.wind = std::move(current_wind);
-      res.custom_data = old.custom_data;
+      res.archive = old.archive;
       this->push(std::move(res));
     } else {
       // do not push, compute the current frame again
@@ -352,9 +340,9 @@ void zoom_window::on_btn_save_image_clicked() {
 }
 
 QString zoom_window::export_frame(QString filename, const wind_base &wind,
-                                  constant_view fractal,
+
                                   constant_view image_u8c3,
-                                  std::any &custom) const noexcept {
+                                  std::any &archive) const noexcept {
   return "Can not export the frame because virtual function named "
          "\"export_frame\" is not overrided. This reply is from the default "
          "implementation of zoom_window.";
@@ -367,7 +355,7 @@ void zoom_window::on_btn_save_frame_clicked() {
 
   auto &cur = this->current_result();
 
-  if (!cur.fractal.has_value()) {
+  if (!cur.archive.has_value()) {
     QMessageBox::warning(this, "No data to export",
                          "fractal.has_value()==false");
     return;
@@ -387,13 +375,13 @@ void zoom_window::on_btn_save_frame_clicked() {
   if (cur.image.has_value()) {
     const auto &img = cur.image.value();
     err =
-        this->export_frame(path, *cur.wind, cur.fractal.value(),
+        this->export_frame(path, *cur.wind,
                            constant_view{img.scanLine(0), (size_t)img.height(),
                                          (size_t)img.width(), 3},
-                           cur.custom_data);
+                           cur.archive);
   } else {
-    err = this->export_frame(path, *cur.wind, cur.fractal.value(),
-                             constant_view{nullptr, 0, 0, 3}, cur.custom_data);
+    err = this->export_frame(path, *cur.wind, constant_view{nullptr, 0, 0, 3},
+                             cur.archive);
   }
 
   if (!err.isEmpty()) {
