@@ -4,7 +4,9 @@
 #include <cassert>
 #include <cstdlib>
 #include <memory>
+#ifdef FRACTAL_UTILS_HAVE_CXX_20
 #include <ranges>
+#endif
 
 #include "fractal_map.h"
 
@@ -46,6 +48,18 @@ class map_base {
   }
 };
 
+#ifdef FRACTAL_UTILS_HAVE_CXX_20
+#define FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CONST_ACCESSER_RANGE_MEMBER_FUNCTIONS \
+  template <typename T>                                                        \
+  inline std::ranges::subrange<const T *> items() const noexcept {             \
+    this->assert_for_ele_bytes(sizeof(T));                                     \
+    return std::ranges::subrange<const T *>(                                   \
+        this->address<T>(0), this->address<T>(0) + this->size());              \
+  }
+#else
+#define FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CONST_ACCESSER_RANGE_MEMBER_FUNCTIONS
+#endif
+
 #define FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CONST_ACCESSER_MEMBER_FUNCTIONS      \
   const void *data() const noexcept { return this->impl_data(); }             \
                                                                               \
@@ -81,12 +95,7 @@ class map_base {
     return *this->address<T>()[idx];                                          \
   }                                                                           \
                                                                               \
-  template <typename T>                                                       \
-  inline std::ranges::subrange<const T *> items() const noexcept {            \
-    this->assert_for_ele_bytes(sizeof(T));                                    \
-    return std::ranges::subrange<const T *>(                                  \
-        this->address<T>(0), this->address<T>(0) + this->size());             \
-  }
+  FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CONST_ACCESSER_RANGE_MEMBER_FUNCTIONS
 
 // implement const data access
 template <class derived>
@@ -171,14 +180,14 @@ class map_accesser {
     this->assert_for_ele_bytes(sizeof(T));
     return *this->address<T>()[idx];
   }
-
+#ifdef FRACTAL_UTILS_HAVE_CXX_20
   template <typename T>
   inline std::ranges::subrange<T *> items() noexcept {
     this->assert_for_ele_bytes(sizeof(T));
     return std::ranges::subrange<T *>(this->address<T>(0),
                                       this->address<T>(0) + this->size());
   }
-
+#endif
   FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CONST_ACCESSER_MEMBER_FUNCTIONS
 };
 
