@@ -59,6 +59,9 @@ if(NOT ${FractalUtils_build_examples})
     return()
 endif()
 
+add_executable(test_color_cvt test_color_cvt.cpp)
+target_link_libraries(test_color_cvt PRIVATE render_utils)
+
 #if(${FractalUtils_cuda_support})
 #    #add_executable(test_render_utils_cuda_extension test_render_utils_cuda_extension.cu)
 #    #target_link_libraries(test_render_utils_cuda_extension PRIVATE render_utils)
