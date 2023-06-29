@@ -92,7 +92,7 @@ class map_base {
     static_assert(!std::is_same_v<T, void>, "T should not be void");          \
     this->assert_for_size(idx);                                               \
     this->assert_for_ele_bytes(sizeof(T));                                    \
-    return *this->address<T>()[idx];                                          \
+    return *this->address<T>(idx);                                            \
   }                                                                           \
                                                                               \
   FRACTAL_UTILS_PRIVATE_MACRO_MAKE_CONST_ACCESSER_RANGE_MEMBER_FUNCTIONS
@@ -178,7 +178,7 @@ class map_accesser {
     static_assert(!std::is_same_v<T, void>, "T should not be void");
     this->assert_for_size(idx);
     this->assert_for_ele_bytes(sizeof(T));
-    return *this->address<T>()[idx];
+    return *this->address<T>(idx);
   }
 #ifdef FRACTAL_UTILS_HAVE_CXX_20
   template <typename T>
