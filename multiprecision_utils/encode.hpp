@@ -102,7 +102,8 @@ size_t encode_float(const float_t &flt, std::span<uint8_t> dest) noexcept {
     }
 
     if constexpr (is_boost) {
-      internal::encode_boost_cpp_bin_float<float_t>(flt, dest);
+      internal::encode_boost_cpp_bin_float<float_t>(
+          flt, {dest.data(), boost_required_bytes});
       return boost_required_bytes;
     }
   }
