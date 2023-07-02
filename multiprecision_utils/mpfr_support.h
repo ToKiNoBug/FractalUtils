@@ -10,6 +10,7 @@
 #include <span>
 #include <vector>
 #include <optional>
+#include <fractal_map.h>
 
 namespace boostmp = boost::multiprecision;
 
@@ -45,6 +46,14 @@ std::vector<uint8_t> encode_boost_mpfr_float(
 
 std::optional<boostmp::mpfr_float> decode_boost_mpfr_float(
     const std::span<const uint8_t> code) noexcept;
+
+uint32_t required_precision_of(const boostmp::mpfr_float& center,
+                               const boostmp::mpfr_float& span,
+                               uint32_t num_pixels) noexcept;
+
+uint32_t required_precision_of(
+    const fractal_utils::center_wind<boostmp::mpfr_float>& wind, int rows,
+    int cols) noexcept;
 
 }  // namespace fractal_utils
 

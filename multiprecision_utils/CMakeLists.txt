@@ -96,8 +96,7 @@ set(multiprecision_install_headers
 
         gmp_support.h
         mpfr_support.h
-        mpc_support.h
-        )
+        mpc_support.h)
 
 message(STATUS "FractalUtils_optional_sources = ${FractalUtils_optional_sources}")
 
@@ -110,6 +109,7 @@ add_library(multiprecision_utils STATIC
 
 target_link_libraries(multiprecision_utils PUBLIC
         ${FractalUtils_mp_boost_mp_target_name}
+        core_utils
         )
 
 
@@ -193,6 +193,10 @@ if (${FractalUtils_multiprecision_mpfr_support})
     if (${FractalUtils_build_examples})
         add_executable(test_mpfr_float test_mpfr_float.cpp)
         target_link_libraries(test_mpfr_float PRIVATE
+                multiprecision_utils
+                core_utils)
+        add_executable(test_mpfr_required_prec test_mpfr_required_prec.cpp)
+        target_link_libraries(test_mpfr_required_prec PRIVATE
                 multiprecision_utils
                 core_utils)
     endif ()

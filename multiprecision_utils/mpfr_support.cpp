@@ -100,3 +100,108 @@ std::optional<boostmp::mpfr_float> fractal_utils::decode_boost_mpfr_float(
   }
   return std::nullopt;
 }
+
+void resolution_around(mpfr_srcptr a, mpfr_ptr dst, mpfr_ptr buffer) noexcept;
+
+uint32_t find_min_required_precision(boostmp::mpfr_float a,
+                                     boostmp::mpfr_float& resolution,
+                                     boostmp::mpfr_float& buf1,
+                                     const boostmp::mpfr_float& unit) noexcept;
+
+uint32_t fractal_utils::required_precision_of(const boostmp::mpfr_float& center,
+                                              const boostmp::mpfr_float& span,
+                                              uint32_t num_pixels) noexcept {
+  assert(num_pixels > 0);
+  assert(mpfr_number_p(center.backend().data()));
+  assert(mpfr_number_p(span.backend().data()));
+  assert(span != 0);
+  boostmp::mpfr_float unit{0,
+                           uint32_t(mpfr_get_prec(span.backend().data()) + 20)};
+
+  unit = span / num_pixels;
+  mpfr_abs(unit.backend().data(), unit.backend().data(), MPFR_RNDN);
+  assert(unit > 0);
+
+  boostmp::mpfr_float max_abs;
+  {
+    boostmp::mpfr_float upper = center + span / 2;
+    boostmp::mpfr_float lower = center - span / 2;
+    mpfr_abs(upper.backend().data(), upper.backend().data(), MPFR_RNDN);
+    mpfr_abs(lower.backend().data(), lower.backend().data(), MPFR_RNDN);
+    mpfr_max(max_abs.backend().data(), lower.backend().data(),
+             lower.backend().data(), MPFR_RNDN);
+  }
+
+  boostmp::mpfr_float buf1{0, max_abs.precision()};
+  boostmp::mpfr_float resolution{0, max_abs.precision()};
+
+  return find_min_required_precision(max_abs, resolution, buf1, unit);
+}
+
+void resolution_around(mpfr_srcptr a, mpfr_ptr dst,
+                       mpfr_ptr buffer_next_below) noexcept {
+  assert(a != dst);
+  assert(dst != buffer_next_below);
+  assert(a != buffer_next_below);
+
+  // assert(mpfr_get_prec(a) == mpfr_get_prec(dst));
+  // assert(mpfr_get_prec(dst) == mpfr_get_prec(buffer_next_below));
+  mpfr_set_prec(dst, mpfr_get_prec(a));
+  mpfr_set_prec(buffer_next_below, mpfr_get_prec(a));
+
+  mpfr_set(dst, a, MPFR_RNDN);
+  mpfr_set(buffer_next_below, a, MPFR_RNDN);
+
+  mpfr_nextbelow(buffer_next_below);
+  mpfr_sub(buffer_next_below, a, buffer_next_below, MPFR_RNDN);
+
+  mpfr_nextabove(dst);
+  mpfr_sub(dst, dst, a, MPFR_RNDN);
+
+  mpfr_min(dst, buffer_next_below, dst, MPFR_RNDN);
+}
+
+uint32_t find_min_required_precision(boostmp::mpfr_float a,
+                                     boostmp::mpfr_float& resolution,
+                                     boostmp::mpfr_float& buf1,
+                                     const boostmp::mpfr_float& unit) noexcept {
+  const uint32_t min_prec = mpfr_min_prec(a.backend().data());
+  uint32_t precision{min_prec};
+  a.precision(precision);
+
+  //  std::stringstream ss;
+  //  ss << unit;
+  //  std::string unit_str;
+  //  ss >> unit_str;
+
+  assert(unit > 0);
+  while (true) {
+    resolution_around(a.backend().data(), resolution.backend().data(),
+                      buf1.backend().data());
+    assert(mpfr_number_p(resolution.backend().data()));
+    assert(resolution > 0);
+
+    //    ss.clear();
+    //    std::string resolution_str;
+    //    ss << resolution;
+    //    ss >> resolution_str;
+
+    if (resolution > unit) {
+      precision++;
+      a.precision(precision);
+    } else {
+      break;
+    }
+  }
+
+  return precision;
+}
+
+uint32_t fractal_utils::required_precision_of(
+    const fractal_utils::center_wind<boostmp::mpfr_float>& wind, int rows,
+    int cols) noexcept {
+  assert(rows > 0);
+  assert(cols > 0);
+  return std::max(required_precision_of(wind.center[0], wind.x_span, cols),
+                  required_precision_of(wind.center[1], wind.y_span, rows));
+}
