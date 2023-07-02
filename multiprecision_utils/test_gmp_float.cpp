@@ -50,6 +50,7 @@ void test_gmp(int gmp_precision) noexcept {
 }
 
 int main(int, char**) {
+  fractal_utils::center_wind<fractal_utils::gmp_float_t> test;
   for (int p = 50; p < 2000; p++) {
     test_gmp(p);
   }

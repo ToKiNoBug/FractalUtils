@@ -45,6 +45,8 @@ void test_encode_decode(int mpfr_precision) noexcept {
 }
 
 int main(int argc, char** argv) {
+  fractal_utils::center_wind<boostmp::mpfr_float> test;
+
   for (int p = 50; p < 2000; p++) {
     test_encode_decode(p);
   }

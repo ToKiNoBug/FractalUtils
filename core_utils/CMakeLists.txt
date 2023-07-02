@@ -21,7 +21,7 @@ add_library(core_utils STATIC
   hex_convert.cpp
 
   unique_map.h
-  unique_map.cpp)
+  unique_map.cpp center_wind.hpp)
 
 find_package(fmt REQUIRED)
 
