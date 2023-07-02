@@ -41,6 +41,7 @@ set(core_install_headers
   hex_convert.h
   binary_archive.h
   unique_map.h
+  center_wind.hpp
         
 )
 

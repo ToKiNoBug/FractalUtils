@@ -1,3 +1,25 @@
+/*
+Copyright © 2022-2023  TokiNoBug
+This file is part of FractalUtils.
+
+FractalUtils is free software: you can redistribute it and/or modify
+                                                                    it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+                                        FractalUtils is distributed in the hope
+that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with FractalUtils.  If not, see <https://www.gnu.org/licenses/>.
+
+   Contact with me:
+   github:https://github.com/ToKiNoBug
+*/
+
 #ifndef FRACTALUTILS_ZOOM_UTILS_H
 #define FRACTALUTILS_ZOOM_UTILS_H
 
@@ -27,7 +49,7 @@ void default_hex_decode_fun(std::string_view hex,
                             fractal_utils::wind_base &wind_dest,
                             std::string &err);
 
-} // namespace fractal_utils
+}  // namespace fractal_utils
 
 // Qt mainwindow class
 
@@ -37,7 +59,7 @@ class zoom_utils_mainwindow;
 
 class zoom_utils_mainwindow : public QMainWindow {
   Q_OBJECT
-public:
+ public:
   using create_wind_callback_fun_t = fractal_utils::wind_base *(*)();
   using destroy_wind_callback_fun_t = void (*)(fractal_utils::wind_base *const);
   using compute_fractal_callback_fun_t =
@@ -59,13 +81,13 @@ public:
                                     fractal_utils::wind_base &wind_dest,
                                     std::string &err);
 
-private:
+ private:
   // this initialize function should not be invoked by other callers
   explicit zoom_utils_mainwindow(QWidget *parent,
                                  const std::array<int, 2> &window_size,
                                  uint32_t map_fractal_element_size, int scale);
 
-public:
+ public:
   // initialize with type of floating point
   template <typename float_t>
   explicit zoom_utils_mainwindow(float_t parameter_for_type_deduction,
@@ -102,7 +124,7 @@ public:
 
   void display_range() noexcept;
 
-private:
+ private:
   Ui::zoom_utils_mainwindow *ui;
   fractal_utils::wind_base *window{nullptr};
 
@@ -114,7 +136,7 @@ private:
 
   std::mutex lock;
 
-public:
+ public:
   compute_fractal_callback_fun_t callback_compute_fun = nullptr;
   render_fractal_callback_fun_t callback_render_fun = nullptr;
   export_frame_callback_fun_t callback_export_fun = nullptr;
@@ -130,10 +152,10 @@ public:
 
   const int scale;
 
-private:
+ private:
   QImage img_u8c3;
 
-public slots:
+ public slots:
 
   void received_wheel_move(std::array<int, 2> pos, bool is_scaling_up);
   void received_mouse_move(std::array<int, 2> pos);
@@ -144,4 +166,4 @@ public slots:
   void on_btn_save_frame_clicked();
 };
 
-#endif // FRACTALUTILS_ZOOM_UTILS_H
+#endif  // FRACTALUTILS_ZOOM_UTILS_H

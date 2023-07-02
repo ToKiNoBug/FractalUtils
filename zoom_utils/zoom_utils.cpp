@@ -1,3 +1,25 @@
+/*
+Copyright © 2022-2023  TokiNoBug
+This file is part of FractalUtils.
+
+FractalUtils is free software: you can redistribute it and/or modify
+                                                                    it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+                                        FractalUtils is distributed in the hope
+that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with FractalUtils.  If not, see <https://www.gnu.org/licenses/>.
+
+   Contact with me:
+   github:https://github.com/ToKiNoBug
+*/
+
 #include "zoom_utils.h"
 
 #include <QFileDialog>
@@ -31,7 +53,8 @@ QImage scale_img(const QImage &src, int scale) noexcept {
 zoom_utils_mainwindow::zoom_utils_mainwindow(
     QWidget *parent, const std::array<int, 2> &window_size,
     uint32_t map_fractal_element_size, int __scale)
-    : QMainWindow(parent), ui(new Ui::zoom_utils_mainwindow),
+    : QMainWindow(parent),
+      ui(new Ui::zoom_utils_mainwindow),
       img_u8c3(QSize(window_size[1], window_size[0]),
                QImage::Format::Format_RGB888),
       scale(__scale),
@@ -336,9 +359,8 @@ void zoom_utils_mainwindow::on_btn_save_frame_clicked() {
 
 #include <hex_convert.h>
 
-std::string
-fractal_utils::default_hex_encode_fun(const fractal_utils::wind_base &wind_src,
-                                      std::string &err) {
+std::string fractal_utils::default_hex_encode_fun(
+    const fractal_utils::wind_base &wind_src, std::string &err) {
   err.clear();
 
   size_t len = 0;
