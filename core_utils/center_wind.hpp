@@ -29,6 +29,11 @@
 #include <typeinfo>
 #include <sstream>
 #include <span>
+#include <cstdlib>
+
+#if defined(__GNUC__) && !defined(__clang__)
+#include <quadmath.h>
+#endif
 
 namespace fractal_utils {
 
@@ -214,10 +219,28 @@ class center_wind : public wind_base {
 
   [[nodiscard]] static inline std::string format_value(
       const float_t &val, std::stringstream &ss) noexcept {
-    ss.clear();
-    ss << val;
+#ifdef __GNUC__
+    constexpr bool is_float128 = std::is_same_v<float_t, __float128>;
+#else
+    constexpr bool is_float128 = false;
+#endif
+
     std::string ret;
-    ss >> ret;
+    if constexpr (is_float128) {
+#ifndef __clang__
+      ret.resize(4096);
+      const int sz = quadmath_snprintf(ret.data(), ret.size(), "%Qf", val);
+      ret.resize(sz);
+#else
+      ss.clear();
+      ss << double(val);
+      ss >> ret;
+#endif
+    } else {
+      ss.clear();
+      ss << val;
+      ss >> ret;
+    }
     return ret;
   }
   [[nodiscard]] static inline std::array<std::string, 2> format_array_2(
@@ -343,20 +366,44 @@ class center_wind : public wind_base {
     this->y_span = float_t(_y_span);
   }
 
+  [[nodiscard]] static bool scan_float_t(std::string_view sv,
+                                         std::stringstream &ss,
+                                         float_t &f) noexcept {
+    ss.clear();
+#ifdef __GNUC__
+    constexpr bool is_quadmath = std::is_same_v<float_t, __float128>;
+#ifdef __clang__
+    constexpr bool is_clang = true;
+#else
+    constexpr bool is_clang = false;
+#endif
+#else
+    constexpr bool is_quadmath = false;
+#endif
+    if constexpr (is_quadmath) {
+#ifndef __clang__
+      f = strtof128(sv.data(), nullptr);
+#else
+      ss << sv;
+      long double temp;
+      ss >> temp;
+      f = temp;
+#endif
+    } else {
+      ss << sv;
+      ss >> f;
+    }
+    return true;
+  }
+
   [[nodiscard]] bool set_x_span(std::string_view sv,
                                 std::stringstream &ss) & noexcept override {
-    ss.clear();
-    ss << sv;
-    ss >> this->x_span;
-    return true;
+    return scan_float_t(sv, ss, this->x_span);
   }
 
   [[nodiscard]] bool set_y_span(std::string_view sv,
                                 std::stringstream &ss) & noexcept override {
-    ss.clear();
-    ss << sv;
-    ss >> this->y_span;
-    return true;
+    return scan_float_t(sv, ss, this->y_span);
   }
 
   [[nodiscard]] size_t float_size() const noexcept override {

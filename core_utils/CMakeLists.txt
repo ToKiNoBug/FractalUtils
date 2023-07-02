@@ -78,6 +78,21 @@ if(NOT ${FractalUtils_no_install})
   )
 endif()
 
+if((${LINUX})OR(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
+    target_link_libraries(core_utils PUBLIC quadmath)
+    if(NOT (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
+#        file(GLOB quadmath_file /usr/lib/gcc/*/*/include/quadmath.h)
+#        list(SORT quadmath_file)
+#        list(REVERSE quadmath_file)
+#        list(GET quadmath_file 0 quadmath_file)
+#        message("Found quadmath.h at ${quadmath_file}")
+#        cmake_path(GET quadmath_file PARENT_PATH quadmath_include_dir)
+#        target_include_directories(core_utils
+#                AFTER
+#                PUBLIC ${quadmath_include_dir})
+    endif ()
+endif()
+
 if(NOT ${FractalUtils_build_examples})
   return()
 endif()

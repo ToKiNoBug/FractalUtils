@@ -170,6 +170,17 @@ if (${FractalUtils_build_examples})
 endif ()
 
 
+if((${LINUX})OR(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
+
+    if (${FractalUtils_build_examples})
+        add_executable(test_quadmath test_quadmath.cpp)
+        target_link_libraries(test_quadmath PRIVATE
+                multiprecision_utils
+                core_utils)
+    endif ()
+endif()
+
+
 if (${FractalUtils_multiprecision_gmp_support})
     target_link_libraries(multiprecision_utils PUBLIC gmp)
 
