@@ -49,6 +49,10 @@ class wind_base {
       std::stringstream &ss) const noexcept = 0;
   [[nodiscard]] virtual std::array<std::string, 2> right_bottom_corner_string(
       std::stringstream &ss) const noexcept = 0;
+  [[nodiscard]] virtual std::array<std::string, 2> left_bottom_corner_string(
+      std::stringstream &ss) const noexcept = 0;
+  [[nodiscard]] virtual std::array<std::string, 2> right_top_corner_string(
+      std::stringstream &ss) const noexcept = 0;
 
   virtual void update_center(const std::array<int, 2> &total_size_row_col,
                              const std::array<int, 2> &position_row_col,
@@ -61,6 +65,11 @@ class wind_base {
 
   virtual void set_x_span(double __x_span) & noexcept = 0;
   virtual void set_y_span(double __y_span) & noexcept = 0;
+
+  [[nodiscard]] virtual bool set_x_span(std::string_view sv,
+                                        std::stringstream &ss) & noexcept = 0;
+  [[nodiscard]] virtual bool set_y_span(std::string_view sv,
+                                        std::stringstream &ss) & noexcept = 0;
 
   [[nodiscard]] virtual size_t float_size() const noexcept = 0;
 
@@ -105,6 +114,24 @@ class center_wind : public wind_base {
 
     ret[idx_x] += x_span / 2;
     ret[idx_y] -= y_span / 2;
+
+    return ret;
+  }
+
+  inline std::array<float_t, 2> left_bottom_corner() const noexcept {
+    std::array<float_t, 2> ret = this->center;
+
+    ret[idx_x] -= x_span / 2;
+    ret[idx_y] -= y_span / 2;
+
+    return ret;
+  }
+
+  inline std::array<float_t, 2> right_top_corner() const noexcept {
+    std::array<float_t, 2> ret = this->center;
+
+    ret[idx_x] += x_span / 2;
+    ret[idx_y] += y_span / 2;
 
     return ret;
   }
@@ -184,20 +211,20 @@ class center_wind : public wind_base {
     return ret;
   }
 
-  [[nodiscard]] virtual std::string x_span_string(
+  [[nodiscard]] std::string x_span_string(
       std::stringstream &ss) const noexcept override {
     return format_value(this->x_span, ss);
   }
-  [[nodiscard]] virtual std::string y_span_string(
+  [[nodiscard]] std::string y_span_string(
       std::stringstream &ss) const noexcept override {
     return format_value(this->y_span, ss);
   }
-  [[nodiscard]] virtual std::array<std::string, 2> center_string(
+  [[nodiscard]] std::array<std::string, 2> center_string(
       std::stringstream &ss) const noexcept override {
     return format_array_2(this->center, ss);
   }
 
-  [[nodiscard]] virtual std::array<std::string, 2> coordinate_string(
+  [[nodiscard]] std::array<std::string, 2> coordinate_string(
       const std::array<int, 2> &total_size_rc,
       const std::array<int, 2> &position_rc,
       std::stringstream &ss) const noexcept override {
@@ -218,14 +245,24 @@ class center_wind : public wind_base {
     return format_array_2(result, ss);
   }
 
-  [[nodiscard]] virtual std::array<std::string, 2> left_top_corner_string(
+  [[nodiscard]] std::array<std::string, 2> left_top_corner_string(
       std::stringstream &ss) const noexcept override {
     return format_array_2(this->left_top_corner(), ss);
   }
 
-  [[nodiscard]] virtual std::array<std::string, 2> right_bottom_corner_string(
+  [[nodiscard]] std::array<std::string, 2> right_bottom_corner_string(
       std::stringstream &ss) const noexcept override {
     return format_array_2(this->right_bottom_corner(), ss);
+  }
+
+  [[nodiscard]] std::array<std::string, 2> left_bottom_corner_string(
+      std::stringstream &ss) const noexcept override {
+    return format_array_2(this->left_bottom_corner(), ss);
+  }
+
+  [[nodiscard]] std::array<std::string, 2> right_top_corner_string(
+      std::stringstream &ss) const noexcept override {
+    return format_array_2(this->right_top_corner(), ss);
   }
 
   void update_center(const std::array<int, 2> &total_size,
@@ -287,6 +324,22 @@ class center_wind : public wind_base {
 
   void set_y_span(double _y_span) & noexcept override {
     this->y_span = float_t(_y_span);
+  }
+
+  [[nodiscard]] bool set_x_span(std::string_view sv,
+                                std::stringstream &ss) & noexcept override {
+    ss.clear();
+    ss << sv;
+    ss >> this->x_span;
+    return true;
+  }
+
+  [[nodiscard]] bool set_y_span(std::string_view sv,
+                                std::stringstream &ss) & noexcept override {
+    ss.clear();
+    ss << sv;
+    ss >> this->y_span;
+    return true;
   }
 
   [[nodiscard]] size_t float_size() const noexcept override {

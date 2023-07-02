@@ -62,8 +62,8 @@ void zoom_window::reset(size_t r, size_t c, size_t fractal_ele_bytes) noexcept {
 
   {
     const auto &windp = this->current_result().wind;
-    this->ui->show_scale_x->setText(QString::number(windp->displayed_x_span()));
-    this->ui->show_scale_y->setText(QString::number(windp->displayed_y_span()));
+    this->ui->show_scale_x->setText(windp->x_span_string(this->m_ss).c_str());
+    this->ui->show_scale_y->setText(windp->y_span_string(this->m_ss).c_str());
 
     this->refresh_range_display();
   }
@@ -147,28 +147,25 @@ void zoom_window::refresh_range_display() noexcept {
   assert(!this->m_window_stack.empty());
 
   auto current_wind = this->current_result().wind.get();
-  const auto center = current_wind->displayed_center();
-  const double x_span = current_wind->displayed_x_span();
-  const double y_span = current_wind->displayed_y_span();
+  const auto x_span_str = current_wind->x_span_string(this->m_ss);
+  const auto y_span_str = current_wind->y_span_string(this->m_ss);
   {
+    auto center_str = current_wind->center_string(this->m_ss);
     ui->label_center->setText(
-        QStringLiteral("Center: (%1, %2)").arg(center[0]).arg(center[1]));
-    ui->show_scale_x->setText(QString::number(x_span));
-    ui->show_scale_y->setText(QString::number(y_span));
+        QStringLiteral("Center: (%1, %2)")
+            .arg(center_str[0].c_str(), center_str[1].c_str()));
+    ui->show_scale_x->setText(x_span_str.c_str());
+    ui->show_scale_y->setText(y_span_str.c_str());
   }
   {
-    auto mm = center;
-    mm[0] += x_span / 2;
-    mm[1] += y_span / 2;
+    auto mm = current_wind->right_top_corner_string(this->m_ss);
     this->ui->label_maxpos->setText(
-        QStringLiteral("Maxpos: (%1, %2)").arg(mm[0]).arg(mm[1]));
+        QStringLiteral("Maxpos: (%1, %2)").arg(mm[0].c_str(), mm[1].c_str()));
   }
   {
-    auto mm = center;
-    mm[0] -= x_span / 2;
-    mm[1] -= y_span / 2;
+    auto mm = current_wind->left_bottom_corner_string(this->m_ss);
     this->ui->label_minpos->setText(
-        QStringLiteral("Minpos: (%1, %2)").arg(mm[0]).arg(mm[1]));
+        QStringLiteral("Minpos: (%1, %2)").arg(mm[0].c_str(), mm[1].c_str()));
   }
   {
     std::string err;
@@ -189,12 +186,12 @@ void zoom_window::refresh_range_display() noexcept {
 void zoom_window::received_mouse_move(std::array<int, 2> pos) {
   pos[0] /= this->scale();
   pos[1] /= this->scale();
-  std::array<double, 2> coord =
-      this->current_result().wind->displayed_coordinate(
-          {(int)this->rows(), (int)this->cols()}, pos);
+  const auto coord = this->current_result().wind->coordinate_string(
+      {(int)this->rows(), (int)this->cols()}, pos, this->m_ss);
 
   this->ui->label_mousepos->setText(
-      QStringLiteral("Mouse : (%1, %2)").arg(coord[0]).arg(coord[1]));
+      QStringLiteral("Mouse : (%1, %2)")
+          .arg(coord[0].c_str(), coord[1].c_str()));
 }
 
 void zoom_window::push(compute_result &&new_res) noexcept {
@@ -293,10 +290,23 @@ void zoom_window::on_btn_repaint_clicked() {
         return;
       }
 
-      const double new_x_span = this->ui->show_scale_x->text().toDouble();
-      const double new_y_span = this->ui->show_scale_y->text().toDouble();
-      current_wind->set_x_span(new_x_span);
-      current_wind->set_y_span(new_y_span);
+      const auto new_x_span = this->ui->show_scale_x->text().toLatin1();
+      const auto new_y_span = this->ui->show_scale_y->text().toLatin1();
+
+      if (!current_wind->set_x_span(new_x_span.data(), this->m_ss)) {
+        QMessageBox::critical(
+            this, "Invalid value for x span",
+            QStringLiteral("%1 can not be converted to an floating point type.")
+                .arg(new_x_span.data()));
+        return;
+      }
+      if (!current_wind->set_y_span(new_y_span.data(), this->m_ss)) {
+        QMessageBox::critical(
+            this, "Invalid value for y span",
+            QStringLiteral("%1 can not be converted to an floating point type.")
+                .arg(new_x_span.data()));
+        return;
+      }
     }
 
     if (*current_wind != *old.wind) {

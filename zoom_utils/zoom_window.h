@@ -31,8 +31,7 @@ QImage scale_image(const QImage &src, int scale) noexcept;
 
 class zoom_window : public QMainWindow {
   Q_OBJECT
-
- private:
+ protected:
   Ui::zoom_utils_mainwindow *ui;
 
  public:
@@ -51,13 +50,14 @@ class zoom_window : public QMainWindow {
     std::optional<QImage> image{std::nullopt};
   };
 
- private:
+ protected:
   QString m_frame_file_extensions{""};
   std::stack<compute_result> m_window_stack;
 
   push_options push_opt;
   ::fractal_utils::internal::map_base map_base;
   int m_scale{1};
+  std::stringstream m_ss;
 
  private:
   void compute_current() noexcept;
