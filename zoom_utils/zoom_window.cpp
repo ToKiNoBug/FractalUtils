@@ -478,6 +478,8 @@ void zoom_window::set_label_widget(scalable_label *label) & noexcept {
   this->ui->display = label;
   label->setParent(this);
 
+  this->ui->gl_display_placer->addWidget(label, 0, 0);
+
   this->refresh_image_display();
 }
 [[nodiscard]] scalable_label *zoom_window::label_widget() noexcept {
