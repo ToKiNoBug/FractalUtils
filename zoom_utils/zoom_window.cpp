@@ -480,6 +480,11 @@ void zoom_window::set_label_widget(scalable_label *label) & noexcept {
 
   this->ui->gl_display_placer->addWidget(label, 0, 0);
 
+  connect(this->ui->display, &scalable_label::moved, this,
+          &zoom_window::received_mouse_move);
+  connect(this->ui->display, &scalable_label::zoomed, this,
+          &zoom_window::received_wheel_move);
+
   this->refresh_image_display();
 }
 [[nodiscard]] scalable_label *zoom_window::label_widget() noexcept {
