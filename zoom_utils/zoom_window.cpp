@@ -110,7 +110,8 @@ void zoom_window::reset(size_t r, size_t c, size_t fractal_ele_bytes) noexcept {
 QImage fractal_utils::scale_image(const QImage &src, int scale) noexcept {
   assert(scale > 0);
   if (scale == 1) {
-    return src;
+    QImage ret{src};
+    return ret;
   }
 
   QSize sz = src.size();
