@@ -75,12 +75,13 @@ zoom_window::compute_result::compute_result(size_t r, size_t c,
   memset(this->image.value().scanLine(0), 0, this->image.value().sizeInBytes());
 }
 
-void zoom_window::reset(size_t r, size_t c, size_t fractal_ele_bytes) noexcept {
+void zoom_window::reset(size_t r, size_t c) & noexcept {
   while (!this->m_window_stack.empty()) {
     this->m_window_stack.pop();
   }
 
-  this->map_base = {r, c, fractal_ele_bytes};
+  this->m_rows = r;
+  this->m_cols = c;
   {
     compute_result temp{r, c};
     temp.wind = this->create_wind();
@@ -135,7 +136,7 @@ QImage fractal_utils::scale_image(const QImage &src, int scale) noexcept {
   return ret;
 }
 
-void zoom_window::refresh_image_display() noexcept {
+void zoom_window::refresh_image_display() & noexcept {
   assert(this->scale() > 0);
   /*
   this->ui->display->setFixedSize(this->cols() * this->scale(),
@@ -150,14 +151,14 @@ void zoom_window::refresh_image_display() noexcept {
   }
 }
 
-void zoom_window::compute_current() noexcept {
+void zoom_window::compute_current() & noexcept {
   assert(this->m_window_stack.size() > 0);
   auto &top = this->m_window_stack.top();
 
   this->compute(*top.wind, top.archive);
 }
 
-void zoom_window::render_current() noexcept {
+void zoom_window::render_current() & noexcept {
   assert(this->m_window_stack.size() > 0);
   auto &top = this->m_window_stack.top();
 
@@ -171,7 +172,7 @@ void zoom_window::render_current() noexcept {
       map_view{top.image.value().scanLine(0), this->rows(), this->cols(), 3});
 }
 
-void zoom_window::refresh_range_display() noexcept {
+void zoom_window::refresh_range_display() & noexcept {
   assert(!this->m_window_stack.empty());
 
   auto current_wind = this->current_result().wind.get();
@@ -222,7 +223,7 @@ void zoom_window::received_mouse_move(std::array<int, 2> pos) {
           .arg(coord[0].c_str(), coord[1].c_str()));
 }
 
-void zoom_window::push(compute_result &&new_res) noexcept {
+void zoom_window::push(compute_result &&new_res) & noexcept {
   auto &old = this->current_result();
 
   if (!this->push_opt.save_archive) {
@@ -488,9 +489,11 @@ void zoom_window::set_label_widget(scalable_label *label) & noexcept {
 
   this->refresh_image_display();
 }
+
 [[nodiscard]] scalable_label *zoom_window::label_widget() noexcept {
   return this->ui->display;
 }
+
 [[nodiscard]] const scalable_label *zoom_window::label_widget() const noexcept {
   return this->ui->display;
 }

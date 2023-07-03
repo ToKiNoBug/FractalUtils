@@ -75,7 +75,7 @@ class window : public zoom_window {
         dynamic_cast<const fractal_utils::center_wind<double> &>(_wind);
 
     auto &ar = std::any_cast<::archive &>(archive);
-    ar.mat.reset(this->rows(), this->cols(), this->fractal_element_bytes());
+    ar.mat.reset(this->rows(), this->cols(), sizeof(uint16_t));
 
     const std::complex<double> lt(wind.left_top_corner()[0],
                                   wind.left_top_corner()[1]);
@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
   window wind{};
   const int rows = 720;
   const int cols = 1080;
-  wind.reset(rows, cols, sizeof(int16_t));
+  wind.reset(rows, cols);
   assert(wind.rows() == rows);
   assert(wind.cols() == cols);
   wind.set_scale(1);

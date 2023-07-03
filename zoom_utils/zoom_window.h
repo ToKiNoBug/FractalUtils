@@ -66,7 +66,7 @@ class zoom_window : public QMainWindow {
     // this function is required by std::stack but never called
     [[noreturn]] compute_result(const compute_result &);
     compute_result(size_t r, size_t c);
-    
+
     [[deprecated(
         "fractal_ele_bytes is no longer used, use compute_result(size_t r, "
         "size_t c) instead!")]] compute_result(size_t r, size_t c,
@@ -82,15 +82,16 @@ class zoom_window : public QMainWindow {
   std::stack<compute_result> m_window_stack;
 
   push_options push_opt;
-  ::fractal_utils::internal::map_base map_base;
+  size_t m_rows;
+  size_t m_cols;
   int m_scale{1};
   std::stringstream m_ss;
 
- private:
-  void compute_current() noexcept;
-  void render_current() noexcept;
+ protected:
+  virtual void compute_current() & noexcept;
+  virtual void render_current() & noexcept;
 
-  void push(compute_result &&) noexcept;
+  virtual void push(compute_result &&) & noexcept;
 
  protected:
   [[nodiscard]] virtual std::unique_ptr<fractal_utils::wind_base> create_wind()
@@ -114,7 +115,7 @@ class zoom_window : public QMainWindow {
   [[nodiscard]] push_options push_option() const noexcept {
     return this->push_opt;
   }
-  void set_push_option(fractal_utils::push_options opt) noexcept {
+  void set_push_option(fractal_utils::push_options opt) & noexcept {
     this->push_opt = opt;
   }
 
@@ -124,7 +125,7 @@ class zoom_window : public QMainWindow {
   auto &frame_file_extensions() noexcept {
     return this->m_frame_file_extensions;
   }
-  void set_frame_file_extensions(const QString &ffes) noexcept {
+  void set_frame_file_extensions(const QString &ffes) & noexcept {
     this->m_frame_file_extensions = ffes;
   }
 
@@ -133,25 +134,19 @@ class zoom_window : public QMainWindow {
   }
   auto &current_result() noexcept { return this->m_window_stack.top(); }
 
-  [[nodiscard]] inline size_t rows() const noexcept {
-    return this->map_base.rows();
-  }
-  [[nodiscard]] inline size_t cols() const noexcept {
-    return this->map_base.cols();
-  }
-  [[nodiscard]] inline size_t fractal_element_bytes() const noexcept {
-    return this->map_base.element_bytes();
-  }
+  [[nodiscard]] inline size_t rows() const noexcept { return this->m_rows; }
+  [[nodiscard]] inline size_t cols() const noexcept { return this->m_cols; }
+
   [[nodiscard]] inline int scale() const noexcept { return this->m_scale; }
-  void set_scale(int s) noexcept {
+  virtual void set_scale(int s) noexcept {
     this->m_scale = s;
     this->refresh_image_display();
   }
 
-  virtual void reset(size_t r, size_t c, size_t fractal_ele_bytes) noexcept;
+  virtual void reset(size_t r, size_t c) & noexcept;
 
-  virtual void refresh_image_display() noexcept;
-  virtual void refresh_range_display() noexcept;
+  virtual void refresh_image_display() & noexcept;
+  virtual void refresh_range_display() & noexcept;
 
   virtual void set_label_widget(scalable_label *label) & noexcept;
   [[nodiscard]] scalable_label *label_widget() noexcept;
@@ -159,13 +154,13 @@ class zoom_window : public QMainWindow {
 
  public slots:
 
-  void received_wheel_move(std::array<int, 2> pos, bool is_scaling_up);
-  void received_mouse_move(std::array<int, 2> pos);
+  virtual void received_wheel_move(std::array<int, 2> pos, bool is_scaling_up);
+  virtual void received_mouse_move(std::array<int, 2> pos);
 
-  void on_btn_revert_clicked();
-  void on_btn_repaint_clicked();
-  void on_btn_save_image_clicked();
-  void on_btn_save_frame_clicked();
+  virtual void on_btn_revert_clicked();
+  virtual void on_btn_repaint_clicked();
+  virtual void on_btn_save_image_clicked();
+  virtual void on_btn_save_frame_clicked();
 };
 
 }  // namespace fractal_utils
