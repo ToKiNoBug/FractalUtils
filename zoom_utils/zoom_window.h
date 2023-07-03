@@ -87,6 +87,8 @@ class zoom_window : public QMainWindow {
   int m_scale{1};
   std::stringstream m_ss;
 
+  QWidget *m_custom_widget{nullptr};
+
  protected:
   virtual void compute_current() & noexcept;
   virtual void render_current() & noexcept;
@@ -151,6 +153,10 @@ class zoom_window : public QMainWindow {
   virtual void set_label_widget(scalable_label *label) & noexcept;
   [[nodiscard]] scalable_label *label_widget() noexcept;
   [[nodiscard]] const scalable_label *label_widget() const noexcept;
+
+  virtual void set_custom_widget(QWidget *widget) & noexcept;
+  [[nodiscard]] QWidget *custom_widget() noexcept;
+  [[nodiscard]] const QWidget *custom_widget() const noexcept;
 
  public slots:
 

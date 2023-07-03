@@ -497,3 +497,20 @@ void zoom_window::set_label_widget(scalable_label *label) & noexcept {
 [[nodiscard]] const scalable_label *zoom_window::label_widget() const noexcept {
   return this->ui->display;
 }
+
+void zoom_window::set_custom_widget(QWidget *widget) & noexcept {
+  delete this->m_custom_widget;
+  this->m_custom_widget = widget;
+  if (widget != nullptr) {
+    widget->setParent(this);
+    this->ui->gl_custom_widget_placer->addWidget(widget);
+  }
+}
+
+[[nodiscard]] QWidget *zoom_window::custom_widget() noexcept {
+  return this->m_custom_widget;
+}
+
+[[nodiscard]] const QWidget *zoom_window::custom_widget() const noexcept {
+  return this->m_custom_widget;
+}
