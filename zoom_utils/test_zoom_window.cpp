@@ -102,7 +102,7 @@ class window : public zoom_window {
     auto &ar = std::any_cast<::archive &>(archive);
     assert(ar.mat.rows() == this->rows());
     assert(ar.mat.cols() == this->cols());
-    assert(ar.mat.element_bytes() == this->fractal_element_bytes());
+    assert(ar.mat.element_bytes() == sizeof(uint16_t));
 
     assert(ar.mat.rows() == image_u8c3.rows());
     assert(ar.mat.cols() == image_u8c3.cols());
