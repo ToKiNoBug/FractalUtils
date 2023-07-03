@@ -39,6 +39,11 @@ template <int precision>
 void test() noexcept {
   cout << "Testing precision = " << precision << "...";
 
+  if constexpr (precision >= 8) {
+    static_assert(backend_of<float_by_precision_t<precision>>() ==
+                  float_backend_lib::boost);
+  }
+
   static_assert(is_valid_precision(precision));
 
   static_assert(precision_of_uint_v<uint_by_precision_t<precision>> ==

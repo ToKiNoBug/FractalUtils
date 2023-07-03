@@ -188,7 +188,7 @@ constexpr float_backend_lib backend_of() noexcept {
     return float_backend_lib::standard;
   }
 
-  if constexpr (is_boost_gmp_float<T>) {
+  if constexpr (is_boost_multiprecision_float<T>) {
     return float_backend_lib::boost;
   }
 
