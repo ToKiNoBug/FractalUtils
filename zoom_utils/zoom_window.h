@@ -65,7 +65,12 @@ class zoom_window : public QMainWindow {
     compute_result(compute_result &&) = default;
     // this function is required by std::stack but never called
     [[noreturn]] compute_result(const compute_result &);
-    compute_result(size_t r, size_t c, size_t fractal_ele_bytes);
+    compute_result(size_t r, size_t c);
+    
+    [[deprecated(
+        "fractal_ele_bytes is no longer used, use compute_result(size_t r, "
+        "size_t c) instead!")]] compute_result(size_t r, size_t c,
+                                               size_t fractal_ele_bytes);
 
     std::unique_ptr<fractal_utils::wind_base> wind{nullptr};
     std::any archive{};

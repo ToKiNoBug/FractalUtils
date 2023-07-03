@@ -64,6 +64,11 @@ zoom_window::compute_result::compute_result(const compute_result &src)
   }
 }
 
+zoom_window::compute_result::compute_result(size_t r, size_t c)
+    : image{QImage{QSize{(int)c, (int)r}, QImage::Format::Format_RGB888}} {
+  memset(this->image.value().scanLine(0), 0, this->image.value().sizeInBytes());
+}
+
 zoom_window::compute_result::compute_result(size_t r, size_t c,
                                             size_t fractal_ele_bytes)
     : image{QImage{QSize{(int)c, (int)r}, QImage::Format::Format_RGB888}} {
@@ -77,7 +82,7 @@ void zoom_window::reset(size_t r, size_t c, size_t fractal_ele_bytes) noexcept {
 
   this->map_base = {r, c, fractal_ele_bytes};
   {
-    compute_result temp{r, c, fractal_ele_bytes};
+    compute_result temp{r, c};
     temp.wind = this->create_wind();
     this->m_window_stack.emplace(std::move(temp));
   }
@@ -244,8 +249,7 @@ void zoom_window::received_wheel_move(std::array<int, 2> pos,
   auto &old = this->current_result();
 
   {
-    compute_result res{this->rows(), this->cols(),
-                       this->fractal_element_bytes()};
+    compute_result res{this->rows(), this->cols()};
     res.wind = this->create_wind();
     old.wind->copy_to(res.wind.get());
 
@@ -306,8 +310,8 @@ void zoom_window::on_btn_repaint_clicked() {
             this, "Invalid hex string",
             QStringLiteral("this->callback_hex_decode_fun failed to decode "
                            "hex string \"%1\" to binary. \nDetail: \n%2")
-                .arg(QString::fromUtf8(current_hex))
-                .arg(QString::fromUtf8(err.data())));
+                .arg(QString::fromUtf8(current_hex),
+                     QString::fromUtf8(err.data())));
         // this->lock.unlock();
         return;
       }
@@ -332,8 +336,7 @@ void zoom_window::on_btn_repaint_clicked() {
     }
 
     if (*current_wind != *old.wind) {
-      compute_result res{this->rows(), this->cols(),
-                         this->fractal_element_bytes()};
+      compute_result res{this->rows(), this->cols()};
       res.wind = std::move(current_wind);
       res.archive = old.archive;
       this->push(std::move(res));
