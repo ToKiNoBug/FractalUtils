@@ -381,8 +381,8 @@ class center_wind : public wind_base {
     constexpr bool is_quadmath = false;
 #endif
     if constexpr (is_quadmath) {
-#ifndef __clang__
-      f = strtof128(sv.data(), nullptr);
+#if defined(__GNUC__) && !defined(__clang__)
+      f = strtoflt128(sv.data(), nullptr);
 #else
       ss << sv;
       long double temp;
