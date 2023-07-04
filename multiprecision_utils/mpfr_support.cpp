@@ -133,27 +133,40 @@ uint32_t fractal_utils::required_precision_of(const boostmp::mpfr_float& center,
   assert(mpfr_number_p(center.backend().data()));
   assert(mpfr_number_p(span.backend().data()));
   assert(span != 0);
-  boostmp::mpfr_float unit{0,
-                           uint32_t(mpfr_get_prec(span.backend().data()) + 20)};
+  const int max_prec = std::max(center.precision(), span.precision());
+  if (span.precision() != max_prec) {
+    boostmp::mpfr_float span_higher_prec{span, max_prec};
+    return required_precision_of(center, span_higher_prec, num_pixels);
+  }
+  if (center.precision() != max_prec) {
+    boostmp::mpfr_float center_higher_prec{center, max_prec};
+    return required_precision_of(center_higher_prec, span, num_pixels);
+  }
+
+  assert(center.precision() == span.precision());
+
+  boostmp::mpfr_float unit{0, uint32_t(span.precision() + 20)};
 
   unit = span / num_pixels;
   mpfr_abs(unit.backend().data(), unit.backend().data(), MPFR_RNDN);
   assert(unit > 0);
 
-  boostmp::mpfr_float max_abs;
+  boostmp::mpfr_float min_abs{0, unit.precision()};
   {
     boostmp::mpfr_float upper = center + span / 2;
+    // assert(upper.precision() >= unit.precision());
     boostmp::mpfr_float lower = center - span / 2;
+    // assert(lower.precision() >= unit.precision());
     mpfr_abs(upper.backend().data(), upper.backend().data(), MPFR_RNDN);
     mpfr_abs(lower.backend().data(), lower.backend().data(), MPFR_RNDN);
-    mpfr_max(max_abs.backend().data(), lower.backend().data(),
+    mpfr_min(min_abs.backend().data(), lower.backend().data(),
              lower.backend().data(), MPFR_RNDN);
   }
 
-  boostmp::mpfr_float buf1{0, max_abs.precision()};
-  boostmp::mpfr_float resolution{0, max_abs.precision()};
+  boostmp::mpfr_float buf1{0, min_abs.precision()};
+  boostmp::mpfr_float resolution{0, min_abs.precision()};
 
-  return find_min_required_precision(max_abs, resolution, buf1, unit);
+  return find_min_required_precision(min_abs, resolution, buf1, unit);
 }
 
 void resolution_around(mpfr_srcptr a, mpfr_ptr dst,
