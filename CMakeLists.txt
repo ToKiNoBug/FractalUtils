@@ -1,6 +1,6 @@
 
 cmake_minimum_required(VERSION 3.15)
-project(FractalUtils VERSION 2.3.15 LANGUAGES CXX)
+project(FractalUtils VERSION 2.3.16 LANGUAGES CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 
