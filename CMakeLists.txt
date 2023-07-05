@@ -72,7 +72,9 @@ configure_package_config_file(
   INSTALL_DESTINATION lib/cmake/fractal_utils
   NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
+if(NOT ${FractalUtils_no_install})
 # install config files
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/fractal_utils-config.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/fractal_utils-config-version.cmake"
   DESTINATION lib/cmake/fractal_utils)
+endif()
