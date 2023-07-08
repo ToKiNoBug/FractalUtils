@@ -286,7 +286,7 @@ class unique_map : public internal::map_accesser<unique_map>,
     requires internal::map_like<T>
   {
     this->reset(src.rows(), src.cols(), src.element_bytes());
-    memcpy(this->data(), src.data(), src, bytes());
+    memcpy(this->data(), src.data(), src.bytes());
     return *this;
   }
 };
