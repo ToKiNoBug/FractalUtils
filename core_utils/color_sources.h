@@ -42,7 +42,7 @@ extern const float src_spring[][3];
 extern const float src_winter[][3];
 extern const float src_summer[][3];
 extern const float src_parula[][3];
-} // namespace internal
-} // namespace fractal_utils
+}  // namespace internal
+}  // namespace fractal_utils
 
-#endif // FRACTALUTILS_PRIVATE_COLOR_SOURCES_H
+#endif  // FRACTALUTILS_PRIVATE_COLOR_SOURCES_H

@@ -76,7 +76,7 @@ if (MPC_FOUND OR LINUX)
         cmake_path(GET mpc_header_file PARENT_PATH mpc_include_dir)
 
         set(FractalUtils_multiprecision_mpc_support true)
-    else()
+    else ()
         unset(mpc_include_dir)
         set(FractalUtils_multiprecision_mpc_support false)
         message(WARNING "mpc should exist on this platform, but mpc.h is not found. mpc support will be disabled.")
@@ -170,7 +170,7 @@ if (${FractalUtils_build_examples})
 endif ()
 
 
-if((${LINUX})OR(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
+if ((${LINUX}) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
 
     if (${FractalUtils_build_examples})
         add_executable(test_quadmath test_quadmath.cpp)
@@ -178,7 +178,7 @@ if((${LINUX})OR(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
                 multiprecision_utils
                 core_utils)
     endif ()
-endif()
+endif ()
 
 
 if (${FractalUtils_multiprecision_gmp_support})
@@ -217,4 +217,4 @@ endif ()
 if (${FractalUtils_multiprecision_mpc_support})
 
     target_link_libraries(multiprecision_utils PUBLIC mpc)
-endif()
+endif ()

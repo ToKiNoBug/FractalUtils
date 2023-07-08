@@ -45,7 +45,9 @@ void fractal_utils::free_memory_aligned(void *data) noexcept {
 
 fractal_utils::fractal_map::fractal_map(size_t __rows, size_t __cols,
                                         uint32_t __element_bytes)
-    : rows(__rows), cols(__cols), element_bytes(__element_bytes),
+    : rows(__rows),
+      cols(__cols),
+      element_bytes(__element_bytes),
       call_free_on_destructor(true) {
   if (__rows <= 0 || __cols <= 0 || __element_bytes <= 0) {
     // no memory to be allocated
@@ -58,7 +60,10 @@ fractal_utils::fractal_map::fractal_map(size_t __rows, size_t __cols,
 }
 fractal_utils::fractal_map::fractal_map(size_t __rows, size_t __cols,
                                         uint32_t __element_bytes, void *__data)
-    : data(__data), rows(__rows), cols(__cols), element_bytes(__element_bytes),
+    : data(__data),
+      rows(__rows),
+      cols(__cols),
+      element_bytes(__element_bytes),
       call_free_on_destructor(false) {}
 
 fractal_map fractal_utils::fractal_map::create(size_t rows, size_t cols,
@@ -81,7 +86,9 @@ void fractal_utils::fractal_map::release() noexcept {
 }
 
 fractal_utils::fractal_map::fractal_map(const fractal_map &src)
-    : rows(src.rows), cols(src.cols), element_bytes(src.element_bytes),
+    : rows(src.rows),
+      cols(src.cols),
+      element_bytes(src.element_bytes),
       call_free_on_destructor(true) {
   this->data = allocate_memory_aligned(64, src.byte_count());
 #ifdef __GNUC__

@@ -3,47 +3,47 @@ cmake_minimum_required(VERSION 3.15)
 
 # set(CMAKE_CXX_STANDARD 17)
 add_library(core_utils STATIC
-  fractal_binfile.h
-  fractal_binfile.cpp
+        fractal_binfile.h
+        fractal_binfile.cpp
 
-  binary_archive.h
-  binary_archive.cpp
+        binary_archive.h
+        binary_archive.cpp
 
-  fractal_map.h
-  fractal_map.cpp
+        fractal_map.h
+        fractal_map.cpp
 
-  fractal_colors.h
-  colors.cpp
-  color_sources.h
-  color_sources.cpp
+        fractal_colors.h
+        colors.cpp
+        color_sources.h
+        color_sources.cpp
 
-  hex_convert.h
-  hex_convert.cpp
+        hex_convert.h
+        hex_convert.cpp
 
-  unique_map.h
-  unique_map.cpp center_wind.hpp)
+        unique_map.h
+        unique_map.cpp center_wind.hpp)
 
 find_package(fmt REQUIRED)
 
 # find_package(Boost COMPONENTS container REQUIRED)
 target_link_libraries(core_utils PUBLIC
-  fmt::fmt
+        fmt::fmt
 
-  # Boost::container
-)
+        # Boost::container
+        )
 
 # add include directories
 set(core_install_headers
-  core_utils.h
-  fractal_binfile.h
-  fractal_colors.h
-  fractal_map.h
-  hex_convert.h
-  binary_archive.h
-  unique_map.h
-  center_wind.hpp
-        
-)
+        core_utils.h
+        fractal_binfile.h
+        fractal_colors.h
+        fractal_map.h
+        hex_convert.h
+        binary_archive.h
+        unique_map.h
+        center_wind.hpp
+
+        )
 
 add_library(fractal_utils::core_utils ALIAS core_utils)
 
@@ -51,51 +51,51 @@ target_compile_features(core_utils PUBLIC cxx_std_20)
 
 # add include directories
 target_include_directories(core_utils
-  PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  INTERFACE
-  $<INSTALL_INTERFACE:include>
-)
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        INTERFACE
+        $<INSTALL_INTERFACE:include>
+        )
 
-if(NOT ${FractalUtils_no_install})
-  # install the target and create export-set
-  install(TARGETS core_utils
-    EXPORT fractal_utils_core-targets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include
-  )
+if (NOT ${FractalUtils_no_install})
+    # install the target and create export-set
+    install(TARGETS core_utils
+            EXPORT fractal_utils_core-targets
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION bin
+            INCLUDES DESTINATION include
+            )
 
-  # install header file
-  install(FILES ${core_install_headers} DESTINATION include/fractal_utils)
+    # install header file
+    install(FILES ${core_install_headers} DESTINATION include/fractal_utils)
 
-  # generate and install export file
-  install(EXPORT fractal_utils_core-targets
-    FILE fractal_utilscore_utilsTargets.cmake
-    NAMESPACE fractal_utils::
-    DESTINATION lib/cmake/fractal_utils
-  )
-endif()
+    # generate and install export file
+    install(EXPORT fractal_utils_core-targets
+            FILE fractal_utilscore_utilsTargets.cmake
+            NAMESPACE fractal_utils::
+            DESTINATION lib/cmake/fractal_utils
+            )
+endif ()
 
-if((${LINUX})OR(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
+if ((${LINUX}) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
     target_link_libraries(core_utils PUBLIC quadmath)
-    if(NOT (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
-#        file(GLOB quadmath_file /usr/lib/gcc/*/*/include/quadmath.h)
-#        list(SORT quadmath_file)
-#        list(REVERSE quadmath_file)
-#        list(GET quadmath_file 0 quadmath_file)
-#        message("Found quadmath.h at ${quadmath_file}")
-#        cmake_path(GET quadmath_file PARENT_PATH quadmath_include_dir)
-#        target_include_directories(core_utils
-#                AFTER
-#                PUBLIC ${quadmath_include_dir})
+    if (NOT (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
+        #        file(GLOB quadmath_file /usr/lib/gcc/*/*/include/quadmath.h)
+        #        list(SORT quadmath_file)
+        #        list(REVERSE quadmath_file)
+        #        list(GET quadmath_file 0 quadmath_file)
+        #        message("Found quadmath.h at ${quadmath_file}")
+        #        cmake_path(GET quadmath_file PARENT_PATH quadmath_include_dir)
+        #        target_include_directories(core_utils
+        #                AFTER
+        #                PUBLIC ${quadmath_include_dir})
     endif ()
-endif()
+endif ()
 
-if(NOT ${FractalUtils_build_examples})
-  return()
-endif()
+if (NOT ${FractalUtils_build_examples})
+    return()
+endif ()
 
 # add_executable(test_binfile test_binfile.cpp)
 # target_link_libraries(test_binfile PRIVATE core_utils)

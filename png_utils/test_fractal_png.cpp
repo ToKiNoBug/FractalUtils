@@ -29,7 +29,6 @@ This file is part of FractalUtils.
 using namespace fractal_utils;
 
 int main() {
-
   // printf("rua~\n");
 
   // fractal_map map = fractal_map::create(128, 256, 3);
@@ -43,7 +42,6 @@ int main() {
   bool success = true;
 
   if (map.element_bytes() == 3) {
-
     pixel_RGB *const data = reinterpret_cast<pixel_RGB *>(map.data());
 
     for (uint64_t i = 0; i < map.rows() * map.cols(); i++) {

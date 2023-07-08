@@ -171,8 +171,7 @@ bool fractal_utils::parse_from_memory(
   {
     const file_header *fhp = reinterpret_cast<const file_header *>(data);
 
-    if (!fhp->is_valid())
-      return false;
+    if (!fhp->is_valid()) return false;
   }
 
   uint64_t offset = sizeof(file_header);
@@ -225,7 +224,6 @@ bool fractal_utils::serialize_to_file(const data_block *const src,
                                       const uint64_t block_num,
                                       const file_header *header_nullable,
                                       const char *const filename) noexcept {
-
   if (filename == nullptr) {
     return false;
   }
@@ -273,8 +271,7 @@ void fractal_utils::binfile::remove_all_blocks() noexcept {
     if (!blk.has_ownership) {
       continue;
     }
-    if (blk.data != nullptr)
-      this->callback_free(blk.data);
+    if (blk.data != nullptr) this->callback_free(blk.data);
     blk.data = nullptr;
   }
 
@@ -323,18 +320,19 @@ fractal_utils::binfile::binfile(const binfile &another) {
 
 fractal_utils::binfile::binfile(binfile &&another)
     : callback_malloc(another.callback_malloc),
-      callback_free(another.callback_free), blocks(std::move(another.blocks)) {}
+      callback_free(another.callback_free),
+      blocks(std::move(another.blocks)) {}
 
 fractal_utils::binfile::~binfile() { this->remove_all_blocks(); }
 
-const fractal_utils::binfile &
-fractal_utils::binfile::operator=(const binfile &another) noexcept {
+const fractal_utils::binfile &fractal_utils::binfile::operator=(
+    const binfile &another) noexcept {
   this->copy_from(another);
   return *this;
 }
 
-const fractal_utils::binfile &
-fractal_utils::binfile::operator=(binfile &&another) noexcept {
+const fractal_utils::binfile &fractal_utils::binfile::operator=(
+    binfile &&another) noexcept {
   this->remove_all_blocks();
 
   this->blocks = std::move(another.blocks);
@@ -356,8 +354,8 @@ uint64_t get_file_size(FILE *fp_r) noexcept {
   return result;
 }
 
-fractal_utils::data_block *
-fractal_utils::binfile::find_block_single(int64_t tag) noexcept {
+fractal_utils::data_block *fractal_utils::binfile::find_block_single(
+    int64_t tag) noexcept {
   for (auto &blk : this->blocks) {
     if (blk.tag == tag) {
       return &blk;
@@ -367,8 +365,8 @@ fractal_utils::binfile::find_block_single(int64_t tag) noexcept {
   return nullptr;
 }
 
-const fractal_utils::data_block *
-fractal_utils::binfile::find_block_single(int64_t tag) const noexcept {
+const fractal_utils::data_block *fractal_utils::binfile::find_block_single(
+    int64_t tag) const noexcept {
   for (const auto &blk : this->blocks) {
     if (blk.tag == tag) {
       return &blk;
@@ -379,7 +377,6 @@ fractal_utils::binfile::find_block_single(int64_t tag) const noexcept {
 
 bool fractal_utils::binfile::save_to_file(
     const char *filename, const bool wirte_header) const noexcept {
-
   return ::fractal_utils::serialize_to_file(
       this->blocks.data(), this->blocks.size(),
       (wirte_header ? &this->header : nullptr), filename);
@@ -395,9 +392,10 @@ bool fractal_utils::binfile::parse_from_file(const char *const filename,
 #endif
 
   if (fp == nullptr) {
-    printf("\nError : function fractal_utils::binfile::parse_from_file failed "
-           "to parse file %s : failed to open file stream.\n",
-           filename);
+    printf(
+        "\nError : function fractal_utils::binfile::parse_from_file failed "
+        "to parse file %s : failed to open file stream.\n",
+        filename);
     return false;
   }
 
@@ -510,10 +508,11 @@ bool fractal_utils::write_data_block(::FILE *const file_ptr,
   }
   temp = fwrite(&block.bytes, 1, sizeof(block.bytes), file_ptr);
   if (temp != sizeof(block.bytes)) {
-    printf("\nError : function write_data_block failed when writing length. "
-           "fwrite should write %zu "
-           "bytes but only wrote %zu bytes.\n",
-           sizeof(block.bytes), temp);
+    printf(
+        "\nError : function write_data_block failed when writing length. "
+        "fwrite should write %zu "
+        "bytes but only wrote %zu bytes.\n",
+        sizeof(block.bytes), temp);
     return false;
   }
   temp = fwrite(block.data, 1, block.bytes, file_ptr);

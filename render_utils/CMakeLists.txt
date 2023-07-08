@@ -16,10 +16,10 @@ add_library(fractal_utils::render_utils ALIAS render_utils)
 target_compile_features(render_utils PUBLIC cxx_std_17)
 
 target_include_directories(render_utils
-    PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    INTERFACE
-    $<INSTALL_INTERFACE:include>)
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        INTERFACE
+        $<INSTALL_INTERFACE:include>)
 
 #message(STATUS "Searching for nvcc compiler...")
 #execute_process(COMMAND nvcc --version
@@ -35,13 +35,13 @@ target_include_directories(render_utils
 #endif ()
 
 
-if(NOT ${FractalUtils_no_install})
+if (NOT ${FractalUtils_no_install})
     install(TARGETS render_utils
-        EXPORT fractal_utils_render_utils-targets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-        INCLUDES DESTINATION include/fractal_utils)
+            EXPORT fractal_utils_render_utils-targets
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION bin
+            INCLUDES DESTINATION include/fractal_utils)
 
     # install header file
     install(FILES ${render_utils_install_headers}
@@ -49,15 +49,15 @@ if(NOT ${FractalUtils_no_install})
 
     # generate and install export file
     install(EXPORT fractal_utils_render_utils-targets
-        FILE fractal_utilsrender_utilsTargets.cmake
-        NAMESPACE fractal_utils::
-        DESTINATION lib/cmake/fractal_utils
-    )
-endif()
+            FILE fractal_utilsrender_utilsTargets.cmake
+            NAMESPACE fractal_utils::
+            DESTINATION lib/cmake/fractal_utils
+            )
+endif ()
 
-if(NOT ${FractalUtils_build_examples})
+if (NOT ${FractalUtils_build_examples})
     return()
-endif()
+endif ()
 
 add_executable(test_color_cvt test_color_cvt.cpp)
 target_link_libraries(test_color_cvt PRIVATE render_utils)

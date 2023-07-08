@@ -58,8 +58,7 @@ bool generate_file(const char *const filename) {
       blocks.data(), blocks.size(), true, filename);
 
   for (auto &i : blocks) {
-    if (i.bytes > 0)
-      free(i.data);
+    if (i.bytes > 0) free(i.data);
     i.data = nullptr;
   }
 

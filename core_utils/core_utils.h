@@ -29,4 +29,4 @@ This file is part of FractalUtils.
 #include "hex_convert.h"
 #include "unique_map.h"
 
-#endif // FRACTAL_UTILS_CORE_UTILS_H
+#endif  // FRACTAL_UTILS_CORE_UTILS_H

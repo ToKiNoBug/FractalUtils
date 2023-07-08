@@ -29,9 +29,9 @@ namespace fractal_utils {
 
 enum class color_space : uint8_t { u8c1 = 1, u8c3 = 3, u8c4 = 4 };
 
-[[deprecated("Use constant_view instead!")]] bool
-write_png(const char *const filename, const color_space cs,
-          const fractal_map &map) noexcept;
+[[deprecated("Use constant_view instead!")]] bool write_png(
+    const char *const filename, const color_space cs,
+    const fractal_map &map) noexcept;
 
 bool write_png(const char *const filename, const color_space cs,
                const void *const *const row_ptrs, const uint64_t rows,
@@ -40,6 +40,6 @@ bool write_png(const char *const filename, const color_space cs,
 bool write_png(const char *const filename, const color_space cs,
                constant_view cv) noexcept;
 
-} // namespace fractal_utils
+}  // namespace fractal_utils
 
-#endif // FRACTALUTILS_FRACTAL_PNG_H
+#endif  // FRACTALUTILS_FRACTAL_PNG_H

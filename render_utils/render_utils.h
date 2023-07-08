@@ -29,7 +29,8 @@ This file is part of FractalUtils.
 
 namespace fractal_utils {
 
-template <typename A, typename B, typename pixel_t> struct render_AB_options {
+template <typename A, typename B, typename pixel_t>
+struct render_AB_options {
   size_t row_beg;
   size_t row_end;
   size_t col_beg;
@@ -83,6 +84,6 @@ void render_AB(const fractal_map &mat_A, const fractal_map &mat_B,
                            map_view{mat_img}, options);
 }
 
-} // namespace fractal_utils
+}  // namespace fractal_utils
 
-#endif // FRACTAL_UTILS_RENDER_UTILS_RENDER_UTILS_H
+#endif  // FRACTAL_UTILS_RENDER_UTILS_RENDER_UTILS_H

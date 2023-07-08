@@ -41,7 +41,6 @@ int main() {
 }
 
 bool generate_file(const char *const filename) {
-
   fractal_utils::binary_archive archive;
   {
     using variant_t = fractal_utils::data_segment::variant_t;

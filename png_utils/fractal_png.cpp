@@ -54,8 +54,9 @@ write_struct create_write_struct(const char *const filename) noexcept {
   png_struct *png =
       png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   if (png == NULL) {
-    printf("\nError : function write_png failed. libpng failed to create "
-           "png_struct.\n");
+    printf(
+        "\nError : function write_png failed. libpng failed to create "
+        "png_struct.\n");
     w.success = false;
     return w;
   }
@@ -63,8 +64,9 @@ write_struct create_write_struct(const char *const filename) noexcept {
   png_info *png_info = png_create_info_struct(png);
 
   if (png_info == NULL) {
-    printf("\nError : function write_png failed. libpng failed to create "
-           "png_info struct.\n");
+    printf(
+        "\nError : function write_png failed. libpng failed to create "
+        "png_info struct.\n");
     png_destroy_write_struct(&png, &png_info);
     w.success = false;
     return w;
@@ -113,22 +115,22 @@ bool fractal_utils::write_png(const char *const filename, const color_space cs,
   png_init_io(wt.png, wt.fp);
 
   switch (cs) {
-  case color_space::u8c1:
-    png_set_IHDR(wt.png, wt.info, cols, rows, 8, PNG_COLOR_TYPE_GRAY,
-                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-                 PNG_FILTER_TYPE_BASE);
-    break;
-  case color_space::u8c3:
-    png_set_IHDR(wt.png, wt.info, cols, rows, 8, PNG_COLOR_TYPE_RGB,
-                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-                 PNG_FILTER_TYPE_BASE);
-    break;
-  case color_space::u8c4:
-    png_set_IHDR(wt.png, wt.info, cols, rows, 8, PNG_COLOR_TYPE_RGBA,
-                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-                 PNG_FILTER_TYPE_BASE);
-    png_set_swap_alpha(wt.png);
-    break;
+    case color_space::u8c1:
+      png_set_IHDR(wt.png, wt.info, cols, rows, 8, PNG_COLOR_TYPE_GRAY,
+                   PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
+                   PNG_FILTER_TYPE_BASE);
+      break;
+    case color_space::u8c3:
+      png_set_IHDR(wt.png, wt.info, cols, rows, 8, PNG_COLOR_TYPE_RGB,
+                   PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
+                   PNG_FILTER_TYPE_BASE);
+      break;
+    case color_space::u8c4:
+      png_set_IHDR(wt.png, wt.info, cols, rows, 8, PNG_COLOR_TYPE_RGBA,
+                   PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
+                   PNG_FILTER_TYPE_BASE);
+      png_set_swap_alpha(wt.png);
+      break;
   }
 
   png_write_info(wt.png, wt.info);
@@ -146,14 +148,14 @@ bool fractal_utils::write_png(const char *const filename, const color_space cs,
 
 bool fractal_utils::write_png(const char *const filename, const color_space cs,
                               constant_view map) noexcept {
-
   using namespace fractal_utils;
   const bool is_ok = uint32_t(cs) == map.element_bytes();
 
   if (!is_ok) {
-    fmt::print("\nError : function write_png failed. The given color space is "
-               "u8c{}, but the size of element is {}.\n",
-               int(cs), map.element_bytes());
+    fmt::print(
+        "\nError : function write_png failed. The given color space is "
+        "u8c{}, but the size of element is {}.\n",
+        int(cs), map.element_bytes());
     return false;
   }
 
@@ -166,22 +168,22 @@ bool fractal_utils::write_png(const char *const filename, const color_space cs,
   png_init_io(wt.png, wt.fp);
 
   switch (cs) {
-  case color_space::u8c1:
-    png_set_IHDR(wt.png, wt.info, map.cols(), map.rows(), 8,
-                 PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE,
-                 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-    break;
-  case color_space::u8c3:
-    png_set_IHDR(wt.png, wt.info, map.cols(), map.rows(), 8, PNG_COLOR_TYPE_RGB,
-                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-                 PNG_FILTER_TYPE_BASE);
-    break;
-  case color_space::u8c4:
-    png_set_IHDR(wt.png, wt.info, map.cols(), map.rows(), 8,
-                 PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE,
-                 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-    png_set_swap_alpha(wt.png);
-    break;
+    case color_space::u8c1:
+      png_set_IHDR(wt.png, wt.info, map.cols(), map.rows(), 8,
+                   PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE,
+                   PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+      break;
+    case color_space::u8c3:
+      png_set_IHDR(wt.png, wt.info, map.cols(), map.rows(), 8,
+                   PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+                   PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+      break;
+    case color_space::u8c4:
+      png_set_IHDR(wt.png, wt.info, map.cols(), map.rows(), 8,
+                   PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE,
+                   PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+      png_set_swap_alpha(wt.png);
+      break;
   }
 
   png_write_info(wt.png, wt.info);
