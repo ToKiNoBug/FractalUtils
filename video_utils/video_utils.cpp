@@ -80,6 +80,10 @@ bool video_executor_base::check_archive(
     return false;
   }
 
+  if (!this->error_of_archive(filename, ar).empty()) {
+    return false;
+  }
+
   if (return_archive != nullptr) {
     *return_archive = std::move(ar);
   }
@@ -228,7 +232,7 @@ bool create_required_dirs(const stdfs::path &filename) noexcept {
   return false;
 }
 
-bool video_executor_base::load_task() noexcept {
+bool video_executor_base::load_task() & noexcept {
   std::string err;
   auto temp = this->load_task(err);
   if (!temp.has_value() || err.empty()) {
@@ -487,17 +491,17 @@ bool video_executor_base::run_render() const noexcept {
       const int skip_c =
           skip_cols(common.cols, common.ratio, rt.image_per_frame, iidx);
 
-      const int image_rows = common.rows - 2 * skip_r;
-      const int image_cols = common.cols - 2 * skip_c;
+      //      const int image_rows = common.rows - 2 * skip_r;
+      //      const int image_cols = common.cols - 2 * skip_c;
 
-      row_ptrs.resize(image_rows);
-      for (int r = 0; r < image_rows; r++) {
-        const int absolute_r = r + skip_r;
-        row_ptrs[r] = image_u8c3.address<pixel_RGB>(absolute_r, skip_c);
-      }
+      //      row_ptrs.resize(image_rows);
+      //      for (int r = 0; r < image_rows; r++) {
+      //        const int absolute_r = r + skip_r;
+      //        row_ptrs[r] = image_u8c3.address<pixel_RGB>(absolute_r, skip_c);
+      //      }
 
-      if (!write_png(image_filename.c_str(), color_space::u8c3, row_ptrs.data(),
-                     image_rows, image_cols)) {
+      if (!write_png_skipped(image_filename.c_str(), color_space::u8c3,
+                             image_u8c3, skip_r, skip_c, row_ptrs)) {
         std::lock_guard<std::mutex> lkgd{lock};
         fmt::print(
             "Fatal: failed to save {} with archive filename= {} with image_idx "

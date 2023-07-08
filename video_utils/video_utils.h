@@ -148,7 +148,7 @@ class video_executor_base {
 
   // run operations
 
-  [[nodiscard]] bool load_task() noexcept;
+  [[nodiscard]] bool load_task() & noexcept;
 
   // 1 -> finished
   [[nodiscard]] std::vector<uint8_t> compute_task_status() const noexcept {
@@ -208,6 +208,9 @@ class video_executor_base {
   [[nodiscard]] virtual bool check_archive(
       std::string_view filename, std::span<uint8_t> buffer,
       std::any *return_archive_nullable) const noexcept;
+
+  [[nodiscard]] virtual err_info_t error_of_archive(
+      std::string_view filename, std::any &archive) const noexcept = 0;
 
   inline std::string load_archive(std::string_view filename,
                                   std::any &archive) const noexcept {
