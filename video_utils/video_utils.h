@@ -115,7 +115,7 @@ class video_executor_base {
   [[nodiscard]] full_task &task() noexcept { return this->m_task; }
   [[nodiscard]] const full_task &task() const noexcept { return this->m_task; }
 
-  inline void set_task(full_task &&src) noexcept {
+  virtual void set_task(full_task &&src) & noexcept {
     this->m_task = std::move(src);
   }
 
@@ -148,7 +148,7 @@ class video_executor_base {
 
   // run operations
 
-  [[nodiscard]] bool load_task() & noexcept;
+  [[nodiscard]] virtual bool load_task() & noexcept;
 
   // 1 -> finished
   [[nodiscard]] std::vector<uint8_t> compute_task_status() const noexcept {
@@ -157,7 +157,7 @@ class video_executor_base {
     std::any buf_archive;
     return this->compute_task_status(buf, buf_archive, {});
   }
-  [[nodiscard]] std::vector<uint8_t> compute_task_status(
+  [[nodiscard]] virtual std::vector<uint8_t> compute_task_status(
       std::string &buf_filename, std::any &buf_archive,
       std::span<uint8_t> buffer) const noexcept;
 
@@ -166,7 +166,8 @@ class video_executor_base {
     partly_rendered,
     all_rendered
   };
-  [[nodiscard]] std::vector<render_status> render_task_status() const noexcept;
+  [[nodiscard]] virtual std::vector<render_status> render_task_status()
+      const noexcept;
 
   [[nodiscard]] virtual bool run_compute() const noexcept;
 
@@ -220,14 +221,15 @@ class video_executor_base {
       std::string_view filename, std::span<uint8_t> buffer,
       std::any &archive) const noexcept = 0;
 
-  bool make_temp_video(int aidx, bool dry_run) const noexcept;
-  bool make_temp_extra_video(int aidx, bool dry_run) const noexcept;
-  bool make_second_temp_video(int aidx, bool dry_run) const noexcept;
-  bool make_second_temp_list_txt(std::string_view txt_filename,
-                                 std::span<const std::string> concate_sources,
-                                 bool dry_run) const noexcept;
-  bool make_product_video(std::string_view txt_filename,
-                          bool dry_run) const noexcept;
+  virtual bool make_temp_video(int aidx, bool dry_run) const noexcept;
+  virtual bool make_temp_extra_video(int aidx, bool dry_run) const noexcept;
+  virtual bool make_second_temp_video(int aidx, bool dry_run) const noexcept;
+  virtual bool make_second_temp_list_txt(
+      std::string_view txt_filename,
+      std::span<const std::string> concate_sources,
+      bool dry_run) const noexcept;
+  virtual bool make_product_video(std::string_view txt_filename,
+                                  bool dry_run) const noexcept;
 };
 
 [[nodiscard]] int run_command(std::string_view command, bool dry_run) noexcept;
