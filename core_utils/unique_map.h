@@ -25,6 +25,7 @@ General Public License for more details.
 #include <cassert>
 #include <cstdlib>
 #include <memory>
+#include <cstring>
 #ifdef FRACTAL_UTILS_HAVE_CXX_20
 #include <ranges>
 #endif
