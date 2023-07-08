@@ -427,6 +427,8 @@ bool video_executor_base::run_render() const noexcept {
     thread_local std::string filename;
     thread_local unique_map image_u8c3{common.rows, common.cols, 3};
     thread_local std::vector<const void *> row_ptrs;
+    thread_local std::unique_ptr<render_resource_base> render_resource =
+        this->create_render_resource();
 
     buffer.resize(common.suggested_load_buffer_size());
     filename.reserve(1024);
@@ -454,7 +456,8 @@ bool video_executor_base::run_render() const noexcept {
 
     const bool render_once = rt.render_once;
     if (render_once) {
-      auto err = this->render(archive, aidx, 0, image_u8c3);
+      auto err =
+          this->render(archive, aidx, 0, image_u8c3, render_resource.get());
       if (!err.empty()) {
         std::lock_guard<std::mutex> lkgd{lock};
         fmt::print(
@@ -473,7 +476,8 @@ bool video_executor_base::run_render() const noexcept {
       this->image_filename(aidx, iidx, image_filename);
 
       if (!render_once) {
-        auto err = this->render(archive, aidx, 0, image_u8c3);
+        auto err =
+            this->render(archive, aidx, 0, image_u8c3, render_resource.get());
         if (!err.empty()) {
           std::lock_guard<std::mutex> lkgd{lock};
           fmt::print(
@@ -490,15 +494,6 @@ bool video_executor_base::run_render() const noexcept {
           skip_rows(common.rows, common.ratio, rt.image_per_frame, iidx);
       const int skip_c =
           skip_cols(common.cols, common.ratio, rt.image_per_frame, iidx);
-
-      //      const int image_rows = common.rows - 2 * skip_r;
-      //      const int image_cols = common.cols - 2 * skip_c;
-
-      //      row_ptrs.resize(image_rows);
-      //      for (int r = 0; r < image_rows; r++) {
-      //        const int absolute_r = r + skip_r;
-      //        row_ptrs[r] = image_u8c3.address<pixel_RGB>(absolute_r, skip_c);
-      //      }
 
       if (!write_png_skipped(image_filename.c_str(), color_space::u8c3,
                              image_u8c3, skip_r, skip_c, row_ptrs)) {

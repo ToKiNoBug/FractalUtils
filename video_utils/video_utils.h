@@ -101,6 +101,11 @@ struct full_task {
   std::unique_ptr<video_task_base> video;
 };
 
+class render_resource_base {
+ public:
+  virtual ~render_resource_base(){};
+};
+
 class video_executor_base {
  protected:
   full_task m_task;
@@ -194,9 +199,14 @@ class video_executor_base {
   virtual void compute(int archive_idx, const wind_base &window,
                        std::any &ret) const noexcept = 0;
 
-  [[nodiscard]] virtual std::string render(const std::any &archive,
-                                           int archive_index, int image_idx,
-                                           map_view map) const noexcept = 0;
+  [[nodiscard]] virtual std::unique_ptr<render_resource_base>
+  create_render_resource() const noexcept {
+    return nullptr;
+  };
+
+  [[nodiscard]] virtual std::string render(
+      const std::any &archive, int archive_index, int image_idx,
+      map_view image_u8c3, render_resource_base *resource) const noexcept = 0;
 
   [[nodiscard]] virtual err_info_t save_archive(
       const std::any &, std::string_view filename) const noexcept = 0;
