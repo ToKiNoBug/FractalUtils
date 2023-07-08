@@ -199,3 +199,34 @@ bool fractal_utils::write_png(const char *const filename, const color_space cs,
 
   return true;
 }
+
+bool fractal_utils::write_png_skipped(
+    const char *filename, const color_space cs, constant_view cv,
+    const uint64_t skip_rows, const uint64_t skip_cols,
+    std::vector<const void *> &buffer) noexcept {
+  if (skip_rows * 2 >= cv.rows()) {
+    return false;
+  }
+  if (skip_cols * 2 >= cv.cols()) {
+    return false;
+  }
+  const uint64_t image_rows = cv.rows() - 2 * skip_rows;
+  const uint64_t image_cols = cv.cols() - 2 * skip_cols;
+
+  buffer.clear();
+  buffer.reserve(image_rows);
+  for (uint64_t r = skip_rows; r < cv.rows() - skip_rows; r++) {
+    const uint64_t offset = r * cv.cols() + skip_rows;
+    buffer.emplace_back(reinterpret_cast<const uint8_t *>(cv.data()) + offset);
+  }
+
+  return write_png(filename, cs, buffer.data(), skip_rows, skip_cols);
+}
+
+bool fractal_utils::write_png_skipped(const char *filename,
+                                      const color_space cs, constant_view cv,
+                                      const uint64_t skip_rows,
+                                      const uint64_t skip_cols) noexcept {
+  std::vector<const void *> buf;
+  return write_png_skipped(filename, cs, cv, skip_rows, skip_cols, buf);
+}
