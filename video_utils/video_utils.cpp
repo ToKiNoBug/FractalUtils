@@ -265,7 +265,7 @@ std::vector<uint8_t> video_executor_base::compute_task_status(
       continue;
     }
 
-    if (this->check_archive(filename, buffer, nullptr)) {
+    if (!this->check_archive(filename, buffer, nullptr)) {
       fmt::print(
           "{} exists but is found to be corrupted, it will be generated "
           "again.\n",
