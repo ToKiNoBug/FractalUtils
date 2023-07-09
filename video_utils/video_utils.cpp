@@ -27,6 +27,7 @@ General Public License for more details.
 #include <omp.h>
 #include <atomic>
 #include <mutex>
+#include <shared_mutex>
 #include <fstream>
 
 namespace stdfs = std::filesystem;
@@ -221,13 +222,20 @@ bool fractal_utils::can_be_regular_file(std::string_view filename) noexcept {
 }
 
 bool create_required_dirs(const stdfs::path &filename) noexcept {
+  static std::shared_mutex lock;
   const auto parent_path = filename.parent_path();
-  if (stdfs::is_directory(parent_path)) {
-    return true;
+  {
+    std::shared_lock<std::shared_mutex> lkgd{lock};
+    if (stdfs::is_directory(parent_path)) {
+      return true;
+    }
   }
-  std::error_code err;
-  if (stdfs::create_directories(parent_path, err)) {
-    return true;
+  {
+    std::unique_lock<std::shared_mutex> lkgd{lock};
+    std::error_code err;
+    if (stdfs::create_directories(parent_path, err)) {
+      return true;
+    }
   }
   return false;
 }
@@ -494,6 +502,17 @@ bool video_executor_base::run_render() const noexcept {
           skip_rows(common.rows(), common.ratio, rt.image_per_frame, iidx);
       const int skip_c =
           skip_cols(common.cols(), common.ratio, rt.image_per_frame, iidx);
+
+      if (!create_required_dirs(image_filename)) {
+        std::lock_guard<std::mutex> lkgd{lock};
+        fmt::print(
+            "Fatal: failed create_required_dirs for {}. archive filename= "
+            "{},image_idx "
+            "= {}, render_once = {}\n",
+            image_filename, filename, 0, render_once);
+        fail_to_render = true;
+        break;
+      }
 
       if (!write_png_skipped(image_filename.c_str(), color_space::u8c3,
                              image_u8c3, skip_r, skip_c, row_ptrs)) {
