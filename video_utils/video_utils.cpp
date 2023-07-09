@@ -254,6 +254,13 @@ std::vector<uint8_t> video_executor_base::compute_task_status(
   for (int aidx = 0; aidx < common.archive_num; aidx++) {
     this->archive_filename(aidx, filename);
 
+    if (!create_required_dirs(filename)) {
+      fmt::print(
+          "Warning: Failed to create required directories for {}, the "
+          "computation may fail.\n",
+          filename);
+    }
+
     if (!can_be_regular_file(filename)) {
       continue;
     }
@@ -266,13 +273,6 @@ std::vector<uint8_t> video_executor_base::compute_task_status(
       continue;
     }
     task_lut[aidx] = true;
-
-    if (!create_required_dirs(filename)) {
-      fmt::print(
-          "Warning: Failed to create required directories for {}, the "
-          "computation may fail.\n",
-          filename);
-    }
   }
 
   return task_lut;
@@ -309,7 +309,7 @@ bool video_executor_base::run_compute() const noexcept {
     }
     this->archive_filename(aidx, filename);
     fmt::print(
-        "[{} / {} : {}%] : computing {}", finished_tasks, common.archive_num,
+        "[{} / {} : {}%] : computing {}\n", finished_tasks, common.archive_num,
         float(finished_tasks * 100) / float(common.archive_num), filename);
 
     ct.start_window()->copy_to(current_wind.get());
