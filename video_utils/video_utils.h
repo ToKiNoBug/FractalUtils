@@ -40,14 +40,14 @@ class common_info_base {
   [[nodiscard]] virtual size_t cols() const noexcept = 0;
   // size_t rows;
   // size_t cols;
-  int archive_num;
-  double ratio;
+  int archive_num{-1};
+  double ratio{2};
 
   [[nodiscard]] virtual size_t suggested_load_buffer_size() const noexcept {
     return 1 << 20;
   }
 
-  std::string size_expression_4ffmpeg() const noexcept;
+  [[nodiscard]] std::string size_expression_4ffmpeg() const noexcept;
 };
 
 class compute_task_base {
@@ -89,7 +89,7 @@ class video_task_base {
     std::string video_prefix;
     std::string video_suffix;
 
-    std::string encode_expr_4ffmpeg() const noexcept;
+    [[nodiscard]] std::string encode_expr_4ffmpeg() const noexcept;
   };
 
   video_config temp_config;
@@ -109,7 +109,7 @@ struct full_task {
 
 class render_resource_base {
  public:
-  virtual ~render_resource_base(){};
+  virtual ~render_resource_base() = default;
 };
 
 class video_executor_base {
@@ -216,7 +216,7 @@ class video_executor_base {
     return this->render_with_skip(archive, archive_index, image_idx, 0, 0,
                                   image_u8c3, resource);
   }
-  
+
   [[nodiscard]] virtual std::string render_with_skip(
       const std::any &archive, int archive_index, int image_idx, int skip_rows,
       int skip_cols, map_view image_u8c3,
@@ -262,6 +262,7 @@ class video_executor_base {
 [[nodiscard]] int run_command(std::string_view command, bool dry_run) noexcept;
 
 [[nodiscard]] bool can_be_regular_file(std::string_view filename) noexcept;
+[[nodiscard]] bool create_required_dirs(std::string_view filename) noexcept;
 }  // namespace fractal_utils
 
 #endif  // FRACTALUTILS_VIDEOUTILS_VIDEOUTILS_H

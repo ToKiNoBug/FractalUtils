@@ -32,6 +32,9 @@ bool can_be_regular_file(const stdfs::path &filename) noexcept;
 
 using namespace fractal_utils;
 
+[[nodiscard]] extern bool create_required_dirs(
+    const stdfs::path &filename) noexcept;
+
 bool video_executor_base::make_video(bool dry_run) const noexcept {
   const auto &common = *this->m_task.common;
   const auto &ct = *this->m_task.compute;
@@ -61,10 +64,10 @@ bool video_executor_base::make_video(bool dry_run) const noexcept {
     if (!this->make_temp_video(aidx, dry_run)) {
       std::lock_guard<std::mutex> lkgd{lock};
       fmt::print("Failed to make temp video for archive {}.\n", aidx);
-      failed_count++;
+      failed_count.fetch_add(1);
       continue;
     }
-    finished_count++;
+    finished_count.fetch_add(1);
 
     // the extra video of last archive is useless
     if (aidx == common.archive_num - 1) {
@@ -74,10 +77,10 @@ bool video_executor_base::make_video(bool dry_run) const noexcept {
     if (!this->make_temp_extra_video(aidx, dry_run)) {
       std::lock_guard<std::mutex> lkgd{lock};
       fmt::print("Failed to make extra temp video for archive {}.\n", aidx);
-      failed_count++;
+      failed_count.fetch_add(1);
       continue;
     }
-    finished_count++;
+    finished_count.fetch_add(1);
   }
 
   fmt::print(
@@ -131,13 +134,17 @@ bool video_executor_base::make_video(bool dry_run) const noexcept {
 
 int fractal_utils::run_command(std::string_view command,
                                bool dry_run) noexcept {
-  std::mutex lock;
   if (dry_run) {
+    static std::mutex lock;
     std::lock_guard<std::mutex> lkgd{lock};
     fmt::print("{}\n", command);
     return 0;
   }
-  return system(command.data());
+  const auto error_code = system(command.data());
+  if (error_code == 0) {
+    return error_code;
+  }
+  return error_code;
 }
 
 bool video_executor_base::make_temp_video(int aidx,
@@ -154,20 +161,23 @@ bool video_executor_base::make_temp_video(int aidx,
   if (can_be_regular_file(out_filename)) {
     return true;
   }
+  if (!::create_required_dirs(out_filename)) {
+    return false;
+  }
 
   std::string image_filename_expr;
   this->image_filename_4ffmpeg(aidx, false, image_filename_expr);
 
   std::string command;
   command = fmt::format(
-      "{} -loglevel quiet -r {} -f image2 -start_number 0 -i {} -frames:v "
+      "{} -loglevel warning -r {} -f image2 -start_number 0 -i {} -frames:v "
       "{} -vf "
       "\"scale={}\" {} -y {}",
       vt.ffmpeg_exe, fps, image_filename_expr, fps,
       common.size_expression_4ffmpeg(), vt.temp_config.encode_expr_4ffmpeg(),
       out_filename);
 
-  return run_command(command, dry_run);
+  return !run_command(command, dry_run);
 }
 
 bool video_executor_base::make_temp_extra_video(int aidx,
@@ -192,19 +202,42 @@ bool video_executor_base::make_temp_extra_video(int aidx,
   if (can_be_regular_file(out_filename)) {
     return true;
   }
+  if (!::create_required_dirs(out_filename)) {
+    return false;
+  }
 
   std::string image_filename_expr;
   this->image_filename_4ffmpeg(aidx, true, image_filename_expr);
 
   const std::string command = fmt::format(
-      "{} -loglevel quiet -r {} -f image2 -start_number {} -i {} -frames:v "
+      "{} -loglevel warning -r {} -f image2 -start_number {} -i {} -frames:v "
       "{} -vf "
       "\"scale={}\" {} -y {}",
       vt.ffmpeg_exe, fps, fps, image_filename_expr, rt.extra_image_num,
       common.size_expression_4ffmpeg(), vt.temp_config.encode_expr_4ffmpeg(),
       out_filename);
 
-  return run_command(command, dry_run);
+  return !run_command(command, dry_run);
+}
+
+std::error_code copy_or_link_to(std::string_view src, std::string_view dst,
+                                bool prefer_symlink, bool dry_run,
+                                std::mutex &lock_message) noexcept {
+  if (dry_run) {
+    std::lock_guard<std::mutex> lkgd{lock_message};
+    fmt::print("Make a symlink or copy file : {} -> {}\n", dst, src);
+    return {};
+  }
+  //  if (!create_required_dirs(dst)) {
+  //    return std::e;
+  //  }
+  std::error_code ec;
+  if (prefer_symlink) {
+    stdfs::create_symlink(src, dst, ec);
+  } else {
+    stdfs::copy_file(src, dst, ec);
+  }
+  return ec;
 }
 
 bool video_executor_base::make_second_temp_video(int aidx,
@@ -214,34 +247,49 @@ bool video_executor_base::make_second_temp_video(int aidx,
   if (can_be_regular_file(out_filename)) {
     return true;
   }
+  if (!::create_required_dirs(out_filename)) {
+    return false;
+  }
 
   std::string temp_filename;
   this->video_temp_filename(aidx, false, temp_filename);
   std::mutex lock;
-  if (aidx <= 0) {
-    if (dry_run) {
+  if (aidx <= 0 || this->task().render->extra_image_num <= 0) {
+    std::error_code ec =
+        copy_or_link_to(temp_filename, out_filename,
+                        this->m_task.video->prefer_symlink, dry_run, lock);
+    if (ec.value() != 0) {
       std::lock_guard<std::mutex> lkgd{lock};
-      fmt::print("Make a symlink or copy file : {} -> {}\n", out_filename,
-                 temp_filename);
-      return true;
-    } else {
-      std::error_code ec;
-      if (this->m_task.video->prefer_symlink) {
-        stdfs::create_symlink(temp_filename, out_filename, ec);
-      } else {
-        stdfs::copy_file(temp_filename, out_filename, ec);
-      }
-
-      if (ec.value() != 0) {
-        std::lock_guard<std::mutex> lkgd{lock};
-        fmt::print(
-            "Failed to copy/create-symlink from {} to {}, error_code = {}, "
-            "message = {}.\n",
-            temp_filename, out_filename, ec.value(), ec.message());
-        return false;
-      }
-      return true;
+      fmt::print(
+          "Failed to copy/create-symlink from {} to {}, error_code = {}, "
+          "message = {}.\n ",
+          temp_filename, out_filename, ec.value(), ec.message());
+      return false;
     }
+    return true;
+    //    if (dry_run) {
+    //      std::lock_guard<std::mutex> lkgd{lock};
+    //      fmt::print("Make a symlink or copy file : {} -> {}\n", out_filename,
+    //                 temp_filename);
+    //      return true;
+    //    } else {
+    //      std::error_code ec;
+    //      if (this->m_task.video->prefer_symlink) {
+    //        stdfs::create_symlink(temp_filename, out_filename, ec);
+    //      } else {
+    //        stdfs::copy_file(temp_filename, out_filename, ec);
+    //      }
+    //
+    //      if (ec.value() != 0) {
+    //        std::lock_guard<std::mutex> lkgd{lock};
+    //        fmt::print(
+    //            "Failed to copy/create-symlink from {} to {}, error_code = {},
+    //            " "message = {}.\n", temp_filename, out_filename, ec.value(),
+    //            ec.message());
+    //        return false;
+    //      }
+    //      return true;
+    //    }
   }
 
   std::string temp_extra_filename;
@@ -270,12 +318,12 @@ bool video_executor_base::make_second_temp_video(int aidx,
       geq_expr);
 
   const std::string command = fmt::format(
-      "{} -loglevel quiet {} {} {} -filter_complex \"{}\" {} -map \"[out]\" "
+      "{} -loglevel warning {} {} {} -filter_complex \"{}\" {} -map \"[out]\" "
       "-y {}",
       vt.ffmpeg_exe, i0_expr, i1_expr, i2_expr, filter_expr,
       vt.temp_config.encode_expr_4ffmpeg(), out_filename);
 
-  return run_command(command, dry_run);
+  return !run_command(command, dry_run);
 }
 
 bool video_executor_base::make_second_temp_list_txt(
@@ -286,6 +334,9 @@ bool video_executor_base::make_second_temp_list_txt(
   if (dry_run) {
     fmt::print("Write concate sources to {}\n", txt_filename);
     return true;
+  }
+  if (!::create_required_dirs(txt_filename)) {
+    return false;
   }
 
   std::ofstream ofs{txt_filename.data()};
@@ -304,6 +355,9 @@ bool video_executor_base::make_second_temp_list_txt(
 bool video_executor_base::make_product_video(std::string_view txt_filename,
                                              bool dry_run) const noexcept {
   const std::string product_filename = this->product_filename();
+  if (!::create_required_dirs(product_filename)) {
+    return false;
+  }
 
   const auto &common = *this->m_task.common;
   const auto &ct = *this->m_task.compute;
@@ -314,5 +368,5 @@ bool video_executor_base::make_product_video(std::string_view txt_filename,
       "{} -f concat -safe 0 -i {} {} -y {}", vt.ffmpeg_exe, txt_filename,
       vt.product_config.encode_expr_4ffmpeg(), product_filename);
 
-  return run_command(command, dry_run);
+  return !run_command(command, dry_run);
 }

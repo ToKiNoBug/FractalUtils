@@ -33,6 +33,8 @@ General Public License for more details.
 namespace stdfs = std::filesystem;
 using namespace fractal_utils;
 
+[[nodiscard]] bool create_required_dirs(const stdfs::path &filename) noexcept;
+
 std::string common_info_base::size_expression_4ffmpeg() const noexcept {
   return fmt::format("{}x{}", this->cols(), this->rows());
 }
@@ -113,11 +115,11 @@ void video_executor_base::image_filename(int archive_index, int image_idx,
   ret.clear();
 
   if (image_idx < rt->image_per_frame) {
-    fmt::format_to(std::back_inserter(ret), "{}image{:06}-{}{}.{}",
+    fmt::format_to(std::back_inserter(ret), "{}image{:06}-{:06}{}.{}",
                    rt->image_prefix, archive_index, image_idx, rt->image_suffix,
                    rt->image_extension);
   } else {
-    fmt::format_to(std::back_inserter(ret), "{}image-extra{:06}{}{}.{}",
+    fmt::format_to(std::back_inserter(ret), "{}image-extra{:06}-{:06}{}.{}",
                    rt->image_prefix, archive_index, image_idx, rt->image_suffix,
                    rt->image_extension);
   }
@@ -129,11 +131,11 @@ void video_executor_base::image_filename_4ffmpeg(
   const auto &rt = this->m_task.render;
 
   if (!is_extra) {
-    fmt::format_to(std::back_inserter(ret), "{}image%06d-{}{}.{}",
+    fmt::format_to(std::back_inserter(ret), "{}image{:06}-%06d{}.{}",
                    rt->image_prefix, archive_index, rt->image_suffix,
                    rt->image_extension);
   } else {
-    fmt::format_to(std::back_inserter(ret), "{}image-extra%06d{}{}.{}",
+    fmt::format_to(std::back_inserter(ret), "{}image-extra{:06}-%06d{}.{}",
                    rt->image_prefix, archive_index, rt->image_suffix,
                    rt->image_extension);
   }
@@ -238,6 +240,9 @@ bool create_required_dirs(const stdfs::path &filename) noexcept {
     }
   }
   return false;
+}
+bool fractal_utils::create_required_dirs(std::string_view filename) noexcept {
+  return ::create_required_dirs(stdfs::path{filename});
 }
 
 bool video_executor_base::load_task() & noexcept {
