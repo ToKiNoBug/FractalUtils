@@ -216,7 +216,7 @@ bool fractal_utils::write_png_skipped(
   buffer.clear();
   buffer.reserve(image_rows);
   for (uint64_t r = skip_rows; r < cv.rows() - skip_rows; r++) {
-    const uint64_t offset = r * cv.cols() + skip_rows;
+    const uint64_t offset = r * cv.cols() + skip_cols;
     buffer.emplace_back(reinterpret_cast<const uint8_t *>(cv.data()) +
                         offset * cv.element_bytes());
   }
