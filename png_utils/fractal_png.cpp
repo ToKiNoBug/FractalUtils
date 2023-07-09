@@ -220,7 +220,7 @@ bool fractal_utils::write_png_skipped(
     buffer.emplace_back(reinterpret_cast<const uint8_t *>(cv.data()) + offset);
   }
 
-  return write_png(filename, cs, buffer.data(), skip_rows, skip_cols);
+  return write_png(filename, cs, buffer.data(), image_rows, image_cols);
 }
 
 bool fractal_utils::write_png_skipped(const char *filename,
