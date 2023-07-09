@@ -212,7 +212,15 @@ class video_executor_base {
 
   [[nodiscard]] virtual std::string render(
       const std::any &archive, int archive_index, int image_idx,
-      map_view image_u8c3, render_resource_base *resource) const noexcept = 0;
+      map_view image_u8c3, render_resource_base *resource) const noexcept {
+    return this->render_with_skip(archive, archive_index, image_idx, 0, 0,
+                                  image_u8c3, resource);
+  }
+  
+  [[nodiscard]] virtual std::string render_with_skip(
+      const std::any &archive, int archive_index, int image_idx, int skip_rows,
+      int skip_cols, map_view image_u8c3,
+      render_resource_base *resource) const noexcept = 0;
 
   [[nodiscard]] virtual err_info_t save_archive(
       const std::any &, std::string_view filename) const noexcept = 0;

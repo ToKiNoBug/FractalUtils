@@ -483,9 +483,14 @@ bool video_executor_base::run_render() const noexcept {
     for (int iidx = 0; iidx < rt.image_count(); iidx++) {
       this->image_filename(aidx, iidx, image_filename);
 
+      const int skip_r =
+          skip_rows(common.rows(), common.ratio, rt.image_per_frame, iidx);
+      const int skip_c =
+          skip_cols(common.cols(), common.ratio, rt.image_per_frame, iidx);
+
       if (!render_once) {
-        auto err =
-            this->render(archive, aidx, 0, image_u8c3, render_resource.get());
+        auto err = this->render_with_skip(archive, aidx, 0, skip_r, skip_c,
+                                          image_u8c3, render_resource.get());
         if (!err.empty()) {
           std::lock_guard<std::mutex> lkgd{lock};
           fmt::print(
@@ -497,11 +502,6 @@ bool video_executor_base::run_render() const noexcept {
           break;
         }
       }
-
-      const int skip_r =
-          skip_rows(common.rows(), common.ratio, rt.image_per_frame, iidx);
-      const int skip_c =
-          skip_cols(common.cols(), common.ratio, rt.image_per_frame, iidx);
 
       if (!create_required_dirs(image_filename)) {
         std::lock_guard<std::mutex> lkgd{lock};
