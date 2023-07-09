@@ -33,7 +33,7 @@ namespace stdfs = std::filesystem;
 using namespace fractal_utils;
 
 std::string common_info_base::size_expression_4ffmpeg() const noexcept {
-  return fmt::format("{}x{}", this->cols, this->rows);
+  return fmt::format("{}x{}", this->cols(), this->rows());
 }
 
 std::string video_task_base::video_config::encode_expr_4ffmpeg()
@@ -301,7 +301,7 @@ bool video_executor_base::run_compute() const noexcept {
   }
   const int already_finished_tasks = finished_tasks;
 
-  std::unique_ptr<wind_base> current_wind{ct.start_window->create_another()};
+  std::unique_ptr<wind_base> current_wind{ct.start_window()->create_another()};
 
   for (int aidx = 0; aidx < common.archive_num; aidx++) {
     if (task_lut[aidx]) {
@@ -312,7 +312,7 @@ bool video_executor_base::run_compute() const noexcept {
         "[{} / {} : {}%] : computing {}", finished_tasks, common.archive_num,
         float(finished_tasks * 100) / float(common.archive_num), filename);
 
-    ct.start_window->copy_to(current_wind.get());
+    ct.start_window()->copy_to(current_wind.get());
     current_wind->update_scale(common.ratio, aidx);
 
     this->compute(aidx, *current_wind, archive);
@@ -425,14 +425,14 @@ bool video_executor_base::run_render() const noexcept {
     thread_local std::any archive;
     thread_local std::vector<uint8_t> buffer;
     thread_local std::string filename;
-    thread_local unique_map image_u8c3{common.rows, common.cols, 3};
+    thread_local unique_map image_u8c3{common.rows(), common.cols(), 3};
     thread_local std::vector<const void *> row_ptrs;
     thread_local std::unique_ptr<render_resource_base> render_resource =
         this->create_render_resource();
 
     buffer.resize(common.suggested_load_buffer_size());
     filename.reserve(1024);
-    row_ptrs.reserve(common.cols);
+    row_ptrs.reserve(common.cols());
 
     this->archive_filename(aidx, filename);
 
@@ -491,9 +491,9 @@ bool video_executor_base::run_render() const noexcept {
       }
 
       const int skip_r =
-          skip_rows(common.rows, common.ratio, rt.image_per_frame, iidx);
+          skip_rows(common.rows(), common.ratio, rt.image_per_frame, iidx);
       const int skip_c =
-          skip_cols(common.cols, common.ratio, rt.image_per_frame, iidx);
+          skip_cols(common.cols(), common.ratio, rt.image_per_frame, iidx);
 
       if (!write_png_skipped(image_filename.c_str(), color_space::u8c3,
                              image_u8c3, skip_r, skip_c, row_ptrs)) {

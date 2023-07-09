@@ -36,12 +36,16 @@ namespace fractal_utils {
 class common_info_base {
  public:
   virtual ~common_info_base() = default;
-  size_t rows;
-  size_t cols;
+  [[nodiscard]] virtual size_t rows() const noexcept = 0;
+  [[nodiscard]] virtual size_t cols() const noexcept = 0;
+  // size_t rows;
+  // size_t cols;
   int archive_num;
   double ratio;
 
-  virtual size_t suggested_load_buffer_size() const noexcept { return 1 << 20; }
+  [[nodiscard]] virtual size_t suggested_load_buffer_size() const noexcept {
+    return 1 << 20;
+  }
 
   std::string size_expression_4ffmpeg() const noexcept;
 };
@@ -49,7 +53,9 @@ class common_info_base {
 class compute_task_base {
  public:
   virtual ~compute_task_base() = default;
-  std::unique_ptr<wind_base> start_window{nullptr};
+  // std::unique_ptr<wind_base> start_window{nullptr};
+  [[nodiscard]] virtual wind_base *start_window() noexcept = 0;
+  [[nodiscard]] virtual const wind_base *start_window() const noexcept = 0;
   std::string archive_prefix;
   std::string archive_suffix;
   std::string archive_extension{"bin"};
@@ -223,23 +229,26 @@ class video_executor_base {
   [[nodiscard]] virtual err_info_t error_of_archive(
       std::string_view filename, std::any &archive) const noexcept = 0;
 
-  inline std::string load_archive(std::string_view filename,
-                                  std::any &archive) const noexcept {
+  [[nodiscard]] inline std::string load_archive(
+      std::string_view filename, std::any &archive) const noexcept {
     return this->load_archive(filename, {}, archive);
   }
   [[nodiscard]] virtual std::string load_archive(
       std::string_view filename, std::span<uint8_t> buffer,
       std::any &archive) const noexcept = 0;
 
-  virtual bool make_temp_video(int aidx, bool dry_run) const noexcept;
-  virtual bool make_temp_extra_video(int aidx, bool dry_run) const noexcept;
-  virtual bool make_second_temp_video(int aidx, bool dry_run) const noexcept;
-  virtual bool make_second_temp_list_txt(
+  [[nodiscard]] virtual bool make_temp_video(int aidx,
+                                             bool dry_run) const noexcept;
+  [[nodiscard]] virtual bool make_temp_extra_video(int aidx,
+                                                   bool dry_run) const noexcept;
+  [[nodiscard]] virtual bool make_second_temp_video(
+      int aidx, bool dry_run) const noexcept;
+  [[nodiscard]] virtual bool make_second_temp_list_txt(
       std::string_view txt_filename,
       std::span<const std::string> concate_sources,
       bool dry_run) const noexcept;
-  virtual bool make_product_video(std::string_view txt_filename,
-                                  bool dry_run) const noexcept;
+  [[nodiscard]] virtual bool make_product_video(std::string_view txt_filename,
+                                                bool dry_run) const noexcept;
 };
 
 [[nodiscard]] int run_command(std::string_view command, bool dry_run) noexcept;
