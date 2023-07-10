@@ -36,7 +36,8 @@ using namespace fractal_utils;
 [[nodiscard]] bool create_required_dirs(const stdfs::path &filename) noexcept;
 
 std::string common_info_base::size_expression_4ffmpeg() const noexcept {
-  return fmt::format("{}x{}", this->cols(), this->rows());
+  return fmt::format("{}x{}", int((double)this->cols() / this->ratio),
+                     int((double)this->rows() / this->ratio));
 }
 
 std::string video_task_base::video_config::encode_expr_4ffmpeg()
