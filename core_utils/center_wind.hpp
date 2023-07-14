@@ -277,7 +277,7 @@ class center_wind : public wind_base {
     std::array<double, 2> relative_offset_rc{0, 0};
     for (int idx = 0; idx < 2; idx++) {
       relative_offset_rc[idx] =
-          (position_rc[idx] + 0.5) / (position_rc[idx]) - 0.5;
+          (position_rc[idx] + 0.5) / (total_size_rc[idx]) - 0.5;
     }
 
     result[0] += this->x_span * relative_offset_rc[1];

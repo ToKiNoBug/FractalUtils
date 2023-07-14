@@ -1,12 +1,11 @@
 project(FractalUtils_multiprecision_utils LANGUAGES CXX)
 cmake_minimum_required(VERSION 3.15)
 
-
-find_package(Boost COMPONENTS multiprecision)
+find_package(Boost NO_MODULE COMPONENTS multiprecision)
 
 set(FractalUtils_mp_boost_mp_target_name)
 unset(FractalUtils_mp_boost_include_dir)
-if (NOT ${BOOST_FOUND})
+if (NOT BOOST_FOUND)
     message(STATUS "Failed to find Boost::multiprecision by find_package, searching for its headers")
     find_file(boost_multiprecision_header_file "cpp_bin_float.hpp"
             PATH_SUFFIXES include/boost/multiprecision)
