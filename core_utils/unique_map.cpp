@@ -154,6 +154,8 @@ map_view::operator const fractal_map() const noexcept {
 
 ///////////////////////////////////////////////////////////
 
+constant_view::constant_view() : constant_view{nullptr, 0, 0, 0} {}
+
 constant_view::constant_view(const void *_data, size_t r, size_t c, size_t eleb)
     : m_data{_data}, internal::map_base{r, c, eleb} {}
 
@@ -171,6 +173,13 @@ constant_view::operator const fractal_map() const noexcept {
   return fractal_map{this->rows(), this->cols(),
                      (uint32_t)this->element_bytes(),
                      const_cast<void *>(this->data())};
+}
+
+constant_view &constant_view::operator=(
+    const constant_view &another) & noexcept {
+  this->m_data = another.m_data;
+  this->strict_shape() = another.strict_shape();
+  return *this;
 }
 
 /*

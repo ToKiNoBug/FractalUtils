@@ -35,23 +35,48 @@ General Public License for more details.
 namespace fractal_utils {
 
 namespace internal {
-class map_base {
+class map_shape {
  protected:
   size_t m_rows{0};
   size_t m_cols{0};
+
+ public:
+  map_shape() = default;
+  map_shape(size_t r, size_t c) : m_rows{r}, m_cols{c} {}
+
+  [[nodiscard]] inline size_t rows() const noexcept { return this->m_rows; }
+  [[nodiscard]] inline size_t cols() const noexcept { return this->m_cols; }
+  [[nodiscard]] inline size_t size() const noexcept {
+    return this->m_rows * this->m_cols;
+  }
+
+  [[nodiscard]] map_shape &shape() noexcept { return *this; }
+  [[nodiscard]] const map_shape &shape() const noexcept { return *this; }
+
+  inline bool operator==(const map_shape &B) const noexcept {
+    return (this->m_rows == B.m_rows) && (this->m_cols == B.m_cols);
+  }
+
+  inline bool operator!=(const map_shape &B) const noexcept {
+    return !this->operator==(B);
+  }
+};
+
+class map_base : public map_shape {
+ protected:
   size_t m_ele_bytes{0};
 
  public:
   map_base() = default;
   map_base(size_t r, size_t c, size_t ele_bytes)
-      : m_rows(r), m_cols(c), m_ele_bytes(ele_bytes) {}
-  inline size_t rows() const noexcept { return this->m_rows; }
-  inline size_t cols() const noexcept { return this->m_cols; }
+      : map_shape{r, c}, m_ele_bytes(ele_bytes) {}
   inline size_t element_bytes() const noexcept { return this->m_ele_bytes; }
-  inline size_t size() const noexcept { return this->m_rows * this->m_cols; }
   inline size_t bytes() const noexcept {
     return this->m_rows * this->m_cols * this->m_ele_bytes;
   }
+
+  [[nodiscard]] map_base &strict_shape() noexcept { return *this; }
+  [[nodiscard]] const map_base &strict_shape() const noexcept { return *this; }
 
   [[deprecated]] inline auto byte_count() const noexcept {
     return this->bytes();
@@ -61,8 +86,7 @@ class map_base {
   }
 
   inline bool operator==(const map_base &B) const noexcept {
-    return (this->m_rows == B.m_rows) && (this->m_cols == B.m_cols) &&
-           (this->m_ele_bytes == B.m_ele_bytes);
+    return (this->shape() == B.shape()) && (this->m_ele_bytes == B.m_ele_bytes);
   }
 
   inline bool operator!=(const map_base &B) const noexcept {
@@ -318,7 +342,7 @@ class map_view : public internal::map_accesser<map_view>,
   map_view(fractal_map &src);
 
   explicit operator fractal_map() noexcept;
-  explicit operator internal::const_fractal_map_t() const noexcept;
+  explicit operator const fractal_map() const noexcept;
 
   consteval bool own_memory() const noexcept { return false; }
   consteval bool has_ownership() const noexcept { return false; }
@@ -327,7 +351,7 @@ class map_view : public internal::map_accesser<map_view>,
 class constant_view : public internal::const_map_accesser<constant_view>,
                       public internal::map_base {
  private:
-  const void *const m_data;
+  const void *m_data{nullptr};
   const void *impl_get_data_for_accesser() const noexcept {
     return this->m_data;
   }
@@ -336,7 +360,7 @@ class constant_view : public internal::const_map_accesser<constant_view>,
   friend class internal::const_map_accesser;
 
  public:
-  constant_view() = delete;
+  constant_view();
   constant_view(const constant_view &) = default;
   constant_view(constant_view &&) = default;
 
@@ -351,6 +375,8 @@ class constant_view : public internal::const_map_accesser<constant_view>,
   constant_view(const fractal_map &src);
 
   explicit operator internal::const_fractal_map_t() const noexcept;
+
+  constant_view &operator=(const constant_view &) & noexcept;
 
   consteval bool own_memory() const noexcept { return false; }
   consteval bool has_ownership() const noexcept { return false; }
