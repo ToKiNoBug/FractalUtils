@@ -30,6 +30,7 @@ General Public License for more details.
 #include <mutex>
 #include <optional>
 #include <stack>
+#include <QTranslator>
 
 #include "scalable_label.h"
 
@@ -48,6 +49,8 @@ struct push_options {
   bool save_archive{true};
   bool save_image{true};
 };
+
+enum class language_t { en_US, zh_CN };
 
 QImage scale_image(const QImage &src, int scale) noexcept;
 
@@ -89,6 +92,9 @@ class zoom_window : public QMainWindow {
 
   QWidget *m_custom_widget{nullptr};
 
+  language_t m_current_lang{language_t::en_US};
+  QTranslator m_translator_zoom_window;
+
  protected:
   virtual void compute_current() & noexcept;
   virtual void render_current() & noexcept;
@@ -114,6 +120,12 @@ class zoom_window : public QMainWindow {
                                std::any &custom) const noexcept;
 
  public:
+  [[nodiscard]] auto current_language() const noexcept {
+    return this->m_current_lang;
+  }
+
+  virtual QString set_language(language_t lang) & noexcept;
+
   [[nodiscard]] push_options push_option() const noexcept {
     return this->push_opt;
   }

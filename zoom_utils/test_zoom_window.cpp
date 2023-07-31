@@ -136,9 +136,15 @@ class window : public zoom_window {
 
 int main(int argc, char **argv) {
   QApplication qapp{argc, argv};
-  //{ window windA; }
 
   window wind{};
+  {
+    QLocale locale;
+    if (locale.language() == QLocale::Language::Chinese) {
+      wind.set_language(fractal_utils::language_t::zh_CN);
+    }
+  }
+
   const int rows = 720;
   const int cols = 1080;
   wind.reset(rows, cols);

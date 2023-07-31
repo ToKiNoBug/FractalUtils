@@ -8,7 +8,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 COMPONENTS Widgets)
+find_package(Qt6 COMPONENTS Widgets LinguistTools)
 find_package(OpenMP REQUIRED)
 
 if (NOT ${QT_FOUND})
@@ -18,22 +18,33 @@ endif ()
 
 # include_directories(${CMAKE_SOURCE_DIR}/core_utils)
 add_library(zoom_utils STATIC
-        zoom_utils.h
-        zoom_utils.cpp
+    zoom_utils_mainwindow.ui
 
-        zoom_window.h
-        zoom_window.cpp
+    zoom_utils.h
+    zoom_utils.cpp
 
-        scalable_label.h
-        scalable_label.cpp)
+    zoom_window.h
+    zoom_window.cpp
+
+    scalable_label.h
+    scalable_label.cpp)
+
+qt_add_translations(zoom_utils
+    TS_FILES others/zoom_utils_zh_CN.ts
+    OUTPUT_TARGETS zoom_utils_translations_target_names
+    LUPDATE_OPTIONS -no-obsolete
+    #QM_FILES_OUTPUT_VARIABLE zoom_utils_qm_files
+)
+
+message(STATUS "zoom_utils_translations_target_names = ${zoom_utils_translations_target_names}")
 
 set(FractalUtils_zoom_utils_headers
-        zoom_utils.h
-        zoom_window.h)
+    zoom_utils.h
+    zoom_window.h)
 
 target_link_libraries(zoom_utils PUBLIC
-        Qt6::Widgets
-        core_utils)
+    Qt6::Widgets
+    core_utils)
 
 target_compile_features(zoom_utils PUBLIC cxx_std_17)
 
@@ -41,30 +52,36 @@ add_library(fractal_utils::zoom_utils ALIAS zoom_utils)
 
 # install libs
 target_include_directories(zoom_utils
-        PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        INTERFACE
-        $<INSTALL_INTERFACE:include>)
+    PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    INTERFACE
+    $<INSTALL_INTERFACE:include>)
 
 if (NOT ${FractalUtils_no_install})
     # install the target and create export-set
     install(TARGETS zoom_utils
-            EXPORT fractal_utils_zoom_utils-targets
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
-            RUNTIME DESTINATION bin
-            INCLUDES DESTINATION include/fractal_utils
-            )
+        EXPORT fractal_utils_zoom_utils-targets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include/fractal_utils
+    )
+    install(TARGETS ${zoom_utils_translations_target_names}
+        EXPORT fractal_utils_zoom_utils-targets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include/fractal_utils)
 
     # install header file
     install(FILES ${FractalUtils_zoom_utils_headers} DESTINATION include/fractal_utils)
 
     # generate and install export file
     install(EXPORT fractal_utils_zoom_utils-targets
-            FILE fractal_utilszoom_utilsTargets.cmake
-            NAMESPACE fractal_utils::
-            DESTINATION lib/cmake/fractal_utils
-            )
+        FILE fractal_utilszoom_utilsTargets.cmake
+        NAMESPACE fractal_utils::
+        DESTINATION lib/cmake/fractal_utils
+    )
 endif ()
 
 if (NOT ${FractalUtils_build_examples})
@@ -73,28 +90,28 @@ endif ()
 
 # example executable
 add_executable(test_zoom_utils
-        test_zoom_utils.cpp)
+    test_zoom_utils.cpp)
 
 add_executable(test_zoom_window
-        test_zoom_window.cpp)
+    test_zoom_window.cpp)
 
 find_package(OpenMP REQUIRED)
 target_link_libraries(test_zoom_utils PRIVATE
-        zoom_utils
-        Qt6::Widgets
-        core_utils
-        OpenMP::OpenMP_CXX)
+    zoom_utils
+    Qt6::Widgets
+    core_utils
+    OpenMP::OpenMP_CXX)
 
 target_link_libraries(test_zoom_window PRIVATE
-        zoom_utils
-        Qt6::Widgets
-        core_utils
-        OpenMP::OpenMP_CXX)
+    zoom_utils
+    Qt6::Widgets
+    core_utils
+    OpenMP::OpenMP_CXX)
 
 set_target_properties(test_zoom_utils PROPERTIES
-        WIN32_EXECUTABLE TRUE)
+    WIN32_EXECUTABLE TRUE)
 set_target_properties(test_zoom_window PROPERTIES
-        WIN32_EXECUTABLE TRUE)
+    WIN32_EXECUTABLE TRUE)
 
 if (${WIN32})
     find_program(FU_windeployqt NAME windeployqt PATHS ${CMAKE_PREFIX_PATH})
@@ -104,14 +121,14 @@ if (${WIN32})
     else ()
         message(STATUS "windeployqt found at ${FU_windeployqt}")
         add_custom_target(FU_test-zoomer-deployqt
-                COMMAND ${FU_windeployqt} test_zoom_utils.exe
-                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-                DEPENDS test_zoom_utils)
+            COMMAND ${FU_windeployqt} test_zoom_utils.exe
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            DEPENDS test_zoom_utils)
     endif ()
 endif ()
 
 if (NOT ${FractalUtils_no_test})
     add_test(NAME FractalUtils_test_zoom_utils
-            COMMAND test_zoom_utils
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+        COMMAND test_zoom_utils
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif ()
