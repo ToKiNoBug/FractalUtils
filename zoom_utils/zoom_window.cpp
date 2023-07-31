@@ -24,6 +24,7 @@ General Public License for more details.
 
 #include <QFileDialog>
 #include <QMessageBox>
+#include <fmt/format.h>
 
 #include "scalable_label.h"
 #include "ui_zoom_utils_mainwindow.h"
@@ -181,7 +182,7 @@ void zoom_window::refresh_range_display() & noexcept {
   {
     auto center_str = current_wind->center_string(this->m_ss);
     ui->label_center->setText(
-        QStringLiteral("Center: (%1, %2)")
+        tr("Center: (%1, %2)")
             .arg(center_str[0].c_str(), center_str[1].c_str()));
     ui->show_scale_x->setText(x_span_str.c_str());
     ui->show_scale_y->setText(y_span_str.c_str());
@@ -189,12 +190,12 @@ void zoom_window::refresh_range_display() & noexcept {
   {
     auto mm = current_wind->right_top_corner_string(this->m_ss);
     this->ui->label_maxpos->setText(
-        QStringLiteral("Maxpos: (%1, %2)").arg(mm[0].c_str(), mm[1].c_str()));
+        tr("Maxpos: (%1, %2)").arg(mm[0].c_str(), mm[1].c_str()));
   }
   {
     auto mm = current_wind->left_bottom_corner_string(this->m_ss);
     this->ui->label_minpos->setText(
-        QStringLiteral("Minpos: (%1, %2)").arg(mm[0].c_str(), mm[1].c_str()));
+        tr("Minpos: (%1, %2)").arg(mm[0].c_str(), mm[1].c_str()));
   }
   {
     std::string err;
@@ -202,8 +203,8 @@ void zoom_window::refresh_range_display() & noexcept {
 
     if (!err.empty()) {
       QMessageBox::critical(
-          this, "Failed to encode binary to hex string.",
-          QStringLiteral("this->callback_hex_encode_fun failed. \nDetail: %1\n")
+          this, tr("Failed to encode binary to hex string"),
+          tr("this->callback_hex_encode_fun failed. \nDetail: %1\n")
               .arg(QString::fromUtf8(err.data())));
 
       abort();
@@ -219,8 +220,7 @@ void zoom_window::received_mouse_move(std::array<int, 2> pos) {
       {(int)this->rows(), (int)this->cols()}, pos, this->m_ss);
 
   this->ui->label_mousepos->setText(
-      QStringLiteral("Mouse : (%1, %2)")
-          .arg(coord[0].c_str(), coord[1].c_str()));
+      tr("Mouse : (%1, %2)").arg(coord[0].c_str(), coord[1].c_str()));
 }
 
 void zoom_window::push(compute_result &&new_res) & noexcept {
@@ -309,9 +309,9 @@ void zoom_window::on_btn_repaint_clicked() {
       this->decode_hex(current_hex, current_wind, err);
       if (!err.empty()) {
         QMessageBox::critical(
-            this, "Invalid hex string",
-            QStringLiteral("this->callback_hex_decode_fun failed to decode "
-                           "hex string \"%1\" to binary. \nDetail: \n%2")
+            this, tr("Invalid hex string"),
+            tr("this->callback_hex_decode_fun failed to decode "
+               "hex string \"%1\" to binary. \nDetail: \n%2")
                 .arg(QString::fromUtf8(current_hex),
                      QString::fromUtf8(err.data())));
         // this->lock.unlock();
@@ -323,15 +323,15 @@ void zoom_window::on_btn_repaint_clicked() {
 
       if (!current_wind->set_x_span(new_x_span.data(), this->m_ss)) {
         QMessageBox::critical(
-            this, "Invalid value for x span",
-            QStringLiteral("%1 can not be converted to an floating point type.")
+            this, tr("Invalid value for x span"),
+            tr("%1 can not be converted to an floating point type.")
                 .arg(new_x_span.data()));
         return;
       }
       if (!current_wind->set_y_span(new_y_span.data(), this->m_ss)) {
         QMessageBox::critical(
-            this, "Invalid value for y span",
-            QStringLiteral("%1 can not be converted to an floating point type.")
+            this, tr("Invalid value for y span"),
+            tr("%1 can not be converted to an floating point type.")
                 .arg(new_x_span.data()));
         return;
       }
@@ -357,22 +357,22 @@ void zoom_window::on_btn_repaint_clicked() {
 void zoom_window::on_btn_save_image_clicked() {
   if (this->m_window_stack.empty() ||
       !this->current_result().image.has_value()) {
-    QMessageBox::warning(this, "Can not save as image",
-                         "No image to be displayed.");
+    QMessageBox::warning(this, tr("Can not save as image"),
+                         tr("No image to be displayed."));
     return;
   }
 
   static QString prev_dir{""};
-  const QString path = QFileDialog::getSaveFileName(this, "Save current image",
-                                                    "", "*.png;;*.jpg;;*.gif");
+  const QString path = QFileDialog::getSaveFileName(
+      this, tr("Save current image"), "", "*.png;;*.jpg;;*.gif");
   if (path.isEmpty()) {
     return;
   }
   prev_dir = QFileInfo{path}.dir().absolutePath();
 
   if (!this->current_result().image.value().save(path)) {
-    QMessageBox::warning(this, "Failed to save image",
-                         QStringLiteral("Failed to generate %1").arg(path));
+    QMessageBox::warning(this, tr("Failed to save image"),
+                         tr("Failed to generate %1").arg(path));
   }
 }
 
@@ -380,9 +380,10 @@ QString zoom_window::export_frame(QString filename, const wind_base &wind,
 
                                   constant_view image_u8c3,
                                   std::any &archive) const noexcept {
-  return "Can not export the frame because virtual function named "
-         "\"export_frame\" is not overrided. This reply is from the default "
-         "implementation of zoom_window.";
+  return tr(
+      "Can not export the frame because virtual function named "
+      "\"export_frame\" is not overrided. This reply is from the default "
+      "implementation of zoom_window.");
 }
 
 void zoom_window::on_btn_save_frame_clicked() {
@@ -393,14 +394,14 @@ void zoom_window::on_btn_save_frame_clicked() {
   auto &cur = this->current_result();
 
   if (!cur.archive.has_value()) {
-    QMessageBox::warning(this, "No data to export",
+    QMessageBox::warning(this, tr("No data to export"),
                          "fractal.has_value()==false");
     return;
   }
 
   static QString prev_dir{""};
   QString path = QFileDialog::getSaveFileName(
-      this, "Save current frame to custom file format", "",
+      this, tr("Save current frame to custom file format"), "",
       this->m_frame_file_extensions);
 
   if (path.isEmpty()) {
@@ -422,8 +423,8 @@ void zoom_window::on_btn_save_frame_clicked() {
   }
 
   if (!err.isEmpty()) {
-    QMessageBox::warning(this, "Failed to export custom frame.",
-                         QStringLiteral("Details: %1").arg(err));
+    QMessageBox::warning(this, tr("Failed to export custom frame."),
+                         tr("Details: %1").arg(err));
     return;
   }
   return;
@@ -460,14 +461,18 @@ void zoom_window::decode_hex(
   auto bytes = fractal_utils::hex_2_bin(hex, dst, dst_bytes);
 
   if (!bytes.has_value()) {
-    err = "Failed to convert hex to binary, the hex string may be invalid.";
+    err = tr("Failed to convert hex to binary, the hex string may be invalid.")
+              .toLocal8Bit();
     return;
   }
 
   if (bytes.value() != dst_bytes) {
-    err = "The length of hex is invalid. Expected " +
-          std::to_string(dst_bytes) + " bytes, but actually " +
-          std::to_string(bytes.value()) + " bytes written.";
+    QString err_temp =
+        tr("The length of hex is invalid. Expected %1 bytes, but actually %2 "
+           "bytes written.")
+            .arg(dst_bytes)
+            .arg(bytes.value());
+    err = err_temp.toLocal8Bit();
   }
 }
 
@@ -513,4 +518,27 @@ void zoom_window::set_custom_widget(QWidget *widget) & noexcept {
 
 [[nodiscard]] const QWidget *zoom_window::custom_widget() const noexcept {
   return this->m_custom_widget;
+}
+
+QString zoom_window::set_language(language_t lang) & noexcept {
+  QString translator_filename;
+  switch (lang) {
+    case language_t::en_US:
+      QCoreApplication::removeTranslator(&this->m_translator_zoom_window);
+      return {};
+    case language_t::zh_CN:
+      translator_filename = ":/i18n/zoom_utils_zh_CN.qm";
+      break;
+  }
+
+  auto ok = this->m_translator_zoom_window.load(translator_filename);
+  if (!ok) {
+    return QStringLiteral("Failed to load %1").arg(translator_filename);
+  }
+  QCoreApplication::installTranslator(&this->m_translator_zoom_window);
+
+  this->ui->retranslateUi(this);
+  this->m_current_lang = lang;
+
+  return {};
 }
