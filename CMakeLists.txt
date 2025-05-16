@@ -2,6 +2,13 @@
 cmake_minimum_required(VERSION 3.15)
 project(FractalUtils VERSION 2.3.25 LANGUAGES CXX)
 
+if((${LINUX}) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
+    set(FU_quadmath_default_option ON)
+else ()
+    set(FU_quadmath_default_option OFF)
+endif ()
+option(FU_USE_QUADMATH "Enable GNU __float128" ${FU_quadmath_default_option})
+
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if (${CMAKE_SOURCE_DIR} STREQUAL ${PROJECT_SOURCE_DIR})

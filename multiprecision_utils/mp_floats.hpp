@@ -136,7 +136,7 @@ struct multiprecision_float_types<2> {
 
 template <>
 struct multiprecision_float_types<4> {
-#ifdef __GNUC__
+#ifdef FU_USE_QUADMATH
   using float_t = __float128;
 #else
   using float_t = boost::multiprecision::cpp_bin_float_quad;

@@ -105,12 +105,14 @@ add_library(multiprecision_utils STATIC
         ${FractalUtils_optional_sources}
         )
 
-
 target_link_libraries(multiprecision_utils PUBLIC
         ${FractalUtils_mp_boost_mp_target_name}
         core_utils
         )
 
+if(${FU_USE_QUADMATH})
+    target_compile_definitions(multiprecision_utils PUBLIC FU_USE_QUADMATH=1)
+endif ()
 
 target_compile_features(multiprecision_utils PUBLIC cxx_std_20)
 
@@ -169,13 +171,13 @@ if (${FractalUtils_build_examples})
 endif ()
 
 
-if ((${LINUX}) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
-
+if (${FU_USE_QUADMATH})
     if (${FractalUtils_build_examples})
         add_executable(test_quadmath test_quadmath.cpp)
         target_link_libraries(test_quadmath PRIVATE
                 multiprecision_utils
-                core_utils)
+                core_utils
+        )
     endif ()
 endif ()
 
@@ -188,11 +190,13 @@ if (${FractalUtils_multiprecision_gmp_support})
         add_executable(test_gmp_float test_gmp_float.cpp)
         target_link_libraries(test_gmp_float PRIVATE
                 multiprecision_utils
-                core_utils)
+                core_utils
+        )
 
         add_executable(test_gmp_complex test_gmp_complex.cpp)
         target_link_libraries(test_gmp_complex PRIVATE
-                multiprecision_utils)
+                multiprecision_utils
+        )
     endif ()
 endif ()
 

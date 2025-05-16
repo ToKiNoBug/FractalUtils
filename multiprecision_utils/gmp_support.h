@@ -45,7 +45,7 @@ namespace internal {
 #ifdef __GNUC__
 constexpr int max_trivial_precision = 4;
 #else
-constexpr int max_trivial_precision == 2;
+constexpr int max_trivial_precision = 2;
 #endif
 
 size_t limb_num(const __mpf_struct *number) noexcept;

@@ -30,13 +30,14 @@ add_library(zoom_utils STATIC
     scalable_label.cpp)
 
 qt6_add_translations(zoom_utils
+    SOURCE_TARGETS zoom_utils
     TS_FILES others/zoom_utils_zh_CN.ts
-#    OUTPUT_TARGETS zoom_utils_translations_target_names
+    OUTPUT_TARGETS zoom_utils_translations_target_names
     LUPDATE_OPTIONS -no-obsolete
     #QM_FILES_OUTPUT_VARIABLE zoom_utils_qm_files
 )
 
-#message(STATUS "zoom_utils_translations_target_names = ${zoom_utils_translations_target_names}")
+message(STATUS "zoom_utils_translations_target_names = ${zoom_utils_translations_target_names}")
 
 set(FractalUtils_zoom_utils_headers
     zoom_utils.h
