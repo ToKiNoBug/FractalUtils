@@ -1,6 +1,6 @@
 
 cmake_minimum_required(VERSION 3.15)
-project(FractalUtils VERSION 2.3.25 LANGUAGES CXX)
+project(FractalUtils VERSION 2.3.26 LANGUAGES CXX)
 
 if((${LINUX}) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
     set(FU_quadmath_default_option ON)
