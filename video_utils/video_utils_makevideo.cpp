@@ -26,6 +26,7 @@
 #include <atomic>
 #include <mutex>
 #include <fstream>
+#include <iterator>
 
 namespace stdfs = std::filesystem;
 bool can_be_regular_file(const stdfs::path &filename) noexcept;
