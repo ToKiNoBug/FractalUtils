@@ -84,7 +84,7 @@ struct multiprecision_int_types<2> {
   using uint_t = uint64_t;
 };
 
-#ifdef __GNUC__
+#ifdef FU_USE_QUADMATH
 template <>
 struct multiprecision_int_types<4> {
   using uint_t = __uint128_t;

@@ -86,9 +86,14 @@ int main(int, char**) {
   static_assert(std::is_same_v<float_by_precision_t<1>, float>);
   static_assert(std::is_same_v<float_by_precision_t<2>, double>);
 
-#ifdef __GNUC__
+#ifdef FU_USE_QUADMATH
   static_assert(std::is_same_v<uint_by_precision_t<4>, __uint128_t>);
   static_assert(std::is_same_v<float_by_precision_t<4>, __float128>);
+#else
+  //  static_assert(std::is_same_v<uint_by_precision_t<4>,
+  //  boost::multiprecision::cpp_int>);
+  static_assert(std::is_same_v<float_by_precision_t<4>,
+                               boost::multiprecision::cpp_bin_float_quad>);
 #endif
 
   test<1>();
